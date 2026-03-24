@@ -92,6 +92,13 @@
     margin-bottom: 4px;
   }
 
+  .title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
   .header-date {
     font-size: 24px;
     font-weight: 700;
@@ -235,7 +242,15 @@
     transition: all 0.2s;
     white-space: nowrap;
   }
-  .btn-resume:hover { background: var(--cyan-light); border-color: var(--cyan); }
+  .btn-craque.panel-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .btn-resume.panel-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
 
   /* ── Layout 50/50 ── */
   .layout {
@@ -283,7 +298,10 @@
   }
 
   .panel-header-right {
-    text-align: right;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
     font-size: 11px;
     color: var(--text-dim);
   }
@@ -662,31 +680,24 @@
   <!-- ══ Header ══ -->
   <div class="header">
 
-    <!-- Gauche : date -->
+    <!-- Gauche : titre + badge semaine -->
     <div class="header-info">
-      <h1>✨ Ma journée</h1> 
-      <div class="header-date" id="header-date"></div>
-       <div class="header-week"><span id="header-week"></span></div>
-    </div>
-
-    <!-- Centre : psy card (réserve la place même vide) -->
-    <div class="header-center">
-      <div class="psy-card" id="psy-card">
-        <div class="psy-label">✦ Un moment pour toi</div>
-        <div class="psy-text" id="psy-text"></div>
-        <span class="psy-close" onclick="closePsy()">C'est bon, je reprends →</span>
+      <div class="title-row">
+        <h1>✨ Ma journée</h1> 
+        <div class="header-week"><span id="header-week"></span></div>
       </div>
+      <div class="header-date" id="header-date"></div>
     </div>
 
-    <!-- Droite : horloge + boutons -->
+    <!-- Centre : vide -->
+    <div class="header-center">
+    </div>
+
+    <!-- Droite : horloge -->
     <div class="header-right">
       <div class="clock-wrap">
         <div class="clock" id="clock">00:00</div>
         <div class="seconds-bar"><div class="seconds-fill" id="seconds-fill"></div></div>
-      </div>
-      <div class="header-btns">
-        <button class="btn-craque" onclick="openCraque()">Là je craque 🫠</button>
-        <button class="btn-resume" onclick="openResume()">📋 Résumé </button>
       </div>
     </div>
 
@@ -720,7 +731,9 @@
         <div class="panel-header">
           <span class="panel-title cyan">🗒 Notes</span>
           <span class="panel-header-center"></span>
-          <span class="panel-header-right"></span>
+          <div class="panel-header-right">
+            <button class="btn-resume panel-btn" onclick="openResume()">📋 Résumé</button>
+          </div>
         </div>
         <div class="postit-body">
           <textarea class="postit-area" placeholder="Notes libres, idées, trucs à pas oublier...&#10;Ça disparaît ce soir 🌙"></textarea>
@@ -732,7 +745,10 @@
         <div class="panel-header">
           <span class="panel-title purple">✅ À faire</span>
           <span class="panel-header-center" id="todo-msg"></span>
-          <span class="panel-header-right" id="todo-stats"></span>
+          <div class="panel-header-right">
+            <button class="btn-craque panel-btn" onclick="openCraque()">Là je craque 🫠</button>
+            <span id="todo-stats"></span>
+          </div>
         </div>
         <div class="todo-body">
           <div class="todo-add">
@@ -1007,7 +1023,7 @@ const validSlotsCount = slots.filter(s => !s.isDaily && !s.isLunch).length;
 
     txt += '🗓 PLANNING\n';
     slots.forEach(s => {
-      if (s.value && s.value.trim()) {
+      if (s.value && s.value.trim() &&!s.isDaily && !s.isLunch) {
         txt += '  ' + (s.done ? '✓' : '○') + ' ' + s.time + '  ' + s.value + '\n';
       }
     });
@@ -1032,8 +1048,9 @@ const validSlotsCount = slots.filter(s => !s.isDaily && !s.isLunch).length;
     if (notes) txt += '🗒 NOTES\n' + notes + '\n\n';
 
     txt += '━'.repeat(36) + '\n';
-    const slotsDone = slots.filter(s => s.done).length;
-    txt += '📊 ' + slotsDone + '/' + slots.length + ' créneaux · ';
+    const slotsDone = slots.filter(s => s.done  && !s.isDaily && !s.isLunch).length;
+   
+    txt += '📊 ' + slotsDone + '/' + slots.filter(s =>  s.value && s.value.trim() && !s.isDaily && !s.isLunch).length + ' créneaux · ';
     txt += done.length + '/' + todos.length + ' tâches';
     if (craqueCount > 0)
       txt += ' · 🫠 ' + craqueCount + ' craquage' + (craqueCount > 1 ? 's' : '');
