@@ -940,6 +940,7 @@ const validSlotsCount = slots.filter(s => !s.isDaily && !s.isLunch).length;
       "Un de moins 💜 Tu peux souffler 30 secondes sans que le monde s'effondre, promis.",
       "Fait 🌙 Lève les yeux de l'écran une minute. Ça compte vraiment.",
       "Bien joué ⭐ Tu gères et gérer ça mérite une vraie pause, pas juste passer au suivant.",
+      "Il faut penser à tes réserves d'énergie comme un compte en banque. Chaque tâche c'est un retrait, pas de pause c'est des frais. Prends 2 minutes pour faire un dépôt 🌿",
     ],
     todo: [
       "Tâche faite 🌸 Avant la suivante : respire, étire-toi, hydrate-toi.",
@@ -947,6 +948,8 @@ const validSlotsCount = slots.filter(s => !s.isDaily && !s.isLunch).length;
       "C'est coché 🌙 Si t'enchaînes sans pause, ton cerveau va facturer plus tard.",
       "Faite ✨ Tu peux te féliciter. C'était sur la liste, c'est fait, c'est réel.",
       "Une de moins ⭐ Prends 2 minutes pour toi avant la suivante.",
+      "Bien joué 🦄 Chaque tâche cochée c'est une victoire, même les petites. Célèbre-les.",
+      "Respire 🌿 Avant de te lancer dans la suivante, prends une vraie micro-pause. Ton cerveau va te remercier.",
     ],
   };
 
@@ -987,7 +990,12 @@ const validSlotsCount = slots.filter(s => !s.isDaily && !s.isLunch).length;
       msg: "Rien sur cette liste ne vaut le fait de tenir sur la durée. Cinq minutes maintenant ou une semaine d'arrêt maladie dans trois semaines. Le calcul est vite fait." },
     { emoji: '🦄', title: "T'as le droit.",
       msg: "Le droit de souffler. Le droit d'être fatiguée. Le droit de ne pas tout gérer parfaitement. Là maintenant, t'as juste le droit d'exister sans performer." },
-  ];
+  { emoji: '🌿', title: "Et si tu prenais une vraie pause ?",
+      msg: "Pas cinq minutes à faire défiler des trucs sur ton téléphone, mais une vraie pause : debout, étirements, respiration, eau, soleil. Prends soin de toi, c'est la base pour tenir la journée." },
+   { emoji: '⭐', title: "C'est pas un échec, c'est un signal.",
+      msg: "Ce bouton c'est pas un bouton de panique, c'est un bouton de signal. Il sert à te dire que t'as besoin de faire une pause avant que ça devienne plus sérieux. C'est un acte de prévoyance, pas d'échec."
+
+   } ];
 
   function openCraque() {
     craqueCount++;
