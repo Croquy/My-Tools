@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ma journée ✨</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
+  :root {
+    --bg: #0d0a1a;
+    --surface: rgba(255,255,255,0.06);
+    --border: rgba(255,255,255,0.12);
+    --text: #f0ecff;
+    --text-mid: #b8a8e8;
+    --text-dim: #7060a8;
+    --pink: #ff79c6;
+    --pink-light: rgba(255,121,198,0.15);
+    --purple: #bd93f9;
+    --purple-light: rgba(189,147,249,0.15);
+    --cyan: #8be9fd;
+    --cyan-light: rgba(139,233,253,0.12);
+    --mint: #50fa7b;
+    --mint-light: rgba(80,250,123,0.12);
+    --done-bg: rgba(255,255,255,0.04);
+    --daily-bg: rgba(189,147,249,0.18);
+    --lunch-bg: rgba(139,233,253,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    padding: 24px 20px 40px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(189,147,249,0.18) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 10%, rgba(255,121,198,0.15) 0%, transparent 45%),
+      radial-gradient(ellipse at 60% 80%, rgba(139,233,253,0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 10% 80%, rgba(80,250,123,0.08) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '✦ · ✦ · · ✦ · ✦ · · · ✦ · ✦ · · ✦ ✦ · · ✦ · ✦ · · ✦ · · ✦ ✦ · ✦ · · · ✦ · ✦ · ✦ · ·';
+    position: fixed;
+    inset: 0;
+    color: rgba(255,255,255,0.05);
+    font-size: 18px;
+    letter-spacing: 28px;
+    line-height: 52px;
+    word-break: break-all;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; }
+
+  /* ── Header : 3 zones fixes ── */
+  .header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-info h1 {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--pink), var(--purple), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .header-date {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    font-family: 'Quicksand', sans-serif;
+    line-height: 1.1;
+  }
+
+  .header-week {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .header-week span {
+    background: var(--purple-light);
+    border: 1px solid rgba(189,147,249,0.3);
+    border-radius: 20px;
+    padding: 2px 8px;
+    color: var(--purple);
+    font-weight: 600;
+  }
+
+  /* Zone centrale : psy card fixe en hauteur */
+  .header-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 70px;
+  }
+
+  .psy-card {
+    background: linear-gradient(135deg, rgba(255,121,198,0.12), rgba(189,147,249,0.12));
+    border: 1px solid rgba(255,121,198,0.3);
+    border-radius: 16px;
+    padding: 12px 16px;
+    max-width: 400px;
+    width: 100%;
+    display: none;
+    animation: popIn 0.3s ease;
+  }
+  .psy-card.visible { display: block; }
+
+  .psy-label {
+    font-size: 10px;
+    color: var(--pink);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .psy-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+
+  .psy-close {
+    font-size: 11px;
+    color: var(--purple);
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .psy-close:hover { color: var(--pink); }
+
+  /* Zone droite : horloge + boutons */
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .clock-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .clock {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.04em;
+    text-shadow: 0 0 30px rgba(189,147,249,0.5), 0 0 60px rgba(255,121,198,0.3);
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .seconds-bar {
+    width: 100px;
+    height: 3px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .seconds-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--purple), var(--pink));
+    border-radius: 10px;
+    transition: width 0.95s linear;
+  }
+
+  .header-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .btn-craque {
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    border: none;
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 10px 18px;
+    cursor: pointer;
+    border-radius: 30px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(255,121,198,0.3);
+    white-space: nowrap;
+  }
+  .btn-craque:hover { transform: scale(1.05); }
+
+  .btn-resume {
+    background: transparent;
+    border: 1px solid rgba(139,233,253,0.4);
+    color: var(--cyan);
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 7px 14px;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-resume:hover { background: var(--cyan-light); border-color: var(--cyan); }
+
+  /* ── Layout 50/50 ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  /* ── Panels ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+  }
+
+  .panel-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 8px;
+  }
+
+  .panel-title {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .panel-title.pink { color: var(--pink); }
+  .panel-title.purple { color: var(--purple); }
+  .panel-title.cyan { color: var(--cyan); }
+
+  .panel-header-center {
+    text-align: center;
+    font-size: 11px;
+    color: var(--pink);
+    font-weight: 600;
+    font-style: italic;
+    min-height: 14px;
+  }
+
+  .panel-header-right {
+    text-align: right;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  /* ── Planning ── */
+  .slot {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    min-height: 38px;
+    transition: background 0.15s;
+  }
+  .slot:last-child { border-bottom: none; }
+  .slot.done { background: var(--done-bg); }
+  .slot.slot-daily { background: var(--daily-bg); }
+  .slot.slot-lunch { background: var(--lunch-bg); }
+
+  .slot-time {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-dim);
+    padding: 0 8px;
+    border-right: 1px solid var(--border);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    min-height: 38px;
+    letter-spacing: 0.03em;
+  }
+
+  .slot-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    padding: 6px 10px;
+    width: 100%;
+  }
+  .slot-input::placeholder { color: var(--text-dim); }
+  .slot-daily .slot-input { color: var(--purple); font-weight: 600; }
+  .slot-lunch .slot-input { color: var(--cyan); font-weight: 600; }
+  .slot.done .slot-input { text-decoration: line-through; color: var(--text-dim); }
+
+  .slot-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 13px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 4px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .slot-btn:hover { background: var(--mint-light); color: var(--mint); }
+  .slot.done .slot-btn { color: var(--mint); }
+
+  /* Séparateur midi */
+  .slot-separator {
+    padding: 4px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--mint);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--cyan);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Progress */
+  .progress-wrap { padding: 8px 14px 12px; }
+  .progress-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+  }
+  .progress-label span:last-child { color: var(--cyan); font-weight: 600; }
+  .progress-bar { height: 5px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--purple), var(--pink), var(--cyan));
+    border-radius: 10px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* ── Colonne droite ── */
+  .right-col { display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── Notes en haut (hauteur fixe) ── */
+  .postit-body { padding: 12px 14px; }
+  .postit-area {
+    width: 100%;
+    height: 100px;
+    background: rgba(139,233,253,0.04);
+    border: 1px solid rgba(139,233,253,0.2);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 10px;
+    outline: none;
+    resize: none;
+    transition: border-color 0.15s;
+  }
+  .postit-area:focus { border-color: rgba(139,233,253,0.5); }
+  .postit-area::placeholder { color: var(--text-dim); font-style: italic; }
+
+  /* ── Todo ── */
+  .todo-body { padding: 10px 14px; }
+
+  .todo-add {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .todo-add input {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    padding: 7px 12px;
+    outline: none;
+    border-radius: 20px;
+    transition: border-color 0.15s;
+  }
+  .todo-add input:focus { border-color: var(--pink); }
+  .todo-add input::placeholder { color: var(--text-dim); }
+
+  .btn-add {
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    border: none;
+    color: white;
+    font-size: 20px;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+    box-shadow: 0 2px 12px rgba(255,121,198,0.3);
+  }
+  .btn-add:hover { transform: scale(1.1); }
+
+  .todo-list { display: flex; flex-direction: column; gap: 5px; }
+
+  .todo-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .todo-item:hover { border-color: rgba(189,147,249,0.4); background: var(--purple-light); }
+  .todo-item.done { opacity: 0.55; }
+
+  .todo-check {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--text-dim);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    transition: all 0.15s;
+  }
+  .todo-item.done .todo-check {
+    background: linear-gradient(135deg, var(--mint), var(--cyan));
+    border-color: transparent;
+    color: #0d0a1a;
+    font-weight: 700;
+  }
+
+  .todo-text { flex: 1; font-size: 13px; line-height: 1.4; }
+  .todo-item.done .todo-text { text-decoration: line-through; color: var(--text-dim); }
+
+  .btn-del {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 11px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.15s;
+  }
+  .todo-item:hover .btn-del { opacity: 1; }
+  .btn-del:hover { background: var(--pink-light); color: var(--pink); }
+
+  /* ── Overlays ── */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .overlay.visible { display: flex; }
+
+  /* Craque */
+  .craque-card {
+    background: linear-gradient(135deg, #1a1235, #0f1a2e);
+    border: 1px solid rgba(255,121,198,0.4);
+    border-radius: 24px;
+    padding: 28px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(255,121,198,0.2);
+    animation: slideUp 0.3s ease;
+  }
+
+  .craque-emoji { font-size: 32px; margin-bottom: 10px; }
+
+  .craque-title {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+
+  .craque-msg {
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .craque-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+
+  .btn-pause {
+    background: linear-gradient(135deg, var(--mint), var(--cyan));
+    border: none;
+    color: #0d0a1a;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 9px 18px;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.15s;
+  }
+  .btn-pause:hover { transform: scale(1.05); }
+
+  .btn-dismiss {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-mid);
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    padding: 9px 16px;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.15s;
+  }
+  .btn-dismiss:hover { border-color: var(--text-mid); }
+
+  /* Résumé */
+  .resume-card {
+    background: linear-gradient(135deg, #1a1235, #0d1528);
+    border: 1px solid rgba(139,233,253,0.3);
+    border-radius: 24px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(139,233,253,0.1);
+    animation: slideUp 0.3s ease;
+  }
+
+  .resume-title {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 14px;
+  }
+
+  .resume-body {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--text-mid);
+    white-space: pre-wrap;
+    margin-bottom: 14px;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+
+  .resume-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  .btn-copy-resume {
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    border: none;
+    color: #0d0a1a;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 9px 18px;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.15s;
+  }
+  .btn-copy-resume:hover { transform: scale(1.05); }
+
+  .btn-close-resume {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-mid);
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    padding: 9px 16px;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.15s;
+  }
+  .btn-close-resume:hover { border-color: var(--text-mid); }
+
+  @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    .header { grid-template-columns: 1fr auto; }
+    .header-center { display: none; }
+    .clock { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ══ Header ══ -->
+  <div class="header">
+
+    <!-- Gauche : date -->
+    <div class="header-info">
+      <h1>✨ Ma journée</h1> 
+      <div class="header-date" id="header-date"></div>
+       <div class="header-week"><span id="header-week"></span></div>
+    </div>
+
+    <!-- Centre : psy card (réserve la place même vide) -->
+    <div class="header-center">
+      <div class="psy-card" id="psy-card">
+        <div class="psy-label">✦ Un moment pour toi</div>
+        <div class="psy-text" id="psy-text"></div>
+        <span class="psy-close" onclick="closePsy()">C'est bon, je reprends →</span>
+      </div>
+    </div>
+
+    <!-- Droite : horloge + boutons -->
+    <div class="header-right">
+      <div class="clock-wrap">
+        <div class="clock" id="clock">00:00</div>
+        <div class="seconds-bar"><div class="seconds-fill" id="seconds-fill"></div></div>
+      </div>
+      <div class="header-btns">
+        <button class="btn-craque" onclick="openCraque()">Là je craque 🫠</button>
+        <button class="btn-resume" onclick="openResume()">📋 Résumé </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ Layout ══ -->
+  <div class="layout">
+
+    <!-- Planning -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title pink">🗓 Planning</span>
+        <span class="panel-header-center" id="planning-msg"></span>
+        <span class="panel-header-right" id="planning-progress"></span>
+      </div>
+      <div id="planning-body"></div>
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>Progression</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- Colonne droite -->
+    <div class="right-col">
+
+      <!-- Notes en haut, hauteur fixe -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title cyan">🗒 Notes</span>
+          <span class="panel-header-center"></span>
+          <span class="panel-header-right"></span>
+        </div>
+        <div class="postit-body">
+          <textarea class="postit-area" placeholder="Notes libres, idées, trucs à pas oublier...&#10;Ça disparaît ce soir 🌙"></textarea>
+        </div>
+      </div>
+
+      <!-- Todo en dessous -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title purple">✅ À faire</span>
+          <span class="panel-header-center" id="todo-msg"></span>
+          <span class="panel-header-right" id="todo-stats"></span>
+        </div>
+        <div class="todo-body">
+          <div class="todo-add">
+            <input type="text" id="todo-input" placeholder="Ajouter une tâche..." onkeydown="if(event.key==='Enter') addTodo()">
+            <button class="btn-add" onclick="addTodo()">+</button>
+          </div>
+          <div class="todo-list" id="todo-list"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Overlay craque -->
+<div class="overlay" id="craque-overlay">
+  <div class="craque-card">
+    <div class="craque-emoji" id="craque-emoji"></div>
+    <div class="craque-title" id="craque-title"></div>
+    <div class="craque-msg" id="craque-msg"></div>
+    <div class="craque-actions">
+      <button class="btn-dismiss" onclick="closeCraque()">Je continue quand même</button>
+      <button class="btn-pause" onclick="takePause()">🌿 Je prends 5 min</button>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay résumé -->
+<div class="overlay" id="resume-overlay">
+  <div class="resume-card">
+    <div class="resume-title">📋 Résumé de journée</div>
+    <div class="resume-body" id="resume-body"></div>
+    <div class="resume-actions">
+      <button class="btn-close-resume" onclick="closeResume()">Fermer</button>
+      <button class="btn-copy-resume" onclick="copyResume()">✨ Copier</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Date & semaine ────────────────────────────────────────
+  const jours = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+  const mois  = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+  function getWeek(d) {
+    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const day  = date.getUTCDay() || 7;
+    date.setUTCDate(date.getUTCDate() + 4 - day);
+    const y = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+    return Math.ceil((((date - y) / 86400000) + 1) / 7);
+  }
+
+  const now = new Date();
+  document.getElementById('header-date').textContent =
+    jours[now.getDay()] + ' ' + now.getDate() + ' ' + mois[now.getMonth()];
+  document.getElementById('header-week').textContent ='S'+ getWeek(now);
+
+  // ── Horloge ───────────────────────────────────────────────
+  function updateClock() {
+    const d = new Date();
+    const h = String(d.getHours()).padStart(2,'0');
+    const m = String(d.getMinutes()).padStart(2,'0');
+    document.getElementById('clock').textContent = h + ':' + m;
+    document.getElementById('seconds-fill').style.width = ((d.getSeconds() / 60) * 100) + '%';
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── Créneaux 8h00 → 17h30 par 30 min ────────────────────
+  const slots = [];
+  for (let h = 8; h <= 17; h++) {
+    for (let m = 0; m < 60; m += 30) {
+      if (h === 18 ) break;
+      const label    = String(h).padStart(2,'0') + 'h' + (m === 0 ? '00' : '30');
+      const isDaily  = (h === 9 && m === 0);
+      const isLunch  = (h === 12 && m === 30) || (h === 13);
+      let   defVal   = '';
+      if (h === 8  && m === 0) defVal = 'Mails';
+      if (isDaily)             defVal = 'Daily équipe';
+      if (isLunch) defVal = 'Pause déjeuner';
+      slots.push({ time: label, value: defVal, done: isDaily || isLunch, isDaily, isLunch });
+    }
+  }
+
+  // ── Rendu planning ────────────────────────────────────────
+  function renderPlanning() {
+    const body = document.getElementById('planning-body');
+    body.innerHTML = '';
+    let done = 0;
+    let midSep = false;
+
+    slots.forEach((slot, i) => {
+      // Séparateur après-midi
+/* if (!midSep && slot.time === '14h00') {
+        const sep = document.createElement('div');
+        sep.className = 'slot-separator';
+        sep.textContent = '☀ Après-midi';
+        body.appendChild(sep);
+        midSep = true;
+      }  */
+
+      const row = document.createElement('div');
+      row.className = 'slot'
+        + (slot.done && !slot.isDaily && !slot.isLunch ? ' done'       : '')
+        + (slot.isDaily ? ' slot-daily' : '')
+        + (slot.isLunch ? ' slot-lunch' : '');
+
+      row.innerHTML = `
+        <div class="slot-time">${slot.time}</div>
+        <input class="slot-input" type="text"
+          placeholder="Libre..."
+          value="${slot.value}"
+          onchange="slots[${i}].value = this.value">
+            ${!slot.isDaily && !slot.isLunch ? `
+          <button class="slot-btn" onclick="toggleSlotDone(${i})">
+            ${slot.done ? '✅' : '○'}
+          </button>
+        ` : ''}
+      `;
+      body.appendChild(row);
+      if (slot.done && !slot.isDaily && !slot.isLunch) done++;
+    });
+const validSlotsCount = slots.filter(s => !s.isDaily && !s.isLunch).length;
+    const pct = Math.round((done / validSlotsCount) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-pct').textContent  = pct + '%';
+    document.getElementById('planning-progress').textContent = done + '/' + validSlotsCount;
+  }
+
+  function toggleSlotDone(i) {
+    slots[i].done = !slots[i].done;
+    renderPlanning();
+    if (slots[i].done) showPsyInline('planning');
+  }
+
+  // ── Todo ──────────────────────────────────────────────────
+  const todos = [];
+
+  function addTodo() {
+    const input = document.getElementById('todo-input');
+    const text  = input.value.trim();
+    if (!text) return;
+    todos.push({ text, done: false });
+    input.value = '';
+    renderTodos();
+  }
+
+  function toggleTodo(i) {
+    todos[i].done = !todos[i].done;
+    renderTodos();
+    if (todos[i].done) showPsyInline('todo');
+  }
+
+  function deleteTodo(i, e) {
+    e.stopPropagation();
+    todos.splice(i, 1);
+    renderTodos();
+  }
+
+  function renderTodos() {
+    const list = document.getElementById('todo-list');
+    list.innerHTML = '';
+    todos.forEach((todo, i) => {
+      const item = document.createElement('div');
+      item.className = 'todo-item' + (todo.done ? ' done' : '');
+      item.onclick   = () => toggleTodo(i);
+      item.innerHTML = `
+        <div class="todo-check">${todo.done ? '✓' : ''}</div>
+        <div class="todo-text">${todo.text}</div>
+        <button class="btn-del" onclick="deleteTodo(${i}, event)">✕</button>
+      `;
+      list.appendChild(item);
+    });
+    const done = todos.filter(t => t.done).length;
+    document.getElementById('todo-stats').textContent =
+      todos.length > 0 ? done + '/' + todos.length : '';
+  }
+
+  // ── Messages psy ──────────────────────────────────────────
+  const psyShort = {
+    planning: ['Souffle 🌸', 'Micro-pause ✨', 'Tu gères 💜', 'Respire 🌙', 'Bien joué ⭐'],
+    todo:     ['Bien joué 🦄', 'Prends 2 min ✨', "C'est fait 💜", 'Tu bosses bien 🌸', 'Respire ⭐'],
+  };
+
+  const psyLong = {
+    planning: [
+      "Créneau bouclé 🌸 Prends 2 minutes, bois quelque chose, regarde ailleurs. C'est pas du temps perdu.",
+      "C'est fait ✨ Ton cerveau a besoin de micro-pauses pour tenir la journée, pas juste toi.",
+      "Un de moins 💜 Tu peux souffler 30 secondes sans que le monde s'effondre, promis.",
+      "Fait 🌙 Lève les yeux de l'écran une minute. Ça compte vraiment.",
+      "Bien joué ⭐ Tu gères et gérer ça mérite une vraie pause, pas juste passer au suivant.",
+    ],
+    todo: [
+      "Tâche faite 🌸 Avant la suivante : respire, étire-toi, hydrate-toi.",
+      "✓ 💜 Prendre le temps de cocher c'est reconnaître que t'as bossé.",
+      "C'est coché 🌙 Si t'enchaînes sans pause, ton cerveau va facturer plus tard.",
+      "Faite ✨ Tu peux te féliciter. C'était sur la liste, c'est fait, c'est réel.",
+      "Une de moins ⭐ Prends 2 minutes pour toi avant la suivante.",
+    ],
+  };
+
+  function showPsyInline(type) {
+    // Petit mot dans le panel-header
+    const msgs  = psyShort[type];
+    const msg   = msgs[Math.floor(Math.random() * msgs.length)];
+    const elId  = type === 'planning' ? 'planning-msg' : 'todo-msg';
+    const el    = document.getElementById(elId);
+    el.textContent = msg;
+    clearTimeout(el._t);
+    el._t = setTimeout(() => { el.textContent = ''; }, 4000);
+
+    // Grand message dans le header
+    const lmsgs = psyLong[type];
+    const lmsg  = lmsgs[Math.floor(Math.random() * lmsgs.length)];
+    document.getElementById('psy-text').textContent = lmsg;
+    document.getElementById('psy-card').classList.add('visible');
+  }
+
+  function closePsy() {
+    document.getElementById('psy-card').classList.remove('visible');
+  }
+
+  // ── Craque ────────────────────────────────────────────────
+  let craqueCount = 0;
+
+  const craqueMsgs = [
+    { emoji: '🫠', title: 'Hey. Arrête-toi.',
+      msg: "T'as le droit de craquer. Même au boulot, même un lundi matin, même si t'as une réunion dans 10 minutes. Prends 5 minutes vraies — pas 5 minutes à scroller, à t'arrêter pour de vrai." },
+    { emoji: '🌸', title: "C'est beaucoup, là.",
+      msg: "Burnout ça veut dire que ton corps et ta tête ont épuisé leurs réserves. Une pause maintenant c'est pas de la faiblesse, c'est de la maintenance préventive. T'es pas une machine." },
+    { emoji: '💜', title: 'Tu fais trop.',
+      msg: "Pas de jugement, juste un constat : si t'as cliqué ce bouton, c'est que quelque chose signale que ça va trop vite. Écoute ce signal. Il est là pour une raison." },
+    { emoji: '🌙', title: 'Respire.',
+      msg: "Sérieusement. Cinq vraies respirations lentes. Ensuite tu décides si tu continues ou si tu prends une vraie pause. Mais d'abord respire." },
+    { emoji: '✨', title: 'La liste peut attendre.',
+      msg: "Rien sur cette liste ne vaut le fait de tenir sur la durée. Cinq minutes maintenant ou une semaine d'arrêt maladie dans trois semaines. Le calcul est vite fait." },
+    { emoji: '🦄', title: "T'as le droit.",
+      msg: "Le droit de souffler. Le droit d'être fatiguée. Le droit de ne pas tout gérer parfaitement. Là maintenant, t'as juste le droit d'exister sans performer." },
+  ];
+
+  function openCraque() {
+    craqueCount++;
+    const msg = craqueMsgs[Math.floor(Math.random() * craqueMsgs.length)];
+    document.getElementById('craque-emoji').textContent = msg.emoji;
+    document.getElementById('craque-title').textContent = msg.title;
+    document.getElementById('craque-msg').textContent   = msg.msg;
+    document.getElementById('craque-overlay').classList.add('visible');
+  }
+
+  function closeCraque() {
+    document.getElementById('craque-overlay').classList.remove('visible');
+  }
+
+  function takePause() {
+    closeCraque();
+    document.getElementById('psy-text').textContent =
+      "🌿 5 minutes. Loin de l'écran. T'as fait le bon choix, reviens quand t'es prête.";
+    document.getElementById('psy-card').classList.add('visible');
+  }
+
+  document.getElementById('craque-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeCraque();
+  });
+
+  // ── Résumé ────────────────────────────────────────────────
+  function openResume() {
+    const d       = new Date();
+    const dateStr = jours[d.getDay()] + ' ' + d.getDate() + ' ' + mois[d.getMonth()];
+
+    let txt = '✨ RÉSUMÉ — ' + dateStr + '\n';
+    txt += '━'.repeat(36) + '\n\n';
+
+    txt += '🗓 PLANNING\n';
+    slots.forEach(s => {
+      if (s.value && s.value.trim()) {
+        txt += '  ' + (s.done ? '✓' : '○') + ' ' + s.time + '  ' + s.value + '\n';
+      }
+    });
+    txt += '\n';
+
+    const done = todos.filter(t =>  t.done);
+    const left = todos.filter(t => !t.done);
+
+    if (done.length > 0) {
+      txt += '✅ TÂCHES FAITES (' + done.length + ')\n';
+      done.forEach(t => { txt += '  ✓ ' + t.text + '\n'; });
+      txt += '\n';
+    }
+    if (left.length > 0) {
+      txt += '⏳ TÂCHES RESTANTES (' + left.length + ')\n';
+      left.forEach(t => { txt += '  ○ ' + t.text + '\n'; });
+      txt += '\n';
+    }
+    if (todos.length === 0) txt += '📋 Aucune tâche saisie\n\n';
+
+    const notes = document.querySelector('.postit-area').value.trim();
+    if (notes) txt += '🗒 NOTES\n' + notes + '\n\n';
+
+    txt += '━'.repeat(36) + '\n';
+    const slotsDone = slots.filter(s => s.done).length;
+    txt += '📊 ' + slotsDone + '/' + slots.length + ' créneaux · ';
+    txt += done.length + '/' + todos.length + ' tâches';
+    if (craqueCount > 0)
+      txt += ' · 🫠 ' + craqueCount + ' craquage' + (craqueCount > 1 ? 's' : '');
+    txt += '\n';
+
+    document.getElementById('resume-body').textContent = txt;
+    document.getElementById('resume-overlay').classList.add('visible');
+  }
+
+  function closeResume() {
+    document.getElementById('resume-overlay').classList.remove('visible');
+  }
+
+  function copyResume() {
+    navigator.clipboard.writeText(document.getElementById('resume-body').textContent).then(() => {
+      const btn = document.querySelector('.btn-copy-resume');
+      btn.textContent = '✓ Copié !';
+      setTimeout(() => { btn.textContent = '✨ Copier'; }, 2000);
+    });
+  }
+
+  document.getElementById('resume-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeResume();
+  });
+
+  // ── Init ──────────────────────────────────────────────────
+  renderPlanning();
+  renderTodos();
+</script>
+</body>
+</html>
