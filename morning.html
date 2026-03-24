@@ -861,7 +861,9 @@
         <input class="slot-input" type="text"
           placeholder="Libre..."
           value="${slot.value}"
-          onchange="slots[${i}].value = this.value">
+          onchange="slots[${i}].value = this.value"
+          oncontextmenu="copyFromPrevious(${i}); return false;"
+          title="Clic droit pour copier le créneau précédent">
             ${!slot.isDaily && !slot.isLunch ? `
           <button class="slot-btn" onclick="toggleSlotDone(${i})">
             ${slot.done ? '✅' : '○'}
@@ -882,6 +884,13 @@ const validSlotsCount = slots.filter(s => !s.isDaily && !s.isLunch).length;
     slots[i].done = !slots[i].done;
     renderPlanning();
     if (slots[i].done) showPsyInline('planning');
+  }
+
+  function copyFromPrevious(i) {
+    if (i > 0) {
+      slots[i].value = slots[i-1].value;
+      renderPlanning();
+    }
   }
 
   // ── Todo ──────────────────────────────────────────────────
