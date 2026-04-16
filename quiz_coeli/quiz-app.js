@@ -48,9 +48,11 @@ async function initFirebaseStorage() {
     }
     FirestoreService.init(config);
     firebaseEnabled = true;
+    console.log('✅ Firebase connecté avec succès');
     await loadRemoteData();
+    console.log('✅ Données chargées depuis Firebase');
   } catch (error) {
-    console.warn('Impossible de se connecter à Firebase :', error);
+    console.warn('❌ Impossible de se connecter à Firebase :', error);
     firebaseEnabled = false;
   }
 }
@@ -97,8 +99,11 @@ async function loadRemoteData() {
 }
 
 function safeFirebaseAction(action, label) {
-  if (!firebaseEnabled) return;
-  action().catch(error => console.warn(`${label} :`, error));
+  if (!firebaseEnabled) {
+    console.log('🔄 Firebase désactivé, action ignorée:', label);
+    return;
+  }
+  action().catch(error => console.warn(`❌ ${label} :`, error));
 }
 
 async function syncUsersToFirebase() {

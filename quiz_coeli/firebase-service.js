@@ -32,26 +32,46 @@ const FirestoreService = {
     return snapshot.exists ? snapshot.data() : null;
   },
 
+  async getCollection(collection) {
+    try {
+      const querySnapshot = await this.db.collection(collection).get({ source: 'server' });
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      console.warn('Erreur getCollection:', error);
+      return [];
+    }
+  },
+
   async setDoc(collection, id, data) {
-    return this.db.collection(collection).doc(id).set(data, { merge: true });
+    try {
+      return await this.db.collection(collection).doc(id).set(data, { merge: true });
+    } catch (error) {
+      console.warn('Erreur setDoc:', error);
+      throw error;
+    }
   },
 
   async deleteDoc(collection, id) {
-    return this.db.collection(collection).doc(id).delete();
-  },
-
-  async getCollection(collection) {
-    const snapshot = await this.db.collection(collection).get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    try {
+      return await this.db.collection(collection).doc(id).delete();
+    } catch (error) {
+      console.warn('Erreur deleteDoc:', error);
+      throw error;
+    }
   },
 
   async batchSet(collection, docs) {
-    const batch = this.db.batch();
-    docs.forEach(doc => {
-      const ref = this.db.collection(collection).doc(doc.id);
-      batch.set(ref, doc, { merge: true });
-    });
-    return batch.commit();
+    try {
+      const batch = this.db.batch();
+      docs.forEach(doc => {
+        const ref = this.db.collection(collection).doc(doc.id);
+        batch.set(ref, doc, { merge: true });
+      });
+      return await batch.commit();
+    } catch (error) {
+      console.warn('Erreur batchSet:', error);
+      throw error;
+    }
   }
 };
 
