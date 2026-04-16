@@ -1,0 +1,33 @@
+{
+  "title": "Quiz de géographie",
+  "subject": "Géographie",
+  "description": "Quiz pour apprendre les capitales et les pays.",
+  "for": "tout le monde",
+  "replay": false,
+  "questions": [
+    {
+      "id": 1,
+      "type": "single",
+      "text": "Quelle est la capitale de la France ?",
+      "options": ["Londres", "Madrid", "Paris", "Rome"],
+      "correct": [2],
+      "explanation": "Paris est la capitale de la France."
+    },
+    {
+      "id": 2,
+      "type": "multiple",
+      "text": "Quels sont des mammifères ?",
+      "options": ["Dauphin", "Requin", "Baleine", "Truite"],
+      "correct": [0, 2],
+      "explanation": "Le dauphin et la baleine sont des mammifères. Le requin et la truite sont des poissons."
+    },
+    {
+      "id": 3,
+      "type": "word",
+      "text": "Quel animal fait \"miaou\" ?",
+      "options": [],
+      "correct": ["chat", "un chat", "le chat"],
+      "explanation": "Le chat est le bon animal. La casse et les espaces sont ignorés."
+    }
+  ]
+}

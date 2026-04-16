@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuizZone 🎯</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="quiz-app.css">
+</head>
+<body>
+  <div class="header">
+    <div class="logo">Quiz<span>Zone</span> 🎯</div>
+    <div class="header-btns">
+      <button class="btn-sm" id="btn-admin-access">🔐 Admin</button>
+    </div>
+  </div>
+
+  <div id="page-home" class="page active">
+    <div class="container-sm">
+      <div class="welcome-card">
+        <div class="hero-icon">🎯</div>
+        <h2>Bienvenue sur QuizZone !</h2>
+        <p>Choisis ton prénom et lance un quiz pour tester tes connaissances</p>
+        <div class="user-select-wrap">
+          <label for="user-select">👤 Qui es-tu ?</label>
+          <select id="user-select"><option value="">-- Sélectionne ton prénom --</option></select>
+        </div>
+        <div id="quiz-list-wrap" style="display:none;">
+          <div class="quiz-list"><h3>📚 Quiz disponibles</h3><div id="quiz-list"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-quiz" class="page">
+    <div class="container-sm">
+      <div class="quiz-header">
+        <div class="top-bar">
+          <h2 id="quiz-title-display"></h2>
+          <button class="btn-sm" id="btn-quit-quiz">✖ Quitter</button>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+        <div class="progress-label" id="progress-label"></div>
+      </div>
+      <div id="question-container"></div>
+      <div class="nav-btns">
+        <button class="btn-nav" id="btn-prev">← Précédent</button>
+        <button class="btn-nav btn-validate" id="btn-next">Suivant →</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-result" class="page">
+    <div class="container-sm">
+      <div class="result-card">
+        <div class="score-circle" id="score-circle">
+          <div class="score-num" id="score-num"></div>
+          <div class="score-pct" id="score-pct"></div>
+        </div>
+        <div class="result-title" id="result-title"></div>
+        <div class="result-sub" id="result-sub"></div>
+        <button class="btn-nav btn-validate" id="btn-result-home">🏠 Retour à l'accueil</button>
+        <div class="result-details" id="result-details"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-admin" class="page">
+    <div class="container">
+      <div class="admin-header">
+        <div style="font-size:40px;">🛡️</div>
+        <div><h2>Espace Parent / Admin</h2><p>Gérer les utilisateurs, voir les résultats, corriger les quiz</p></div>
+        <button class="btn-sm" id="btn-logout">Déconnexion</button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="tab-results">📊 Résultats</button>
+        <button class="tab" data-tab="tab-correct">✍️ À corriger</button>
+        <button class="tab" data-tab="tab-users">👥 Utilisateurs</button>
+        <button class="tab" data-tab="tab-quiz">📚 Quiz</button>
+        <button class="tab" data-tab="tab-settings">⚙️ Paramètres</button>
+      </div>
+
+      <div id="tab-results" class="tab-content active"><div class="admin-card"><h3>📊 Historique des résultats</h3><div id="results-table-wrap"></div></div></div>
+      <div id="tab-correct" class="tab-content"><div class="admin-card"><h3>✍️ Réponses texte à corriger manuellement</h3><div id="correction-list"></div></div></div>
+      <div id="tab-users" class="tab-content"><div class="admin-card"><h3>👥 Gérer les utilisateurs</h3><div id="users-list"></div><div class="add-user-row"><input type="text" class="input-text" id="new-user-input" placeholder="Prénom du nouvel utilisateur..."><button class="btn-add" id="btn-add-user">➕ Ajouter</button></div></div></div>
+      <div id="tab-quiz" class="tab-content"><div class="admin-card"><h3>📚 Gérer les quiz importés</h3><div id="admin-quiz-list"></div><div class="admin-actions"><input type="file" id="file-input-admin" accept=".json"><button class="btn-outline file-trigger" id="btn-import-admin">📂 Fichier .json</button><button class="btn-outline file-trigger" id="btn-paste-admin">📋 Coller du JSON</button></div></div></div>
+      <div id="tab-settings" class="tab-content">
+        <div class="admin-card" style="max-width:400px;">
+          <h3>⚙️ Paramètres</h3>
+          <div class="settings-group"><label>🔑 Changer le mot de passe admin</label><input type="password" class="input-text" id="new-pwd-input" placeholder="Nouveau mot de passe..."><input type="password" class="input-text" id="new-pwd-confirm" placeholder="Confirmer..."><button class="btn-add" id="btn-change-pwd">Enregistrer</button><div id="pwd-msg" style="margin-top:8px;font-size:13px;"></div></div>
+        </div>
+        <div class="admin-card" style="max-width:400px;">
+          <h3>💾 Sauvegarde & Restauration</h3>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Exporte toutes les données (quiz, résultats, utilisateurs) dans un fichier JSON pour les transférer sur un autre appareil.</p>
+          <div class="settings-group"><label>📤 Exporter toutes les données</label><button class="btn-add" id="btn-export-data" style="background:var(--c8);width:100%;">⬇️ Télécharger la sauvegarde</button></div>
+          <div class="settings-group"><label>📥 Restaurer une sauvegarde</label><p style="font-size:12px;color:#e17055;margin-bottom:8px;font-weight:600;">⚠️ Attention : cela remplacera TOUTES les données actuelles.</p><input type="file" id="file-input-restore" accept=".json"><button class="btn-outline" id="btn-restore-data" style="width:100%;border-color:var(--c8);color:var(--c8);">⬆️ Charger une sauvegarde</button><div id="restore-msg" style="margin-top:8px;font-size:13px;"></div></div>
+          <div class="settings-group danger-group"><label style="color:#e17055;">🗑️ Zone de danger</label><button class="btn-danger" id="btn-clear-all" style="width:100%;padding:10px;border-radius:10px;font-size:14px;">Effacer toutes les données</button><p style="font-size:11px;color:var(--muted);margin-top:6px;">Remet l'application à zéro (conserve le mot de passe admin).</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-login" class="modal-overlay">
+    <div class="modal"><h3>🔐 Accès Admin</h3><p>Entre le mot de passe pour accéder à l'espace parent.</p><input type="password" class="input-text" id="admin-pwd-input" placeholder="Mot de passe..."><div id="login-error" style="color:#e74c3c;font-size:13px;margin-top:10px;display:none;">❌ Mot de passe incorrect</div><div class="modal-btns"><button class="btn-cancel" id="btn-login-cancel">Annuler</button><button class="btn-add" id="btn-login-confirm">Connexion</button></div></div>
+  </div>
+
+  <div id="modal-prompt" class="modal-overlay">
+    <div class="modal modal-wide"><h3>💡 Prompt pour générer un quiz avec une IA</h3><p>Copie ce prompt dans ChatGPT, Claude ou Gemini, et remplace le sujet à la fin.</p><div class="prompt-card"><button class="copy-btn" id="btn-copy-prompt">📋 Copier le prompt</button><span id="prompt-text-content">Tu es un générateur de QCM pédagogiques. Génère un quiz sur le sujet suivant : [SUJET ICI]
+
+Retourne UNIQUEMENT un JSON valide (sans texte avant ni après, sans balises markdown) avec cette structure exacte :
+
+{
+  "title": "Titre du quiz",
+  "subject": "Matière / domaine",
+  "description": "Brève description du quiz",
+  "for": "Prénom",
+  "replay": false,
+  "questions": [
+    {
+      "id": 1,
+      "type": "single",
+      "text": "Question à choix unique",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correct": [0],
+      "explanation": "Explication de la bonne réponse"
+    },
+    {
+      "id": 2,
+      "type": "multiple",
+      "text": "Question à choix multiples",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correct": [0, 2],
+      "explanation": "Explication des bonnes réponses"
+    },
+    {
+      "id": 3,
+      "type": "word",
+      "text": "Question à réponse courte — un seul mot ou expression brève attendue",
+      "options": [],
+      "correct": ["réponse attendue", "variante acceptée"],
+      "explanation": "Le mot exact attendu (insensible à la casse)"
+    },
+    {
+      "id": 4,
+      "type": "text",
+      "text": "Question ouverte — UNIQUEMENT si vraiment nécessaire. Maximum 1 par quiz.",
+      "options": [],
+      "correct": [],
+      "explanation": "Éléments clés attendus dans la réponse"
+    }
+  ]
+}
+
+CHAMP "for" : indique le prénom de l'élève concerné par ce quiz.
+Prénoms disponibles : Zoé, Timéo, Tom, Noé
+Si le quiz est pour tout le monde, omets le champ "for".
+
+RÈGLES :
+- Types disponibles : "single", "multiple", "word", "text"
+- "single" : 1 seule bonne réponse, "correct" = [index]
+- "multiple" : plusieurs bonnes réponses, "correct" = [index, index, ...]
+- "word" : réponse courte auto-corrigée, "correct" = ["mot", "variante"] en minuscules
+- "text" : réponse longue manuelle — MAXIMUM 1 PAR QUIZ, à éviter
+- Génère le nombre de questions demandé (par défaut 8 si non précisé)
+- "replay": true si le quiz doit pouvoir être refait plusieurs fois, false sinon (défaut)
+- Favorise "single" et "multiple"
+- "word" uniquement pour réponses très courtes et précises
+
+Sujet : [REMPLACE ICI PAR TON SUJET]
+Pour : [PRÉNOM ou "tout le monde"]</span></div><div class="modal-btns"><button class="btn-cancel" id="btn-prompt-close">Fermer</button></div></div>
+  </div>
+
+  <div id="modal-quit" class="modal-overlay">
+    <div class="modal"><h3>⚠️ Quitter le quiz ?</h3><p>Ta progression sera perdue. Es-tu sûr(e) de vouloir quitter ?</p><div class="modal-btns"><button class="btn-cancel" id="btn-quit-cancel">Continuer le quiz</button><button class="btn-danger" id="btn-quit-confirm">Quitter</button></div></div>
+  </div>
+
+  <div id="modal-detail" class="modal-overlay">
+    <div class="modal modal-wide"><h3>📋 Détail du résultat</h3><div id="modal-detail-content"></div><div class="modal-btns"><button class="btn-cancel" id="btn-detail-close">Fermer</button></div></div>
+  </div>
+
+  <div id="modal-paste-json" class="modal-overlay">
+    <div class="modal modal-wide"><h3>📋 Coller du JSON</h3><p>Colle ici le JSON généré par l'IA (ChatGPT, Claude, Gemini…)</p><textarea id="paste-json-input" style="width:100%;height:260px;padding:14px;border-radius:12px;border:2px solid #e0e0ff;font-family:monospace;font-size:13px;resize:vertical;outline:none;background:#f8f9ff;transition:border .2s;" placeholder='{ "title": "Mon quiz", "questions": [...] }'></textarea><div id="paste-json-error" style="color:#e74c3c;font-size:13px;margin-top:8px;display:none;"></div><div class="modal-btns"><button class="btn-cancel" id="btn-paste-cancel">Annuler</button><button class="btn-add" id="btn-paste-confirm">✅ Importer ce quiz</button></div></div>
+  </div>
+
+  <script src="quiz-app.js" defer></script>
+</body>
+</html>
