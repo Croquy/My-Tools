@@ -30,7 +30,7 @@ function initStore() {
   if (!store.get('users')) store.set('users', DEFAULT_USERS);
   if (!store.get('quizzes')) store.set('quizzes', []);
   if (!store.get('results')) store.set('results', []);
-  if (!store.get('admin_pwd')) store.set('admin_pwd', 'Admin8587');
+  if (!store.get('admin_pwd')) store.set('admin_pwd', 'admin');
 }
 
 function showPage(id) {
