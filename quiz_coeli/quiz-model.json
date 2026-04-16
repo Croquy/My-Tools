@@ -1,33 +1,65 @@
 {
-  "title": "Quiz de géographie",
-  "subject": "Géographie",
-  "description": "Quiz pour apprendre les capitales et les pays.",
+ "title": "Tutoriel — Comment utiliser QuizZone",
+  "subject": "Tutoriel",
+  "description": "Apprends à utiliser QuizZone avec ce quiz de démonstration. Tu peux le refaire autant de fois que tu veux !",
   "for": "tout le monde",
-  "replay": false,
+  "replay": true,
   "questions": [
     {
       "id": 1,
       "type": "single",
-      "text": "Quelle est la capitale de la France ?",
-      "options": ["Londres", "Madrid", "Paris", "Rome"],
+      "text": "🎯 Question à choix UNIQUE — Une seule bonne réponse. Quelle est la capitale de la France ?",
+      "options": ["Londres", "Berlin", "Paris", "Madrid"],
       "correct": [2],
-      "explanation": "Paris est la capitale de la France."
+      "explanation": "Paris est la capitale de la France depuis le Xe siècle."
     },
     {
       "id": 2,
       "type": "multiple",
-      "text": "Quels sont des mammifères ?",
+      "text": "☑️ Question à choix MULTIPLES — Plusieurs réponses possibles ! Quels sont des mammifères ?",
       "options": ["Dauphin", "Requin", "Baleine", "Truite"],
       "correct": [0, 2],
-      "explanation": "Le dauphin et la baleine sont des mammifères. Le requin et la truite sont des poissons."
+      "explanation": "Le dauphin et la baleine sont des mammifères marins. Le requin et la truite sont des poissons."
     },
     {
       "id": 3,
       "type": "word",
-      "text": "Quel animal fait \"miaou\" ?",
+      "text": "✏️ Question MOT — Tape la réponse courte dans le champ. Quel animal fait \"miaou\" ?",
       "options": [],
-      "correct": ["chat", "un chat", "le chat"],
-      "explanation": "Le chat est le bon animal. La casse et les espaces sont ignorés."
+      "correct": ["chat", "le chat", "un chat"],
+      "explanation": "Le chat (ou \"le chat\" / \"un chat\") est la bonne réponse. La casse et les espaces en trop sont ignorés."
+    },
+    {
+      "id": 4,
+      "type": "single",
+      "text": "🔢 Combien font 7 × 8 ?",
+      "options": ["54", "56", "48", "64"],
+      "correct": [1],
+      "explanation": "7 × 8 = 56. Une bonne table de multiplication !"
+    },
+    {
+      "id": 5,
+      "type": "multiple",
+      "text": "🌍 Quels pays font partie de l'Union Européenne ?",
+      "options": ["Allemagne", "Norvège", "Italie", "Suisse"],
+      "correct": [0, 2],
+      "explanation": "L'Allemagne et l'Italie sont membres de l'UE. La Norvège et la Suisse ne le sont pas."
+    },
+    {
+      "id": 6,
+      "type": "word",
+      "text": "🧪 Quel est le symbole chimique de l'eau ?",
+      "options": [],
+      "correct": ["h2o", "h₂o"],
+      "explanation": "H2O est la formule chimique de l'eau : 2 atomes d'hydrogène + 1 atome d'oxygène."
+    },
+    {
+      "id": 7,
+      "type": "text",
+      "text": "📝 Question TEXTE (correction manuelle) — En quelques mots, explique pourquoi le ciel est bleu.",
+      "options": [],
+      "correct": [],
+      "explanation": "Réponse attendue : diffusion de Rayleigh — les courtes longueurs d'onde (bleu) sont plus diffusées par l'atmosphère que les grandes (rouge)."
     }
   ]
 }

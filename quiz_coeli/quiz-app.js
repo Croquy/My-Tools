@@ -19,6 +19,30 @@ const TUTORIAL_QUIZ = {
   ]
 };
 
+let tutorialQuiz = TUTORIAL_QUIZ;
+
+async function loadTutorialQuiz() {
+  try {
+    const response = await fetch('quiz-model.json');
+    if (!response.ok) throw new Error('Fichier quiz-model.json introuvable');
+    const data = await response.json();
+    if (data && Array.isArray(data.questions) && data.questions.length > 0) {
+      tutorialQuiz = {
+        ...data,
+        id: '__tutorial__',
+        isTutorial: true,
+        replay: true,
+        title: data.title || '🎓 Tutoriel — Quiz modèle',
+        subject: data.subject || 'Tutoriel',
+        description: data.description || 'Quiz de démonstration généré depuis quiz-model.json.'
+      };
+    }
+  } catch (error) {
+    console.warn('⚠️ Impossible de charger quiz-model.json pour le tutoriel :', error);
+    tutorialQuiz = TUTORIAL_QUIZ;
+  }
+}
+
 const $ = id => document.getElementById(id);
 const store = {
   get(key) { try { return JSON.parse(localStorage.getItem(STORAGE_PREFIX + key)); } catch { return null; } },
@@ -31,6 +55,7 @@ function initStore() {
   if (!store.get('quizzes')) store.set('quizzes', []);
   if (!store.get('results')) store.set('results', []);
   if (!store.get('admin_pwd')) store.set('admin_pwd', 'admin');
+  if (!store.get('vocab')) store.set('vocab', []);
 }
 
 let firebaseEnabled = false;
@@ -64,10 +89,11 @@ function sanitizeDocId(value) {
 async function loadRemoteData() {
   if (!firebaseEnabled) return;
   try {
-    const [usersDocs, quizzesDocs, resultsDocs] = await Promise.all([
+    const [usersDocs, quizzesDocs, resultsDocs, vocabDocs] = await Promise.all([
       FirestoreService.getCollection('users'),
       FirestoreService.getCollection('quizzes'),
-      FirestoreService.getCollection('results')
+      FirestoreService.getCollection('results'),
+      FirestoreService.getCollection('vocab_words')
     ]);
 
     const adminDoc = await FirestoreService.getDoc('settings', 'admin');
@@ -92,6 +118,13 @@ async function loadRemoteData() {
         return { id, ...data };
       });
       store.set('results', results);
+    }
+    if (vocabDocs.length) {
+      const vocab = vocabDocs.map(doc => {
+        const { id, ...data } = doc;
+        return data;
+      });
+      store.set('vocab', vocab);
     }
   } catch (error) {
     console.warn('Erreur lecture Firebase :', error);
@@ -254,7 +287,7 @@ function renderQuizList(user) {
   const sorted = [
     ...entries.filter(item => item.forMe && !item.done),
     ...entries.filter(item => !item.forMe && !item.done),
-    { quiz: TUTORIAL_QUIZ, forMe: true, done: false, doneResult: null, isReplayable: true, isTutorial: true },
+    { quiz: tutorialQuiz, forMe: true, done: false, doneResult: null, isReplayable: true, isTutorial: true },
     ...entries.filter(item => item.done && !item.isReplayable).sort((a, b) => new Date(b.doneResult.date) - new Date(a.doneResult.date)),
     ...entries.filter(item => item.done && item.isReplayable).sort((a, b) => new Date(b.doneResult.date) - new Date(a.doneResult.date))
   ];
@@ -676,7 +709,7 @@ function renderAdminQuizList() {
   const quizzes = store.get('quizzes') || [];
   const wrapper = $('admin-quiz-list');
 
-  let html = `<div class="user-row" style="background:#fffdf0;border-radius:10px;padding:12px 16px;border:2px solid #ffe082;margin-bottom:4px;"><div style="font-size:24px;margin-right:4px;">🎓</div><div style="flex:1"><strong>${TUTORIAL_QUIZ.title}</strong><div style="font-size:12px;color:var(--muted);">${TUTORIAL_QUIZ.questions.length} questions · Intégré — non supprimable · ∞ rejouable</div></div><span style="font-size:12px;background:#fff3cd;color:#856404;border-radius:8px;padding:3px 10px;font-weight:700;">Tuto</span></div>`;
+  let html = `<div class="user-row" style="background:#fffdf0;border-radius:10px;padding:12px 16px;border:2px solid #ffe082;margin-bottom:4px;"><div style="font-size:24px;margin-right:4px;">🎓</div><div style="flex:1"><strong>${tutorialQuiz.title}</strong><div style="font-size:12px;color:var(--muted);">${tutorialQuiz.questions.length} questions · Intégré — non supprimable · ∞ rejouable</div></div><span style="font-size:12px;background:#fff3cd;color:#856404;border-radius:8px;padding:3px 10px;font-weight:700;">Tuto</span></div>`;
   if (!quizzes.length) { wrapper.innerHTML = html + '<div class="alert alert-info" style="margin-top:12px;">Aucun quiz importé.</div>'; return; }
 
   html += quizzes.map(quiz => {
@@ -784,6 +817,10 @@ function bindEvents() {
   $('btn-import-admin').addEventListener('click', () => $('file-input-admin').click());
   $('file-input-admin').addEventListener('change', event => importQuizFromFile(event.target.files[0]));
   $('btn-paste-admin').addEventListener('click', openPasteModal);
+  $('btn-import-vocab').addEventListener('click', () => $('file-input-vocab').click());
+  $('file-input-vocab').addEventListener('change', () => {
+    renderVocabGenerator();
+  });
   $('btn-change-pwd').addEventListener('click', () => {
     const pwd = $('new-pwd-input').value;
     const confirmPwd = $('new-pwd-confirm').value;
@@ -861,7 +898,7 @@ function bindEvents() {
     tab.classList.add('active');
     const target = $(tab.dataset.tab);
     if (target) target.classList.add('active');
-    const refreshFn = { 'tab-results': renderResultsTable, 'tab-correct': renderCorrectionList, 'tab-users': renderUsersList, 'tab-quiz': renderAdminQuizList }[tab.dataset.tab];
+    const refreshFn = { 'tab-results': renderResultsTable, 'tab-correct': renderCorrectionList, 'tab-users': renderUsersList, 'tab-quiz': renderAdminQuizList, 'tab-vocab': renderVocabGenerator }[tab.dataset.tab];
     if (refreshFn) refreshFn();
   }));
   document.querySelectorAll('.modal-overlay').forEach(overlay => overlay.addEventListener('click', event => { if (event.target === overlay) overlay.style.display = 'none'; }));
@@ -873,9 +910,340 @@ function renderAdmin() {
   renderAdminQuizList();
 }
 
+function parseVocabCSV(csvText) {
+  const lines = csvText.trim().split('\n');
+  const vocab = [];
+  for (const line of lines) {
+    const [page, fr, en] = line.split(',').map(s => s.trim());
+    if (page && fr && en && !isNaN(parseInt(page, 10))) {
+      vocab.push({
+        page: parseInt(page, 10),
+        fr,
+        en,
+        level: 'A1',
+        for: ''
+      });
+    }
+  }
+  return vocab;
+}
+
+function generateOrthographicVariants(word) {
+  const variants = [];
+  const lower = word.toLowerCase();
+  
+  // Variante 1: ajouter une lettre en double
+  if (word.length > 1) {
+    for (let i = 0; i < word.length - 1; i++) {
+      if (word[i] !== word[i + 1]) {
+        variants.push(word.substring(0, i + 1) + word[i] + word.substring(i + 1));
+      }
+    }
+  }
+  
+  // Variante 2: enlever une lettre
+  for (let i = 0; i < word.length; i++) {
+    if (i > 0 || word.length > 2) {
+      variants.push(word.substring(0, i) + word.substring(i + 1));
+    }
+  }
+  
+  // Variante 3: inverser deux lettres
+  for (let i = 0; i < word.length - 1; i++) {
+    variants.push(word.substring(0, i) + word[i + 1] + word[i] + word.substring(i + 2));
+  }
+  
+  // Retirer les doublons et au max 3 variantes
+  return [...new Set(variants)].filter(v => v !== word && v.length > 0).slice(0, 3);
+}
+
+function generateVocabQuizzes(vocab, pageRange, quizType) {
+  const [minPage, maxPage] = pageRange;
+  const filtered = vocab.filter(item => item.page >= minPage && item.page <= maxPage);
+  
+  if (filtered.length === 0) return null;
+  
+  const title = minPage === maxPage ? `📚 Vocabulaire - Page ${minPage}` : `📚 Vocabulaire - Page ${minPage}-${maxPage}`;
+  
+  if (quizType === 'word') {
+    const questions = filtered.map((item, idx) => ({
+      id: idx + 1,
+      type: 'word',
+      text: `Traduis en anglais : <strong>${item.fr}</strong>`,
+      options: [],
+      correct: [item.en.toLowerCase(), item.en.toLowerCase().split(' ')[0]],
+      explanation: `La traduction de "${item.fr}" est "${item.en}"`
+    }));
+    
+    return {
+      id: 'vocab_word_' + Date.now(),
+      title,
+      subject: 'Vocabulaire',
+      description: `Apprends le vocabulaire des pages ${minPage} à ${maxPage}`,
+      replay: true,
+      questions
+    };
+  } else {
+    const questions = filtered.map((item, idx) => {
+      const variants = generateOrthographicVariants(item.en);
+      const options = [item.en, ...variants.slice(0, 3)];
+      const correct = [0];
+      
+      // Mélange les options
+      const shuffled = options.map((opt, i) => ({ opt, originalIdx: i }))
+        .sort(() => Math.random() - 0.5);
+      
+      return {
+        id: idx + 1,
+        type: 'single',
+        text: `Traduis en anglais : <strong>${item.fr}</strong>`,
+        options: shuffled.map(s => s.opt),
+        correct: [shuffled.findIndex(s => s.originalIdx === 0)],
+        explanation: `La traduction de "${item.fr}" est "${item.en}"`
+      };
+    });
+    
+    return {
+      id: 'vocab_qcm_' + Date.now(),
+      title,
+      subject: 'Vocabulaire',
+      description: `Apprends le vocabulaire des pages ${minPage} à ${maxPage}`,
+      replay: true,
+      questions
+    };
+  }
+}
+
+async function importVocabCSV(file, pageRanges, quizType) {
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = async event => {
+    try {
+      const csv = event.target.result;
+      const vocab = parseVocabCSV(csv);
+      
+      if (vocab.length === 0) {
+        alert('❌ Aucun mot valide trouvé dans le CSV.');
+        return;
+      }
+      
+      // Ajouter les mots à la liste locale
+      let storedVocab = store.get('vocab') || [];
+      storedVocab = [...storedVocab, ...vocab];
+      store.set('vocab', storedVocab);
+      
+      let createdCount = 0;
+      for (const [minPage, maxPage] of pageRanges) {
+        const quiz = generateVocabQuizzes(storedVocab, [minPage, maxPage], quizType);
+        if (quiz) {
+          saveQuiz(quiz);
+          createdCount++;
+        }
+      }
+      
+      alert(`✅ ${vocab.length} mot(s) importé(s) et ${createdCount} quiz généré(s) !`);
+      renderVocabGenerator();
+      renderAdminAndHome();
+    } catch (error) {
+      alert(`❌ Erreur : ${error.message}`);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function renderVocabGenerator() {
+  const wrapper = $('vocab-preview');
+  
+  let html = `
+    <div class="admin-card" style="margin-top:20px;">
+      <h4>➕ Ajouter un mot</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div class="settings-group">
+          <label>Page</label>
+          <input type="number" id="vocab-page" min="1" placeholder="1" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-size:14px;">
+        </div>
+        <div class="settings-group">
+          <label>Français</label>
+          <input type="text" id="vocab-fr" placeholder="bonjour" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-size:14px;">
+        </div>
+        <div class="settings-group">
+          <label>Anglais</label>
+          <input type="text" id="vocab-en" placeholder="hello" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-size:14px;">
+        </div>
+        <div class="settings-group">
+          <label>Niveau (CEFR)</label>
+          <select id="vocab-level" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-size:14px;">
+            <option value="A1">A1 (Débutant)</option>
+            <option value="A2">A2 (Élémentaire)</option>
+            <option value="B1">B1 (Intermédiaire)</option>
+            <option value="B2">B2 (Intermédiaire supérieur)</option>
+            <option value="C1">C1 (Avancé)</option>
+          </select>
+        </div>
+        <div class="settings-group">
+          <label>Pour (optionnel)</label>
+          <select id="vocab-for" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-size:14px;">
+            <option value="">Tout le monde</option>
+            ${(() => {
+              const users = store.get('users') || [];
+              return users.map(u => `<option value="${u}">${u}</option>`).join('');
+            })()}
+          </select>
+        </div>
+      </div>
+      <button class="btn-add" id="btn-add-vocab-word" style="width:100%;padding:10px;font-size:14px;margin-bottom:16px;">➕ Ajouter ce mot</button>
+    </div>
+
+    <div class="admin-card" style="margin-top:20px;">
+      <h4>📋 Mots ajoutés</h4>
+      <div id="vocab-list-preview" style="font-size:13px;"></div>
+    </div>
+
+    <div class="admin-card" style="margin-top:20px;">
+      <h4>🎯 Ou générer depuis CSV</h4>
+      <div class="settings-group">
+        <label>📥 Fichier CSV (Page,Français,Anglais)</label>
+        <button class="btn-outline" id="btn-import-vocab-csv" style="width:100%;padding:10px;">📂 Charger CSV</button>
+      </div>
+    </div>
+
+    <div class="admin-card" style="margin-top:20px;">
+      <h4>🎯 Options de génération</h4>
+      <div class="settings-group">
+        <label>Type de quiz</label>
+        <select id="vocab-quiz-type" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-family:'Nunito',sans-serif;font-size:14px;">
+          <option value="word">✏️ Réponse courte (écris la traduction)</option>
+          <option value="qcm">☑️ QCM (choisis la bonne traduction)</option>
+        </select>
+      </div>
+      <div class="settings-group">
+        <label>Plages de pages (ex: 1-3, 4-6, 7-10)</label>
+        <textarea id="vocab-page-ranges" style="width:100%;height:80px;padding:10px;border-radius:8px;border:2px solid #e0e0ff;font-family:monospace;font-size:13px;" placeholder="1-3
+4-6
+7-10">1-3</textarea>
+      </div>
+      <button class="btn-add" id="btn-generate-vocab-quizzes" style="width:100%;padding:12px;font-size:14px;">🎯 Générer les quiz</button>
+    </div>
+  `;
+  
+  wrapper.innerHTML = html;
+  
+  renderVocabList();
+  
+  $('btn-add-vocab-word').addEventListener('click', () => {
+    const page = parseInt($('vocab-page').value, 10);
+    const fr = $('vocab-fr').value.trim();
+    const en = $('vocab-en').value.trim();
+    const level = $('vocab-level').value;
+    const forUser = $('vocab-for').value;
+    
+    if (!page || !fr || !en) {
+      alert('⚠️ Tous les champs obligatoires doivent être remplis.');
+      return;
+    }
+    
+    let vocab = store.get('vocab') || [];
+    vocab.push({ page, fr, en, level, for: forUser });
+    store.set('vocab', vocab);
+    
+    $('vocab-page').value = '';
+    $('vocab-fr').value = '';
+    $('vocab-en').value = '';
+    $('vocab-level').value = 'A1';
+    $('vocab-for').value = '';
+    
+    renderVocabList();
+    safeFirebaseAction(() => FirestoreService.setDoc('vocab_words', `vocab_${Date.now()}`, { page, fr, en, level, for: forUser }), 'Erreur sauvegarde mot Firebase');
+  });
+  
+  $('btn-import-vocab-csv').addEventListener('click', () => $('file-input-vocab').click());
+  
+  $('btn-generate-vocab-quizzes').addEventListener('click', () => {
+    const quizType = $('vocab-quiz-type').value;
+    const rangeText = $('vocab-page-ranges').value.trim();
+    
+    if (!rangeText) {
+      alert('⚠️ Entre au moins une plage de pages.');
+      return;
+    }
+    
+    const pageRanges = rangeText.split('\n').map(line => {
+      const [min, max] = line.trim().split('-').map(s => parseInt(s.trim(), 10));
+      return [min || 1, max || min || 1];
+    }).filter(([min, max]) => !isNaN(min) && !isNaN(max));
+    
+    if (pageRanges.length === 0) {
+      alert('⚠️ Format invalide. Utilise : 1-3, 4-6, etc.');
+      return;
+    }
+    
+    const vocab = store.get('vocab') || [];
+    let createdCount = 0;
+    
+    for (const [minPage, maxPage] of pageRanges) {
+      const quiz = generateVocabQuizzes(vocab, [minPage, maxPage], quizType);
+      if (quiz) {
+        saveQuiz(quiz);
+        createdCount++;
+      }
+    }
+    
+    if (createdCount === 0) {
+      alert('⚠️ Aucun mot dans cette/ces plage(s).');
+    } else {
+      alert(`✅ ${createdCount} quiz de vocabulaire créé(s) !`);
+      renderAdminAndHome();
+    }
+  });
+}
+
+function renderVocabList() {
+  const wrapper = $('vocab-list-preview');
+  const vocab = store.get('vocab') || [];
+  
+  if (vocab.length === 0) {
+    wrapper.innerHTML = '<div style="color:var(--muted);font-style:italic;">Aucun mot ajouté.</div>';
+    return;
+  }
+  
+  let html = '<table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#f0f0f0;"><th style="padding:8px;text-align:left;border-bottom:2px solid #ddd;">Page</th><th style="padding:8px;text-align:left;border-bottom:2px solid #ddd;">Français</th><th style="padding:8px;text-align:left;border-bottom:2px solid #ddd;">Anglais</th><th style="padding:8px;text-align:left;border-bottom:2px solid #ddd;">Niveau</th><th style="padding:8px;text-align:left;border-bottom:2px solid #ddd;">Pour</th><th style="padding:8px;text-align:center;border-bottom:2px solid #ddd;">Action</th></tr></thead><tbody>';
+  
+  vocab.forEach((word, idx) => {
+    html += `<tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">${word.page}</td>
+      <td style="padding:8px;"><strong>${word.fr}</strong></td>
+      <td style="padding:8px;">${word.en}</td>
+      <td style="padding:8px;">${word.level}</td>
+      <td style="padding:8px;">${word.for || '👥 Tout'}</td>
+      <td style="padding:8px;text-align:center;"><button class="btn-danger" data-vocab-del="${idx}" style="padding:4px 8px;font-size:12px;">Suppr.</button></td>
+    </tr>`;
+  });
+  
+  html += '</tbody></table>';
+  wrapper.innerHTML = html;
+  
+  wrapper.querySelectorAll('button[data-vocab-del]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.vocabDel, 10);
+      const vocab = store.get('vocab') || [];
+      vocab.splice(idx, 1);
+      store.set('vocab', vocab);
+      renderVocabList();
+    });
+  });
+}
+
+function renderAdmin() {
+  renderResultsTable();
+  renderUsersList();
+  renderAdminQuizList();
+}
+
 async function initApp() {
   await initFirebaseStorage();
   initStore();
+  await loadTutorialQuiz();
   renderHome();
   bindEvents();
 }
