@@ -33,6 +33,111 @@ function initStore() {
   if (!store.get('admin_pwd')) store.set('admin_pwd', 'admin');
 }
 
+let firebaseEnabled = false;
+
+async function initFirebaseStorage() {
+  if (!window.FirestoreService) {
+    console.warn('Firebase service non chargé.');
+    return;
+  }
+  try {
+    const config = window.firebaseConfig;
+    if (!config || !config.projectId) {
+      console.warn('Firebase config manquante. Complète firebase-service.js avec ta configuration.');
+      return;
+    }
+    FirestoreService.init(config);
+    firebaseEnabled = true;
+    await loadRemoteData();
+  } catch (error) {
+    console.warn('Impossible de se connecter à Firebase :', error);
+    firebaseEnabled = false;
+  }
+}
+
+function sanitizeDocId(value) {
+  return (value || '').toString().trim().replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\-_]/g, '').toLowerCase() || `id-${Date.now()}`;
+}
+
+async function loadRemoteData() {
+  if (!firebaseEnabled) return;
+  try {
+    const [usersDocs, quizzesDocs, resultsDocs] = await Promise.all([
+      FirestoreService.getCollection('users'),
+      FirestoreService.getCollection('quizzes'),
+      FirestoreService.getCollection('results')
+    ]);
+
+    const adminDoc = await FirestoreService.getDoc('settings', 'admin');
+    if (adminDoc && adminDoc.admin_pwd) {
+      store.set('admin_pwd', adminDoc.admin_pwd);
+    }
+
+    if (usersDocs.length) {
+      const users = usersDocs.map(doc => doc.name).filter(Boolean);
+      if (users.length) store.set('users', users);
+    }
+    if (quizzesDocs.length) {
+      const quizzes = quizzesDocs.map(doc => {
+        const { id, ...data } = doc;
+        return { id, ...data };
+      });
+      store.set('quizzes', quizzes);
+    }
+    if (resultsDocs.length) {
+      const results = resultsDocs.map(doc => {
+        const { id, ...data } = doc;
+        return { id, ...data };
+      });
+      store.set('results', results);
+    }
+  } catch (error) {
+    console.warn('Erreur lecture Firebase :', error);
+  }
+}
+
+function safeFirebaseAction(action, label) {
+  if (!firebaseEnabled) return;
+  action().catch(error => console.warn(`${label} :`, error));
+}
+
+async function syncUsersToFirebase() {
+  if (!firebaseEnabled) return;
+  const users = store.get('users') || [];
+  const docs = users.map(name => ({ id: sanitizeDocId(name), name }));
+  await FirestoreService.batchSet('users', docs);
+}
+
+async function syncQuizToFirebase(quiz) {
+  if (!firebaseEnabled || !quiz || !quiz.id) return;
+  await FirestoreService.setDoc('quizzes', quiz.id, quiz);
+}
+
+async function deleteQuizFromFirebase(quizId) {
+  if (!firebaseEnabled || !quizId) return;
+  await FirestoreService.deleteDoc('quizzes', quizId);
+}
+
+async function syncResultToFirebase(result) {
+  if (!firebaseEnabled || !result || !result.id) return;
+  await FirestoreService.setDoc('results', result.id, result);
+}
+
+async function deleteResultFromFirebase(resultId) {
+  if (!firebaseEnabled || !resultId) return;
+  await FirestoreService.deleteDoc('results', resultId);
+}
+
+async function deleteUserFromFirebase(name) {
+  if (!firebaseEnabled || !name) return;
+  await FirestoreService.deleteDoc('users', sanitizeDocId(name));
+}
+
+async function syncAdminPasswordToFirebase() {
+  if (!firebaseEnabled) return;
+  await FirestoreService.setDoc('settings', 'admin', { admin_pwd: store.get('admin_pwd') });
+}
+
 function showPage(id) {
   document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
   $(id).classList.add('active');
@@ -97,6 +202,13 @@ function saveQuiz(data) {
   data.id = 'quiz_' + Date.now();
   quizzes.push(data);
   store.set('quizzes', quizzes);
+  safeFirebaseAction(() => syncQuizToFirebase(data), 'Erreur sauvegarde quiz Firebase');
+}
+
+function deleteQuizById(id) {
+  const quizzes = (store.get('quizzes') || []).filter(quiz => quiz.id !== id);
+  store.set('quizzes', quizzes);
+  safeFirebaseAction(() => deleteQuizFromFirebase(id), 'Erreur suppression quiz Firebase');
 }
 
 function importQuizFromFile(file) {
@@ -344,6 +456,7 @@ function finishQuiz() {
   const results = store.get('results') || [];
   results.push(result);
   store.set('results', results);
+  safeFirebaseAction(() => syncResultToFirebase(result), 'Erreur sauvegarde résultat Firebase');
 
   renderResult(result);
   showPage('page-result');
@@ -423,7 +536,9 @@ function renderResultsTable() {
   wrapper.querySelectorAll('button[data-action]').forEach(button => button.addEventListener('click', () => {
     if (button.dataset.action === 'detail') showDetail(button.dataset.id);
     if (button.dataset.action === 'del-result' && confirm('Supprimer ce résultat définitivement ?')) {
-      store.set('results', (store.get('results') || []).filter(item => item.id !== button.dataset.id));
+      const newResults = (store.get('results') || []).filter(item => item.id !== button.dataset.id);
+      store.set('results', newResults);
+      safeFirebaseAction(() => deleteResultFromFirebase(button.dataset.id), 'Erreur suppression résultat Firebase');
       renderResultsTable();
       renderCorrectionList();
     }
@@ -539,6 +654,7 @@ function renderUsersList() {
     if (button.dataset.action === 'del') {
       if (confirm(`Supprimer "${name}" ? Ses résultats seront conservés.`)) {
         store.set('users', (store.get('users') || []).filter(user => user !== name));
+        safeFirebaseAction(() => deleteUserFromFirebase(name), 'Erreur suppression utilisateur Firebase');
         renderUsersList();
       }
     } else {
@@ -566,7 +682,7 @@ function renderAdminQuizList() {
   wrapper.innerHTML = html;
   wrapper.querySelectorAll('button[data-action]').forEach(button => button.addEventListener('click', () => {
     if (confirm('Supprimer ce quiz ? Les résultats associés resteront.')) {
-      store.set('quizzes', (store.get('quizzes') || []).filter(quiz => quiz.id !== button.dataset.id));
+      deleteQuizById(button.dataset.id);
       renderAdminQuizList();
     }
   }));
@@ -658,6 +774,7 @@ function bindEvents() {
     store.set('users', users);
     input.value = '';
     renderUsersList();
+    safeFirebaseAction(syncUsersToFirebase, 'Erreur sauvegarde des utilisateurs Firebase');
   });
   $('btn-import-admin').addEventListener('click', () => $('file-input-admin').click());
   $('file-input-admin').addEventListener('change', event => importQuizFromFile(event.target.files[0]));
@@ -669,6 +786,7 @@ function bindEvents() {
     if (!pwd) { message.textContent = '❌ Mot de passe vide.'; message.style.color = '#e74c3c'; return; }
     if (pwd !== confirmPwd) { message.textContent = '❌ Les mots de passe ne correspondent pas.'; message.style.color = '#e74c3c'; return; }
     store.set('admin_pwd', pwd);
+    safeFirebaseAction(syncAdminPasswordToFirebase, 'Erreur sauvegarde du mot de passe Firebase');
     message.textContent = '✅ Mot de passe mis à jour !';
     message.style.color = '#00b894';
     $('new-pwd-input').value = '';
@@ -750,7 +868,8 @@ function renderAdmin() {
   renderAdminQuizList();
 }
 
-function initApp() {
+async function initApp() {
+  await initFirebaseStorage();
   initStore();
   renderHome();
   bindEvents();
