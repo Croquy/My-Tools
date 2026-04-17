@@ -11,7 +11,7 @@ const TUTORIAL_QUIZ = {
   questions: [
     { id: 1, type: 'single', text: '🎯 Question à choix UNIQUE — Une seule bonne réponse. Quelle est la capitale de la France ?', options: ['Londres', 'Berlin', 'Paris', 'Madrid'], correct: [2], explanation: 'Paris est la capitale de la France depuis le Xe siècle.' },
     { id: 2, type: 'multiple', text: '☑️ Question à choix MULTIPLES — Plusieurs réponses possibles ! Quels sont des mammifères ?', options: ['Dauphin', 'Requin', 'Baleine', 'Truite'], correct: [0, 2], explanation: 'Le dauphin et la baleine sont des mammifères marins. Le requin et la truite sont des poissons.' },
-    { id: 3, type: 'word', text: '✏️ Question MOT — Tape la réponse courte dans le champ. Quel animal fait "miaou" ?', options: [], correct: ['chat', 'le chat', 'un chat'], explanation: 'Le chat (ou "le chat" / "un chat") est la bonne réponse. La casse et les espaces en trop sont ignorés.' },
+    { id: 3, type: 'word', text: '✏️ Question MOT — Tape la réponse courte dans le champ. Quel animal fait "miaou" ?', options: [], correct: ['chat', 'le chat', 'un chat'], explanation: 'Le chat (ou "le chat" / "un chat") est la bonne réponse. La casse et les espaces sont ignorés.' },
     { id: 4, type: 'single', text: '🔢 Combien font 7 × 8 ?', options: ['54', '56', '48', '64'], correct: [1], explanation: '7 × 8 = 56. Une bonne table de multiplication !' },
     { id: 5, type: 'multiple', text: '🌍 Quels pays font partie de l\'Union Européenne ?', options: ['Allemagne', 'Norvège', 'Italie', 'Suisse'], correct: [0, 2], explanation: 'L\'Allemagne et l\'Italie sont membres de l\'UE. La Norvège et la Suisse ne le sont pas.' },
     { id: 6, type: 'word', text: '🧪 Quel est le symbole chimique de l\'eau ?', options: [], correct: ['h2o', 'h₂o'], explanation: 'H2O est la formule chimique de l\'eau : 2 atomes d\'hydrogène + 1 atome d\'oxygène.' },
@@ -432,7 +432,7 @@ function nextOrFinish() {
 }
 
 function normalizeWord(value) {
-  return (value || '').toString().toLowerCase().trim().replace(/\s+/g, ' ');
+  return (value || '').toString().toLowerCase().replace(/\s+/g, '');
 }
 
 function finishQuiz() {
