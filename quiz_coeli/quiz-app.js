@@ -817,10 +817,6 @@ function bindEvents() {
   $('btn-import-admin').addEventListener('click', () => $('file-input-admin').click());
   $('file-input-admin').addEventListener('change', event => importQuizFromFile(event.target.files[0]));
   $('btn-paste-admin').addEventListener('click', openPasteModal);
-  $('btn-import-vocab').addEventListener('click', () => $('file-input-vocab').click());
-  $('file-input-vocab').addEventListener('change', () => {
-    renderVocabGenerator();
-  });
   $('btn-change-pwd').addEventListener('click', () => {
     const pwd = $('new-pwd-input').value;
     const confirmPwd = $('new-pwd-confirm').value;
@@ -914,14 +910,19 @@ function parseVocabCSV(csvText) {
   const lines = csvText.trim().split('\n');
   const vocab = [];
   for (const line of lines) {
-    const [page, fr, en] = line.split(',').map(s => s.trim());
-    if (page && fr && en && !isNaN(parseInt(page, 10))) {
+    const parts = line.split(',').map(s => s.trim());
+    const page = parseInt(parts[0], 10);
+    const fr = parts[1] || '';
+    const en = parts[2] || '';
+    const level = parts[3] || '6eme';
+    const forUser = parts[4] || '';
+    if (page && fr && en && !isNaN(page)) {
       vocab.push({
-        page: parseInt(page, 10),
+        page,
         fr,
         en,
-        level: 'A1',
-        for: ''
+        level,
+        for: forUser
       });
     }
   }
@@ -1072,13 +1073,13 @@ function renderVocabGenerator() {
           <input type="text" id="vocab-en" placeholder="hello" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-size:14px;">
         </div>
         <div class="settings-group">
-          <label>Niveau (CEFR)</label>
+          <label>Niveau</label>
           <select id="vocab-level" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-size:14px;">
-            <option value="A1">A1 (Débutant)</option>
-            <option value="A2">A2 (Élémentaire)</option>
-            <option value="B1">B1 (Intermédiaire)</option>
-            <option value="B2">B2 (Intermédiaire supérieur)</option>
-            <option value="C1">C1 (Avancé)</option>
+            <option value="6eme">6ème</option>
+            <option value="5eme">5ème</option>
+            <option value="4eme">4ème</option>
+            <option value="3eme">3ème</option>
+            <option value="lycee">Lycée</option>
           </select>
         </div>
         <div class="settings-group">
@@ -1101,9 +1102,19 @@ function renderVocabGenerator() {
     </div>
 
     <div class="admin-card" style="margin-top:20px;">
-      <h4>🎯 Ou générer depuis CSV</h4>
+      <h4>✍️ Ajout en masse</h4>
       <div class="settings-group">
-        <label>📥 Fichier CSV (Page,Français,Anglais)</label>
+        <label>Entrée rapide (page,français,anglais,niveau,utilisateur optionnel)</label>
+        <textarea id="vocab-bulk-text" style="width:100%;height:120px;padding:10px;border-radius:8px;border:2px solid #e0e0ff;font-family:monospace;font-size:13px;" placeholder="1,bonjour,hello,6eme
+2,maison,house,5eme,Tom"></textarea>
+      </div>
+      <button class="btn-outline" id="btn-add-vocab-bulk" style="width:100%;padding:10px;font-size:14px;">➕ Ajouter plusieurs mots</button>
+    </div>
+
+    <div class="admin-card" style="margin-top:20px;">
+      <h4>📥 Import CSV</h4>
+      <div class="settings-group">
+        <label>Fichier CSV (Page,Français,Anglais,niveau,utilisateur optionnel)</label>
         <button class="btn-outline" id="btn-import-vocab-csv" style="width:100%;padding:10px;">📂 Charger CSV</button>
       </div>
     </div>
@@ -1150,14 +1161,59 @@ function renderVocabGenerator() {
     $('vocab-page').value = '';
     $('vocab-fr').value = '';
     $('vocab-en').value = '';
-    $('vocab-level').value = 'A1';
+    $('vocab-level').value = '6eme';
     $('vocab-for').value = '';
     
     renderVocabList();
     safeFirebaseAction(() => FirestoreService.setDoc('vocab_words', `vocab_${Date.now()}`, { page, fr, en, level, for: forUser }), 'Erreur sauvegarde mot Firebase');
   });
   
+  $('btn-add-vocab-bulk')?.addEventListener('click', () => {
+    const bulkText = $('vocab-bulk-text').value.trim();
+    if (!bulkText) {
+      alert('⚠️ Colle au moins une ligne de vocabulaire.');
+      return;
+    }
+    const lines = bulkText.split('\n').map(line => line.trim()).filter(line => line);
+    const parsed = [];
+    const invalid = [];
+    lines.forEach((line, idx) => {
+      const parts = line.split(',').map(part => part.trim());
+      const page = parseInt(parts[0], 10);
+      const fr = parts[1] || '';
+      const en = parts[2] || '';
+      const level = parts[3] || '6eme';
+      const forUser = parts[4] || '';
+      if (!page || !fr || !en) {
+        invalid.push(idx + 1);
+        return;
+      }
+      parsed.push({ page, fr, en, level, for: forUser });
+    });
+    if (invalid.length) {
+      alert(`⚠️ Lignes invalides : ${invalid.join(', ')}. Vérifie le format.`);
+      return;
+    }
+    let vocab = store.get('vocab') || [];
+    vocab = [...vocab, ...parsed];
+    store.set('vocab', vocab);
+    renderVocabList();
+    alert(`✅ ${parsed.length} mot(s) ajoutés.`);
+  });
+  
   $('btn-import-vocab-csv').addEventListener('click', () => $('file-input-vocab').click());
+
+  $('file-input-vocab')?.addEventListener('change', event => {
+    const file = event.target.files && event.target.files[0];
+    if (file) {
+      const pageRanges = $('vocab-page-ranges').value.trim().split('\n').map(line => {
+        const [min, max] = line.trim().split('-').map(s => parseInt(s.trim(), 10));
+        return [min || 1, max || min || 1];
+      }).filter(([min, max]) => !isNaN(min) && !isNaN(max));
+      importVocabCSV(file, pageRanges, $('vocab-quiz-type').value);
+    }
+    event.target.value = '';
+  });
   
   $('btn-generate-vocab-quizzes').addEventListener('click', () => {
     const quizType = $('vocab-quiz-type').value;
