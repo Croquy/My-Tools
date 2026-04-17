@@ -773,7 +773,9 @@ function bindEvents() {
   $('btn-result-home').addEventListener('click', goHome);
   $('btn-login-cancel').addEventListener('click', () => closeModal('modal-login'));
   $('btn-login-confirm').addEventListener('click', () => {
-    if ($('admin-pwd-input').value === store.get('admin_pwd')) {
+    const inputPwd = $('admin-pwd-input').value.trim();
+    const storedPwd = (store.get('admin_pwd') || '').toString();
+    if (inputPwd && inputPwd === storedPwd) {
       state.adminLoggedIn = true;
       closeModal('modal-login');
       renderAdmin();
@@ -888,15 +890,28 @@ function bindEvents() {
     renderAdmin();
     alert('✅ Données effacées. Les prénoms et quiz par défaut ont été restaurés.');
   });
-  document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(item => item.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    tab.classList.add('active');
-    const target = $(tab.dataset.tab);
-    if (target) target.classList.add('active');
-    const refreshFn = { 'tab-results': renderResultsTable, 'tab-correct': renderCorrectionList, 'tab-users': renderUsersList, 'tab-quiz': renderAdminQuizList, 'tab-vocab': renderVocabGenerator }[tab.dataset.tab];
-    if (refreshFn) refreshFn();
-  }));
+
+  const tabsContainer = document.querySelector('.tabs');
+  if (tabsContainer) {
+    tabsContainer.addEventListener('click', event => {
+      const tab = event.target.closest('.tab');
+      if (!tab) return;
+      document.querySelectorAll('.tab').forEach(item => item.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      tab.classList.add('active');
+      const target = $(tab.dataset.tab);
+      if (target) target.classList.add('active');
+      const refreshFn = {
+        'tab-results': renderResultsTable,
+        'tab-correct': renderCorrectionList,
+        'tab-users': renderUsersList,
+        'tab-quiz': renderAdminQuizList,
+        'tab-vocab': renderVocabGenerator
+      }[tab.dataset.tab];
+      if (refreshFn) refreshFn();
+    });
+  }
+
   document.querySelectorAll('.modal-overlay').forEach(overlay => overlay.addEventListener('click', event => { if (event.target === overlay) overlay.style.display = 'none'; }));
 }
 
