@@ -299,7 +299,7 @@ function validateQuizData(data) {
 
 function saveQuiz(data) {
   const quizzes = store.get('quizzes') || [];
-  data.id = 'quiz_' + Date.now();
+  data.id = `quiz_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
   quizzes.push(data);
   store.set('quizzes', quizzes);
   safeFirebaseAction(() => syncQuizToFirebase(data), 'Erreur sauvegarde quiz Firebase');

@@ -55,6 +55,16 @@ function parsePageRanges(rangeText = '') {
   }).filter(([min, max]) => !isNaN(min) && !isNaN(max));
 }
 
+function generateVocabDocId(item, idx = 0) {
+  return sanitizeDocId(`${item.fr}-${item.en}-${item.page}-${item.level}-${Date.now()}-${idx}`);
+}
+
+async function syncVocabWordsToFirebase(words) {
+  if (typeof firebaseEnabled === 'undefined' || !firebaseEnabled || !Array.isArray(words) || words.length === 0) return;
+  const docs = words.map((word, idx) => ({ id: generateVocabDocId(word, idx), ...word }));
+  await FirestoreService.batchSet('vocab_words', docs);
+}
+
 /**
  * Génère les options <select> pour les utilisateurs du vocabulaire
  * @param {string} selected - Utilisateur sélectionné
@@ -265,6 +275,7 @@ async function importVocabCSV(file, pageRanges, quizType, levelFilter = '', forF
       let storedVocab = store.get('vocab') || [];
       storedVocab = [...storedVocab, ...vocab];
       store.set('vocab', storedVocab);
+      safeFirebaseAction(() => syncVocabWordsToFirebase(vocab), 'Erreur sauvegarde vocab Firebase');
       
       let createdCount = 0;
       for (const [minPage, maxPage] of pageRanges) {
@@ -531,6 +542,7 @@ function renderVocabGenerator() {
     let vocab = store.get('vocab') || [];
     vocab = [...vocab, ...parsed];
     store.set('vocab', vocab);
+    safeFirebaseAction(() => syncVocabWordsToFirebase(parsed), 'Erreur sauvegarde vocab Firebase');
     renderVocabList();
     updateVocabEligibleCount();
     alert(`✅ ${parsed.length} mot(s) ajoutés.`);
