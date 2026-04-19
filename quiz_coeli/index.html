@@ -24,6 +24,11 @@
         <div class="user-select-wrap">
           <label for="user-select">👤 Qui es-tu ?</label>
           <select id="user-select"><option value="">-- Sélectionne ton prénom --</option></select>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;font-size:14px;">
+            <label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="hide-done-quizzes" checked> Masquer les quiz déjà faits</label>
+            <label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="hide-others-quizzes" checked> Masquer les quiz des autres</label>
+          </div>
+          <div id="quiz-selection-count" style="margin-top:10px;font-size:13px;color:var(--muted);"></div>
         </div>
         <div id="quiz-list-wrap" style="display:none;">
           <div class="quiz-list"><h3>📚 Quiz disponibles</h3><div id="quiz-list"></div></div>
@@ -76,18 +81,16 @@
       <div class="tabs">
         <button type="button" class="tab active" data-tab="tab-results">📊 Résultats</button>
         <button type="button" class="tab" data-tab="tab-correct">✍️ À corriger</button>
-        <button type="button" class="tab" data-tab="tab-users">👥 Utilisateurs</button>
+        <button type="button" class="tab" data-tab="tab-users">👥 Utilisateurs & paramètres</button>
         <button type="button" class="tab" data-tab="tab-quiz">📚 Quiz</button>
         <button type="button" class="tab" data-tab="tab-vocab">🌍 Vocabulaire</button>
-        <button type="button" class="tab" data-tab="tab-settings">⚙️ Paramètres</button>
       </div>
 
       <div id="tab-results" class="tab-content active"><div class="admin-card"><h3>📊 Historique des résultats</h3><div id="results-table-wrap"></div></div></div>
       <div id="tab-correct" class="tab-content"><div class="admin-card"><h3>✍️ Réponses texte à corriger manuellement</h3><div id="correction-list"></div></div></div>
-      <div id="tab-users" class="tab-content"><div class="admin-card"><h3>👥 Gérer les utilisateurs</h3><div id="users-list"></div><div class="add-user-row"><input type="text" class="input-text" id="new-user-input" placeholder="Prénom du nouvel utilisateur..."><button class="btn-add" id="btn-add-user">➕ Ajouter</button></div></div></div>
+      <div id="tab-users" class="tab-content"><div class="admin-card"><h3>👥 Gérer les utilisateurs</h3><div id="users-list"></div><div class="add-user-row"><input type="text" class="input-text" id="new-user-input" placeholder="Prénom du nouvel utilisateur..."><button class="btn-add" id="btn-add-user">➕ Ajouter</button></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;"><div class="admin-card"><h3>⚙️ Paramètres</h3><div class="settings-group"><label>🔑 Changer le mot de passe admin</label><input type="password" class="input-text" id="new-pwd-input" placeholder="Nouveau mot de passe..."><input type="password" class="input-text" id="new-pwd-confirm" placeholder="Confirmer..."><button class="btn-add" id="btn-change-pwd" style="width:100%;">Enregistrer</button><div id="pwd-msg" style="margin-top:8px;font-size:13px;"></div></div></div><div class="admin-card"><h3>💾 Sauvegarde & Restauration</h3><p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Exporte toutes les données (quiz, résultats, utilisateurs) dans un fichier JSON.</p><div class="settings-group"><label>📤 Exporter toutes les données</label><button class="btn-add" id="btn-export-data" style="background:var(--c8);width:100%;">⬇️ Télécharger</button></div><div class="settings-group"><label>📥 Restaurer une sauvegarde</label><p style="font-size:12px;color:#e17055;margin-bottom:8px;font-weight:600;">⚠️ Cela remplacera TOUTES les données.</p><input type="file" id="file-input-restore" accept=".json"><button class="btn-outline" id="btn-restore-data" style="width:100%;border-color:var(--c8);color:var(--c8);">⬆️ Charger</button><div id="restore-msg" style="margin-top:8px;font-size:13px;"></div></div><div class="settings-group danger-group"><label style="color:#e17055;">🗑️ Zone de danger</label><button class="btn-danger" id="btn-clear-all" style="width:100%;padding:10px;border-radius:10px;font-size:14px;">Effacer toutes les données</button><p style="font-size:11px;color:var(--muted);margin-top:6px;">Conserve le mot de passe admin.</p></div></div></div></div>
       <div id="tab-quiz" class="tab-content"><div class="admin-card"><h3>📚 Gérer les quiz importés</h3><div id="admin-quiz-list"></div><div class="admin-actions"><input type="file" id="file-input-admin" accept=".json"><button class="btn-outline file-trigger" id="btn-import-admin">📂 Fichier .json</button><button class="btn-outline file-trigger" id="btn-paste-admin">📋 Coller du JSON</button></div></div></div>
-      <div id="tab-vocab" class="tab-content"><div class="admin-card"><h3>🌍 Créer des quiz de vocabulaire</h3><div style="margin-bottom:20px;"><p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Importe un fichier CSV avec 3 à 5 colonnes : <strong>Page, Français, Anglais, niveau, utilisateur</strong></p><div class="settings-group"><label>📥 Fichier CSV</label><input type="file" id="file-input-vocab" accept=".csv"><button class="btn-outline" id="btn-import-vocab-csv">📂 Charger CSV</button></div></div><div id="vocab-preview" style="margin-top:20px;"></div></div></div>
-      <div id="tab-settings" class="tab-content"><div class="admin-card" style="max-width:400px;"><h3>⚙️ Paramètres</h3><div class="settings-group"><label>🔑 Changer le mot de passe admin</label><input type="password" class="input-text" id="new-pwd-input" placeholder="Nouveau mot de passe..."><input type="password" class="input-text" id="new-pwd-confirm" placeholder="Confirmer..."><button class="btn-add" id="btn-change-pwd">Enregistrer</button><div id="pwd-msg" style="margin-top:8px;font-size:13px;"></div></div></div><div class="admin-card" style="max-width:400px;"><h3>💾 Sauvegarde & Restauration</h3><p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Exporte toutes les données (quiz, résultats, utilisateurs) dans un fichier JSON pour les transférer sur un autre appareil.</p><div class="settings-group"><label>📤 Exporter toutes les données</label><button class="btn-add" id="btn-export-data" style="background:var(--c8);width:100%;">⬇️ Télécharger la sauvegarde</button></div><div class="settings-group"><label>📥 Restaurer une sauvegarde</label><p style="font-size:12px;color:#e17055;margin-bottom:8px;font-weight:600;">⚠️ Attention : cela remplacera TOUTES les données actuelles.</p><input type="file" id="file-input-restore" accept=".json"><button class="btn-outline" id="btn-restore-data" style="width:100%;border-color:var(--c8);color:var(--c8);">⬆️ Charger une sauvegarde</button><div id="restore-msg" style="margin-top:8px;font-size:13px;"></div></div><div class="settings-group danger-group"><label style="color:#e17055;">🗑️ Zone de danger</label><button class="btn-danger" id="btn-clear-all" style="width:100%;padding:10px;border-radius:10px;font-size:14px;">Effacer toutes les données</button><p style="font-size:11px;color:var(--muted);margin-top:6px;">Remet l'application à zéro (conserve le mot de passe admin).</p></div></div></div>
+      <div id="tab-vocab" class="tab-content"><div id="vocab-preview" style="margin-top:20px;"></div></div>
     </div>
   </div>
 
@@ -176,6 +179,8 @@ Pour : [PRÉNOM ou "tout le monde"]</span></div><div class="modal-btns"><button 
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="firebase-service.js" defer></script>
+  <script src="vocab-module.js" defer></script>
+  <script src="results-module.js" defer></script>
   <script src="quiz-app.js" defer></script>
 </body>
 </html>
