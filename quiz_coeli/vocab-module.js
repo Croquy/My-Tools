@@ -405,6 +405,7 @@ function saveEditVocabModal() {
   store.set('vocab', vocab);
   renderVocabList();
   updateVocabEligibleCount();
+  safeFirebaseAction(() => syncVocabWordsToFirebase(vocab), 'Erreur sauvegarde vocab Firebase');
   closeEditVocabModal();
 }
 

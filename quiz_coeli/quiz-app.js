@@ -836,7 +836,7 @@ function bindEvents() {
         store.set('users', data.users);
         store.set('quizzes', data.quizzes);
         store.set('results', data.results || []);
-        store.set('admin_pwd', data.admin_pwd || 'Admin8587');
+        store.set('admin_pwd', data.admin_pwd || 'admin');
         event.target.value = '';
         message.textContent = '✅ Sauvegarde restaurée avec succès !';
         message.style.color = '#00b894';
