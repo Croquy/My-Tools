@@ -124,10 +124,42 @@ function shuffleArray(arr) {
  * @param {string} csvText - Contenu CSV
  * @returns {Array} - Tableau d'objets {page, fr, en, level, for}
  */
+function splitCsvLine(line, delimiter = ',') {
+  const fields = [];
+  let field = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i];
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        field += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === delimiter && !inQuotes) {
+      fields.push(field);
+      field = '';
+    } else {
+      field += char;
+    }
+  }
+  fields.push(field);
+  return fields.map(value => value.trim().replace(/^"(.*)"$/, '$1').replace(/""/g, '"'));
+}
+
+function detectCsvDelimiter(line) {
+  const commaCount = (line.match(/,/g) || []).length;
+  const semicolonCount = (line.match(/;/g) || []).length;
+  return semicolonCount > commaCount ? ';' : ',';
+}
+
 function parseVocabCSV(csvText) {
   const lines = csvText.trim().split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+  if (lines.length === 0) return [];
+  const delimiter = detectCsvDelimiter(lines[0]);
   return lines.map(line => {
-    const parts = line.split(',').map(s => s.trim());
+    const parts = splitCsvLine(line, delimiter);
     const page = parseInt(parts[0], 10);
     const fr = parts[1] || '';
     const en = parts[2] || '';
@@ -262,9 +294,17 @@ async function importVocabCSV(file, pageRanges, quizType, levelFilter = '', forF
   const reader = new FileReader();
   reader.onload = async event => {
     try {
-      // Force encodage UTF-8 pour éviter les problèmes d'accents
-      const csv = event.target.result;
-      const vocab = parseVocabCSV(csv);
+      const buffer = event.target.result;
+      let csv;
+      try {
+        csv = new TextDecoder('utf-8', { fatal: true }).decode(buffer);
+      } catch (utf8Error) {
+        csv = new TextDecoder('windows-1252').decode(buffer);
+      }
+      if (csv.includes('�')) {
+        csv = new TextDecoder('windows-1252').decode(buffer);
+      }
+      const vocab = parseVocabCSV(csv).map((word, idx) => ({ id: generateVocabDocId(word, idx), ...word }));
       
       if (vocab.length === 0) {
         alert('❌ Aucun mot valide trouvé dans le CSV.');
@@ -276,7 +316,7 @@ async function importVocabCSV(file, pageRanges, quizType, levelFilter = '', forF
       storedVocab = [...storedVocab, ...vocab];
       store.set('vocab', storedVocab);
       safeFirebaseAction(() => syncVocabWordsToFirebase(vocab), 'Erreur sauvegarde vocab Firebase');
-      
+      /*
       let createdCount = 0;
       for (const [minPage, maxPage] of pageRanges) {
         const quiz = generateVocabQuizzes(storedVocab, [minPage, maxPage], quizType, levelFilter, forFilter);
@@ -285,63 +325,87 @@ async function importVocabCSV(file, pageRanges, quizType, levelFilter = '', forF
           createdCount++;
         }
       }
-      
-      alert(`✅ ${vocab.length} mot(s) importé(s) et ${createdCount} quiz généré(s) !`);
+      */
+      alert(`✅ ${vocab.length} mot(s) importé(s) !`);
       renderVocabGenerator();
       renderAdminAndHome();
     } catch (error) {
       alert(`❌ Erreur : ${error.message}`);
     }
   };
-  reader.readAsText(file, 'UTF-8');
+  reader.readAsArrayBuffer(file);
 }
 
-// ============================================================================
-// ÉDITION D'UN MOT
-// ============================================================================
+let currentVocabEditIndex = null;
 
-/**
- * Édite un mot de vocabulaire
- * @param {number} index - Index du mot à éditer
- */
-function editVocabWord(index) {
+function showVocabEditError(message) {
+  const errorEl = $('vocab-edit-error');
+  if (errorEl) {
+    errorEl.textContent = message;
+    errorEl.style.display = 'block';
+  }
+}
+
+function clearVocabEditError() {
+  const errorEl = $('vocab-edit-error');
+  if (errorEl) {
+    errorEl.textContent = '';
+    errorEl.style.display = 'none';
+  }
+}
+
+function openEditVocabModal(index) {
   const vocab = store.get('vocab') || [];
   const word = vocab[index];
-  
-  if (!word) {
-    alert('⚠️ Mot non trouvé.');
+  if (!word) return;
+  currentVocabEditIndex = index;
+
+  $('vocab-edit-page').value = word.page;
+  $('vocab-edit-fr').value = word.fr;
+  $('vocab-edit-en').value = word.en;
+  const normalizedLevel = normalizeVocabLevel(word.level);
+  const levelSelect = $('vocab-edit-level');
+  if (levelSelect) {
+    levelSelect.innerHTML = getVocabLevelOptions(normalizedLevel);
+  }
+  const forSelect = $('vocab-edit-for');
+  if (forSelect) {
+    forSelect.innerHTML = getVocabUsersOptions(word.for || '');
+  }
+  clearVocabEditError();
+  $('modal-vocab-edit').style.display = 'flex';
+}
+
+function closeEditVocabModal() {
+  currentVocabEditIndex = null;
+  clearVocabEditError();
+  $('modal-vocab-edit').style.display = 'none';
+}
+
+function saveEditVocabModal() {
+  const index = currentVocabEditIndex;
+  if (index === null) return;
+
+  const vocab = store.get('vocab') || [];
+  const word = vocab[index];
+  if (!word) return closeEditVocabModal();
+
+  const page = parseInt($('vocab-edit-page').value, 10);
+  const fr = $('vocab-edit-fr').value.trim();
+  const en = $('vocab-edit-en').value.trim();
+  const level = normalizeVocabLevel($('vocab-edit-level').value);
+  const forUser = $('vocab-edit-for').value;
+
+  if (!page || !fr || !en) {
+    showVocabEditError('Page, français et anglais sont obligatoires.');
     return;
   }
 
-  // Créer un modal d'édition simple
-  const newFr = prompt('Modifie le mot en français :', word.fr);
-  if (newFr === null) return; // Annulation
-  
-  if (!newFr.trim()) {
-    alert('⚠️ Le mot ne peut pas être vide.');
-    return;
-  }
-
-  // Optionnellement éditer aussi l'anglais
-  const newEn = prompt('Modifie le mot en anglais :', word.en);
-  if (newEn === null) return;
-  
-  if (!newEn.trim()) {
-    alert('⚠️ Le mot ne peut pas être vide.');
-    return;
-  }
-
-  // Mettre à jour le mot
-  vocab[index] = {
-    ...word,
-    fr: newFr.trim(),
-    en: newEn.trim()
-  };
-  
+  vocab[index] = { ...word, page, fr, en, level, for: forUser };
   store.set('vocab', vocab);
   renderVocabList();
   updateVocabEligibleCount();
-  alert(`✅ Mot modifié : "${newFr}" → "${newEn}"`);
+  closeEditVocabModal();
 }
 
 // ============================================================================
@@ -381,25 +445,26 @@ function renderVocabGenerator() {
 
     <div class="admin-card" style="margin-top:20px;">
       <h4>🎯 Options de génération</h4>
-      <div class="settings-group">
+    
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+        <div class="settings-group">
         <label>Type de quiz</label>
-        <select id="vocab-quiz-type" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-family:'Nunito',sans-serif;font-size:14px;">
+        <select id="vocab-quiz-type" class="input-text">
           <option value="word">✏️ Réponse courte</option>
           <option value="qcm">☑️ QCM</option>
           <option value="mixed">🔀 Mixte</option>
         </select>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div class="settings-group">
           <label>Filtrer par niveau</label>
-          <select id="vocab-filter-level" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-family:'Nunito',sans-serif;font-size:14px;">
+          <select id="vocab-filter-level" class="input-text"">
             <option value="">Toutes</option>
             ${levelOptions}
           </select>
         </div>
         <div class="settings-group">
           <label>Filtrer par utilisateur</label>
-          <select id="vocab-filter-for" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-family:'Nunito',sans-serif;font-size:14px;">
+          <select id="vocab-filter-for"class="input-text">
             ${userOptions}
           </select>
         </div>
@@ -423,30 +488,30 @@ function renderVocabGenerator() {
 
     <div class="admin-card" style="margin-top:20px;">
       <h4>➕ Ajouter un mot</h4>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div style="display:grid;grid-template-columns:1fr 2fr 2fr;gap:12px;margin-bottom:12px;">
         <div class="settings-group">
           <label>Page</label>
-          <input type="number" id="vocab-page" min="1" placeholder="1" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-size:14px;">
+          <input type="number" id="vocab-page" min="1" placeholder="1" class="input-text">
         </div>
         <div class="settings-group">
           <label>Français</label>
-          <input type="text" id="vocab-fr" placeholder="bonjour" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-size:14px;">
+          <input type="text" id="vocab-fr" placeholder="bonjour" class="input-text">
         </div>
         <div class="settings-group">
           <label>Anglais</label>
-          <input type="text" id="vocab-en" placeholder="hello" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-size:14px;">
+          <input type="text" id="vocab-en" placeholder="hello" class="input-text">
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
         <div class="settings-group">
           <label>Niveau</label>
-          <select id="vocab-level" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-size:14px;">
+          <select id="vocab-level" class="input-text">
             ${levelOptions}
           </select>
         </div>
         <div class="settings-group">
           <label>Pour</label>
-          <select id="vocab-for" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-size:14px;">
+          <select id="vocab-for" class="input-text">
             <option value="">Tout le monde</option>
             ${userOptions}
           </select>
@@ -496,8 +561,9 @@ function renderVocabGenerator() {
       return;
     }
 
+    const newWord = { id: generateVocabDocId({ page, fr, en, level, for: forUser }), page, fr, en, level, for: forUser };
     let vocab = store.get('vocab') || [];
-    vocab.push({ page, fr, en, level, for: forUser });
+    vocab.push(newWord);
     store.set('vocab', vocab);
 
     // Réinitialiser le formulaire
@@ -509,7 +575,7 @@ function renderVocabGenerator() {
 
     renderVocabList();
     updateVocabEligibleCount();
-    safeFirebaseAction(() => FirestoreService.setDoc('vocab_words', `vocab_${Date.now()}`, { page, fr, en, level, for: forUser }), 'Erreur sauvegarde mot Firebase');
+    safeFirebaseAction(() => FirestoreService.setDoc('vocab_words', newWord.id, newWord), 'Erreur sauvegarde mot Firebase');
   });
 
   // Ajouter plusieurs mots en masse
@@ -533,7 +599,7 @@ function renderVocabGenerator() {
         invalid.push(idx + 1);
         return;
       }
-      parsed.push({ page, fr, en, level, for: forUser });
+      parsed.push({ id: generateVocabDocId({ page, fr, en, level, for: forUser }, parsed.length), page, fr, en, level, for: forUser });
     });
     if (invalid.length) {
       alert(`⚠️ Lignes invalides : ${invalid.join(', ')}. Vérifie le format.`);
@@ -559,6 +625,18 @@ function renderVocabGenerator() {
     }
     event.target.value = '';
   });
+
+  const editSaveBtn = $('btn-vocab-edit-save');
+  if (editSaveBtn && !editSaveBtn.dataset.vocabEditInit) {
+    editSaveBtn.dataset.vocabEditInit = '1';
+    editSaveBtn.addEventListener('click', saveEditVocabModal);
+    $('btn-vocab-edit-cancel')?.addEventListener('click', closeEditVocabModal);
+    $('modal-vocab-edit')?.addEventListener('click', event => {
+      if (event.target === $('modal-vocab-edit')) {
+        closeEditVocabModal();
+      }
+    });
+  }
   
   // Générer les quiz
   $('btn-generate-vocab-quizzes').addEventListener('click', () => {
@@ -613,7 +691,7 @@ function renderVocabList() {
   const userOptions = getVocabUsersOptions(currentFor);
 
   let html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;"><div class="settings-group"><label>Filtrer par niveau</label><select id="vocab-table-filter-level" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-family:'Nunito',sans-serif;font-size:14px;">${levelOptions}</select></div><div class="settings-group"><label>Filtrer par utilisateur</label><select id="vocab-table-filter-for" style="width:100%;padding:8px;border-radius:8px;border:2px solid #e0e0ff;font-family:'Nunito',sans-serif;font-size:14px;">${userOptions}</select></div></div>`;
-  html += `<div style="margin-bottom:16px;font-size:13px;color:var(--muted);">${filtered.length}/${vocab.length} mot(s) affiché(s)</div>`;
+  html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;"><div style="font-size:13px;color:var(--muted);">${filtered.length}/${vocab.length} mot(s) affiché(s)</div><button class="btn-danger" id="btn-delete-selected-vocab" style="padding:8px 12px;font-size:13px;">🗑️ Supprimer la sélection</button></div>`;
   
   if (filtered.length === 0) {
     wrapper.innerHTML = html + '<div style="color:var(--muted);font-style:italic;">Aucun mot correspondant aux filtres.</div>';
@@ -621,7 +699,7 @@ function renderVocabList() {
     return;
   }
   
-  html += '<table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#f0f0f0;"><th style="padding:8px;text-align:left;border-bottom:2px solid #ddd;">Page</th><th style="padding:8px;text-align:left;border-bottom:2px solid #ddd;">Français</th><th style="padding:8px;text-align:left;border-bottom:2px solid #ddd;">Anglais</th><th style="padding:8px;text-align:left;border-bottom:2px solid #ddd;">Niveau</th><th style="padding:8px;text-align:left;border-bottom:2px solid #ddd;">Pour</th><th style="padding:8px;text-align:center;border-bottom:2px solid #ddd;">Actions</th></tr></thead><tbody>';
+  html += '<table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#f0f0f0;"><th style="padding:8px;text-align:center;border-bottom:2px solid #ddd;"><input type="checkbox" id="vocab-select-all"></th><th style="padding:8px;text-align:left;border-bottom:2px solid #ddd;">Page</th><th style="padding:8px;text-align:left;border-bottom:2px solid #ddd;">Français</th><th style="padding:8px;text-align:left;border-bottom:2px solid #ddd;">Anglais</th><th style="padding:8px;text-align:left;border-bottom:2px solid #ddd;">Niveau</th><th style="padding:8px;text-align:left;border-bottom:2px solid #ddd;">Pour</th><th style="padding:8px;text-align:center;border-bottom:2px solid #ddd;">Actions</th></tr></thead><tbody>';
   
   const indexedFiltered = vocab.map((item, index) => ({ item, index })).filter(({ item }) => {
     const itemLevel = normalizeVocabLevel(item.level);
@@ -629,21 +707,52 @@ function renderVocabList() {
     const matchesLevel = !currentLevel || itemLevel === currentLevel;
     const matchesFor = !currentFor || itemFor === normalizeString(currentFor);
     return matchesLevel && matchesFor;
-  });
+  }).sort((a, b) => (Number(a.item.page) || 0) - (Number(b.item.page) || 0));;
 
   indexedFiltered.forEach(({ item: word, index }) => {
-    html += `<tr style="border-bottom:1px solid #eee;"><td style="padding:8px;">${word.page}</td><td style="padding:8px;"><strong>${word.fr}</strong></td><td style="padding:8px;">${word.en}</td><td style="padding:8px;">${formatVocabLevel(word.level)}</td><td style="padding:8px;">${word.for ? word.for : 'Tout le monde'}</td><td style="padding:8px;text-align:center;display:flex;gap:4px;justify-content:center;"><button class="btn-outline" data-vocab-edit="${index}" style="padding:4px 8px;font-size:12px;background:#6ea8ff;color:white;border:none;border-radius:4px;cursor:pointer;">✏️ Édit.</button><button class="btn-danger" data-vocab-del="${index}" style="padding:4px 8px;font-size:12px;">Suppr.</button></td></tr>`;
+    html += `<tr style="border-bottom:1px solid #eee;"><td style="padding:8px;text-align:center;"><input type="checkbox" class="vocab-select-checkbox" data-vocab-index="${index}"></td><td style="padding:8px;">${word.page}</td><td style="padding:8px;"><strong>${word.fr}</strong></td><td style="padding:8px;">${word.en}</td><td style="padding:8px;">${formatVocabLevel(word.level)}</td><td style="padding:8px;">${word.for ? word.for : 'Tout le monde'}</td><td style="padding:8px;text-align:center;display:flex;gap:4px;justify-content:center;"><button class="btn-outline" data-vocab-edit="${index}" style="padding:4px 8px;font-size:12px;background:#6ea8ff;color:white;border:none;border-radius:4px;cursor:pointer;">✏️ Édit.</button><button class="btn-danger" data-vocab-del="${index}" style="padding:4px 8px;font-size:12px;">Suppr.</button></td></tr>`;
   });
   html += '</tbody></table>';
 
   wrapper.innerHTML = html;
   wrapper.querySelectorAll('#vocab-table-filter-level, #vocab-table-filter-for').forEach(el => el.addEventListener('change', renderVocabList));
+  const selectAll = $('vocab-select-all');
+  if (selectAll) {
+    selectAll.addEventListener('change', () => {
+      const checked = selectAll.checked;
+      wrapper.querySelectorAll('.vocab-select-checkbox').forEach(cb => {
+        cb.checked = checked;
+      });
+    });
+  }
+  const deleteSelectedBtn = $('btn-delete-selected-vocab');
+  if (deleteSelectedBtn) {
+    deleteSelectedBtn.addEventListener('click', () => {
+      const selectedInputs = Array.from(wrapper.querySelectorAll('.vocab-select-checkbox:checked'));
+      if (selectedInputs.length === 0) {
+        alert('⚠️ Choisis au moins un mot à supprimer.');
+        return;
+      }
+      const vocab = store.get('vocab') || [];
+      const selectedWords = selectedInputs.map(input => vocab[parseInt(input.dataset.vocabIndex, 10)]).filter(Boolean);
+      const selectedIndices = selectedWords.map(word => vocab.indexOf(word)).filter(idx => idx >= 0).sort((a, b) => b - a);
+      selectedIndices.forEach(idx => { vocab.splice(idx, 1); });
+      store.set('vocab', vocab);
+      selectedWords.forEach(word => {
+        if (word.id) {
+          safeFirebaseAction(() => FirestoreService.deleteDoc('vocab_words', word.id), 'Erreur suppression vocab Firebase');
+        }
+      });
+      renderVocabList();
+      updateVocabEligibleCount();
+    });
+  }
   
   // Listeners pour édition
   wrapper.querySelectorAll('button[data-vocab-edit]').forEach(btn => {
     btn.addEventListener('click', () => {
       const idx = parseInt(btn.dataset.vocabEdit, 10);
-      editVocabWord(idx);
+      openEditVocabModal(idx);
     });
   });
   
@@ -652,8 +761,12 @@ function renderVocabList() {
     btn.addEventListener('click', () => {
       const idx = parseInt(btn.dataset.vocabDel, 10);
       const vocab = store.get('vocab') || [];
+      const removedWord = vocab[idx];
       vocab.splice(idx, 1);
       store.set('vocab', vocab);
+      if (removedWord?.id) {
+        safeFirebaseAction(() => FirestoreService.deleteDoc('vocab_words', removedWord.id), 'Erreur suppression vocab Firebase');
+      }
       renderVocabList();
       updateVocabEligibleCount();
     });

@@ -136,10 +136,7 @@ async function loadRemoteData() {
       store.set('results', results);
     }
     if (vocabDocs.length) {
-      const vocab = vocabDocs.map(doc => {
-        const { id, ...data } = doc;
-        return data;
-      });
+      const vocab = vocabDocs.map(doc => ({ id: doc.id, ...doc }));
       store.set('vocab', vocab);
     }
   } catch (error) {
@@ -246,7 +243,18 @@ function showPage(id) {
 
 function showModal(id) { $(id).style.display = 'flex'; }
 function closeModal(id) { $(id).style.display = 'none'; }
-function goHome() { renderHome(); showPage('page-home'); }
+function goHome() { 
+  // Rafraîchir les données depuis Firebase avant de rendre l'accueil
+  if (firebaseEnabled) {
+    loadRemoteData().then(() => {
+      renderHome(); 
+      showPage('page-home');
+    });
+  } else {
+    renderHome(); 
+    showPage('page-home');
+  }
+}
 
 function renderHome() {
   const users = store.get('users') || [];
@@ -708,7 +716,14 @@ function processPastedJson() {
 }
 
 function renderAdminAndHome() {
-  if (state.adminLoggedIn) renderAdmin();
+  if (state.adminLoggedIn) {
+    // Rafraîchir les données depuis Firebase avant de rendre l'admin
+    if (firebaseEnabled) {
+      loadRemoteData().then(() => renderAdmin());
+    } else {
+      renderAdmin();
+    }
+  }
   if (state.currentUser) renderQuizList(state.currentUser);
 }
 
@@ -846,7 +861,7 @@ function bindEvents() {
 
   const tabsContainer = document.querySelector('.tabs');
   if (tabsContainer) {
-    tabsContainer.addEventListener('click', event => {
+    tabsContainer.addEventListener('click', async event => {
       const tab = event.target.closest('.tab');
       if (!tab) return;
       document.querySelectorAll('.tab').forEach(item => item.classList.remove('active'));
@@ -854,6 +869,12 @@ function bindEvents() {
       tab.classList.add('active');
       const target = $(tab.dataset.tab);
       if (target) target.classList.add('active');
+      
+      // Rafraîchir les données depuis Firebase avant de rendre l'onglet
+      if (firebaseEnabled) {
+        await loadRemoteData();
+      }
+      
       const refreshFn = {
         'tab-results': renderResultsTable,
         'tab-correct': renderCorrectionList,

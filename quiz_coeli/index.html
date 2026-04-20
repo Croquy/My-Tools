@@ -176,6 +176,23 @@ Pour : [PRÉNOM ou "tout le monde"]</span></div><div class="modal-btns"><button 
     <div class="modal modal-wide"><h3>📋 Coller du JSON</h3><p>Colle ici le JSON généré par l'IA (ChatGPT, Claude, Gemini…)</p><textarea id="paste-json-input" style="width:100%;height:260px;padding:14px;border-radius:12px;border:2px solid #e0e0ff;font-family:monospace;font-size:13px;resize:vertical;outline:none;background:#f8f9ff;transition:border .2s;" placeholder='{ "title": "Mon quiz", "questions": [...] }'></textarea><div id="paste-json-error" style="color:#e74c3c;font-size:13px;margin-top:8px;display:none;"></div><div class="modal-btns"><button class="btn-cancel" id="btn-paste-cancel">Annuler</button><button class="btn-add" id="btn-paste-confirm">✅ Importer ce quiz</button></div></div>
   </div>
 
+  <div id="modal-vocab-edit" class="modal-overlay">
+    <div class="modal modal-wide">
+      <h3>✏️ Modifier un mot</h3>
+      <div style="display:grid;grid-template-columns:1fr 2fr 2fr;gap:12px;margin-bottom:12px;">
+        <div class="settings-group"><label>Page</label><input type="number" min="1" id="vocab-edit-page" class="input-text" placeholder="1"  ></div>
+        <div class="settings-group"><label>Français</label><input type="text" id="vocab-edit-fr" class="input-text" placeholder="bonjour" ></div>
+      <div class="settings-group"><label>Anglais</label><input type="text" id="vocab-edit-en" class="input-text" placeholder="hello" ></div>
+        </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div class="settings-group"><label>Niveau</label><select id="vocab-edit-level" class="input-text" ><option value="6">6ème</option><option value="5">5ème</option><option value="4">4ème</option><option value="3">3ème</option><option value="2">2nde</option><option value="1">1ère</option></select></div>
+     <div class="settings-group" style="margin-bottom:12px;"><label>Pour</label><select id="vocab-edit-for" class="input-text" ><option value="">Tous</option></select></div>
+      </div>
+       <div id="vocab-edit-error" style="color:#e74c3c;font-size:13px;margin-top:4px;display:none;"></div>
+      <div class="modal-btns"><button class="btn-cancel" id="btn-vocab-edit-cancel">Annuler</button><button class="btn-add" id="btn-vocab-edit-save">Enregistrer</button></div>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="firebase-service.js" defer></script>

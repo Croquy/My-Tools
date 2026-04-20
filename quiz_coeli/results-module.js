@@ -44,7 +44,11 @@ function renderResultsTable() {
     const statusTag = result.hasPending ? '<span class="pending-badge">⏳ À corriger</span>' : '✅ Terminé';
     const badge = result.isTutorial ? ' <span style="font-size:11px;background:#fff3cd;color:#856404;border-radius:8px;padding:1px 6px;">tuto</span>' : result.isReplay ? ' <span style="font-size:11px;background:#d0f0fd;color:#0c5460;border-radius:8px;padding:1px 6px;">🔁 rejouable</span>' : '';
 
-    html += `<tr><td><strong>${result.user}</strong></td><td>${result.quizTitle}${badge}</td><td style="font-size:12px;">${date}</td><td><span class="score-pill ${scoreClass}">${scoreText}</span></td><td>${statusTag}</td><td><button class="btn-success-sm" data-action="detail" data-id="${result.id}">Voir</button><button class="btn-danger" data-action="del-result" data-id="${result.id}" style="margin-left:4px;">Suppr.</button></td></tr>`;
+    html += `<tr><td><strong>${result.user}</strong></td><td>${result.quizTitle}${badge}</td>
+    <td style="font-size:12px;">${date}</td>
+    <td><span class="score-pill ${scoreClass}">${scoreText}</span></td>
+    <td>${statusTag}</td>
+    <td style="display:flex;"><button class="btn-success-sm" data-action="detail" data-id="${result.id}">Voir</button><button class="btn-danger" data-action="del-result" data-id="${result.id}" style="margin-left:4px;">Suppr.</button></td></tr>`;
   });
   html += '</tbody></table>';
   wrapper.innerHTML = html;
