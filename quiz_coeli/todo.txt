@@ -1,0 +1,5 @@
+- renommer quiz 
+- afficher résultat dans les quiz a refaire 
+- génération de quiz vocabulaire : verifier que les personnes soit affecté, rajouter dans le nom niveau 
+- quiz toléré réponse avec "a, an" et rien 
+- verifier dans les selection qu'il ne puisse pas y avoir 2 fois le meme résultat proposé
