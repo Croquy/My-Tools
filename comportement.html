@@ -6,163 +6,226 @@
 <title>Comportement - My Tools</title>
 <link rel="stylesheet" href="style.css">
 <style>
-/* ── Comportement-specific styles ── */
 .nav-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
-.nav-tab{background:var(--surface);border:1px solid var(--border);color:var(--text-mid);font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;padding:8px 18px;cursor:pointer;border-radius:30px;transition:all .2s}
+.nav-tab{background:var(--surface);border:1px solid var(--border);color:var(--text-mid);font-family:'Nunito',sans-serif;font-size:14px;font-weight:600;padding:8px 18px;cursor:pointer;border-radius:30px;transition:all .2s}
 .nav-tab.active{background:linear-gradient(135deg,var(--pink),var(--purple));border-color:transparent;color:white}
 .nav-tab:hover:not(.active){border-color:var(--purple)}
 .view{display:none}.view.active{display:block}
 
-/* ── Enfant cards accueil ── */
+/* ── Child cards home ── */
 .child-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
 .child-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;cursor:pointer;transition:all .2s}
 .child-card:hover{border-color:var(--purple);transform:translateY(-2px)}
-.child-card-name{font-family:'Quicksand',sans-serif;font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--pink),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
-.child-card-pearls{font-size:13px;color:var(--cyan);font-weight:700;margin-bottom:10px}
-.child-card-goals{font-size:11px;color:var(--text-dim);line-height:1.6}
+.child-card-name{font-family:'Quicksand',sans-serif;font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--pink),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.child-card-pearls{font-size:14px;color:var(--cyan);font-weight:700;margin-bottom:10px}
+.child-card-goals{font-size:13px;color:var(--text-dim);line-height:1.7}
 .child-card-goal-item{display:flex;align-items:center;gap:6px;margin-bottom:3px}
-.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.dot-green{background:#50fa7b}.dot-yellow{background:#f1fa8c}.dot-red{background:#ff5555}.dot-gray{background:var(--text-dim)}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.dot-gray{background:var(--text-dim)}
 
-/* ── Monthly view ── */
-.month-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+/* ── Month view header ── */
+.month-child-title{font-family:'Quicksand',sans-serif;font-size:26px;font-weight:700;background:linear-gradient(135deg,var(--pink),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+.child-select-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
 .month-nav{display:flex;align-items:center;gap:8px}
-.btn-month{background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:14px;width:32px;height:32px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.btn-month{background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:16px;width:34px;height:34px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .btn-month:hover{border-color:var(--purple)}
-.month-label{font-family:'Quicksand',sans-serif;font-size:16px;font-weight:700;color:var(--text);min-width:130px;text-align:center}
-.month-child-name{font-family:'Quicksand',sans-serif;font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--pink),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.pearl-badge{background:var(--cyan-light);border:1px solid rgba(139,233,253,.3);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--cyan);font-weight:700}
+.month-label{font-family:'Quicksand',sans-serif;font-size:16px;font-weight:700;color:var(--text);min-width:140px;text-align:center}
+.pearl-badge{background:var(--cyan-light);border:1px solid rgba(139,233,253,.3);border-radius:20px;padding:5px 14px;font-size:14px;color:var(--cyan);font-weight:700}
+.styled-select{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:14px;padding:7px 14px;border-radius:20px;outline:none;cursor:pointer}
+.styled-select:focus{border-color:var(--purple)}
 
-/* ── Objectives ── */
-.objectives-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px}
-.section-title{font-family:'Quicksand',sans-serif;font-size:13px;font-weight:700;color:var(--pink);margin-bottom:12px;letter-spacing:.05em}
-.objectives-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.obj-input-wrap{display:flex;flex-direction:column;gap:4px}
-.obj-label{font-size:10px;color:var(--text-dim);font-weight:600}
-.obj-input{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:12px;padding:7px 10px;border-radius:10px;outline:none;transition:border-color .15s;width:100%}
+/* ── Sections ── */
+.panel-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px}
+.section-title{font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;color:var(--pink);margin-bottom:12px;letter-spacing:.05em}
+
+/* ── Objectives inputs ── */
+.objectives-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.obj-input-wrap{display:flex;flex-direction:column;gap:5px}
+.obj-label{font-size:13px;color:var(--text-dim);font-weight:600}
+.obj-input{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:14px;padding:8px 12px;border-radius:10px;outline:none;transition:border-color .15s;width:100%}
 .obj-input:focus{border-color:var(--pink)}
 .obj-input::placeholder{color:var(--text-dim)}
 
-/* ── Weeks table ── */
+/* ── Radio color picker ── */
+.radio-input{background-color:rgba(255,255,255,.08);padding:6px 10px;border-radius:50px;display:flex;align-items:center;gap:2px;transition:background-color .3s}
+.radio-input input[type=radio]{display:none}
+.radio-input input[type=radio]+label span{display:inline-block;width:32px;height:32px;margin:0 3px;vertical-align:middle;cursor:pointer;border-radius:50%;border:2px solid rgba(255,255,255,.3);box-shadow:0 1px 3px rgba(0,0,0,.4);background-repeat:no-repeat;background-position:center;text-align:center;line-height:36px;transition:transform .15s}
+.radio-input input[type=radio]+label span:hover{transform:scale(1.1)}
+.radio-input input[type=radio]+label span svg{opacity:0;transition:all .3s ease}
+.radio-input input[type=radio]#beh-green-WKID+label span,.radio-input input[type=radio][id^="beh-green"]+label span{background-color:#2ecc71}
+.radio-input input[type=radio][id^="beh-yellow"]+label span{background-color:#f1c40f}
+.radio-input input[type=radio][id^="beh-red"]+label span{background-color:#e74c3c}
+.radio-input input[type=radio][id^="obj1-green"]+label span,.radio-input input[type=radio][id^="o1g"]+label span{background-color:#2ecc71}
+.radio-input input[type=radio][id^="obj1-yellow"]+label span,.radio-input input[type=radio][id^="o1y"]+label span{background-color:#f1c40f}
+.radio-input input[type=radio][id^="obj1-red"]+label span,.radio-input input[type=radio][id^="o1r"]+label span{background-color:#e74c3c}
+.radio-input input[type=radio]:checked+label span svg{opacity:1}
+.radio-input:has(input[type=radio][id$="-green"]:checked){background-color:#2ecc71}
+.radio-input:has(input[type=radio][id$="-yellow"]:checked){background-color:#f1c40f}
+.radio-input:has(input[type=radio][id$="-red"]:checked){background-color:#e74c3c}
+.radio-label-text{font-size:12px;color:var(--text-dim);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+
+/* ── Weeks ── */
 .weeks-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px}
-.week-row{border-bottom:1px solid var(--border);padding:12px 16px}
+.week-row{border-bottom:1px solid var(--border);padding:14px 16px}
 .week-row:last-child{border-bottom:none}
-.week-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
-.week-label{font-family:'Quicksand',sans-serif;font-size:12px;font-weight:700;color:var(--purple);min-width:80px}
-.week-dates{font-size:10px;color:var(--text-dim)}
-.week-pearls-earned{font-size:11px;color:var(--cyan)}
-.week-content{display:grid;grid-template-columns:auto 1fr 1fr 1fr auto;gap:8px;align-items:start}
-.week-note-label{font-size:10px;color:var(--text-dim);font-weight:600;align-self:center}
-.traffic-lights{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.tl-btn{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .15s;opacity:.35}
-.tl-btn.active{opacity:1;transform:scale(1.15)}
-.tl-btn:hover{opacity:.8}
-.tl-green{background:#50fa7b}.tl-yellow{background:#f1fa8c}.tl-red{background:#ff5555}
-.week-inputs{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
-.week-small-input{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:12px;padding:6px 10px;border-radius:10px;outline:none;transition:border-color .15s;width:100%}
+.week-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.week-label{font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;color:var(--purple);min-width:85px}
+.week-dates{font-size:13px;color:var(--text-dim)}
+.week-pearls-earned{font-size:13px;color:var(--cyan);font-weight:700}
+.betises-count{background:var(--pink-light);border:1px solid rgba(255,121,198,.3);border-radius:20px;padding:4px 12px;font-size:13px;color:var(--pink);cursor:pointer;font-weight:700;white-space:nowrap;transition:background .15s}
+.betises-count:hover{background:rgba(255,121,198,.3)}
+.week-grid{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;margin-bottom:8px}
+.week-note-label{font-size:13px;color:var(--text-dim);font-weight:600}
+.objs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
+.obj-cell{display:flex;flex-direction:column;gap:5px}
+.week-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.week-small-input{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:14px;padding:8px 12px;border-radius:10px;outline:none;transition:border-color .15s;width:100%}
 .week-small-input:focus{border-color:var(--cyan)}
 .week-small-input::placeholder{color:var(--text-dim)}
-.obj-lights-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;grid-column:1/-1}
-.obj-light-cell{display:flex;flex-direction:column;gap:4px}
-.obj-light-name{font-size:10px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.betises-count{background:var(--pink-light);border:1px solid rgba(255,121,198,.3);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--pink);cursor:pointer;font-weight:700;white-space:nowrap}
-.betises-count:hover{background:rgba(255,121,198,.3)}
 
-/* ── Bottom actions ── */
+/* ── Summary ── */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.summary-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.summary-card-val{font-family:'Quicksand',sans-serif;font-size:24px;font-weight:700;color:var(--text)}
+.summary-card-val.green{color:#2ecc71}
+.summary-card-val.yellow{color:#f1c40f}
+.summary-card-val.red{color:#e74c3c}
+.summary-card-label{font-size:13px;color:var(--text-dim);margin-top:4px}
+
+/* ── Month actions ── */
 .month-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
 
 /* ── Admin ── */
 .admin-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px}
 .admin-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
-.admin-item{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:8px 12px}
-.admin-item-name{flex:1;font-size:13px;color:var(--text)}
-.admin-item-detail{font-size:11px;color:var(--text-dim)}
+.admin-item{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:9px 14px}
+.admin-item-name{flex:1;font-size:14px;color:var(--text)}
+.admin-item-detail{font-size:13px;color:var(--text-dim)}
 .admin-add-row{display:flex;gap:8px;flex-wrap:wrap}
-.admin-input{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:13px;padding:7px 12px;border-radius:20px;outline:none;transition:border-color .15s;flex:1;min-width:120px}
+.admin-input{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:14px;padding:8px 14px;border-radius:20px;outline:none;transition:border-color .15s;flex:1;min-width:120px}
 .admin-input:focus{border-color:var(--purple)}
 .admin-input::placeholder{color:var(--text-dim)}
-.btn-sm{background:linear-gradient(135deg,var(--pink),var(--purple));border:none;color:white;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer;border-radius:20px;transition:all .2s;white-space:nowrap}
+.btn-sm{background:linear-gradient(135deg,var(--pink),var(--purple));border:none;color:white;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;padding:8px 16px;cursor:pointer;border-radius:20px;transition:all .2s;white-space:nowrap}
 .btn-sm:hover{transform:scale(1.04)}
-.btn-del-sm{background:transparent;border:1px solid rgba(255,80,80,.3);color:#ff5555;font-size:11px;padding:4px 8px;cursor:pointer;border-radius:10px;transition:all .15s}
+.btn-del-sm{background:transparent;border:1px solid rgba(255,80,80,.3);color:#ff5555;font-size:12px;padding:5px 10px;cursor:pointer;border-radius:10px;transition:all .15s}
 .btn-del-sm:hover{background:rgba(255,80,80,.15)}
 
 /* ── Shop ── */
-.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:12px}
-.shop-item{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;transition:all .2s}
+.shop-child-title{font-family:'Quicksand',sans-serif;font-size:26px;font-weight:700;background:linear-gradient(135deg,var(--pink),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:12px}
+.shop-item{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;transition:all .2s}
 .shop-item:hover{border-color:var(--cyan)}
-.shop-item-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
-.shop-item-price{font-size:12px;color:var(--cyan);margin-bottom:8px}
-.btn-buy{background:var(--cyan-light);border:1px solid rgba(139,233,253,.4);color:var(--cyan);font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer;border-radius:20px;transition:all .15s}
-.btn-buy:hover{background:var(--cyan);color:var(--bg)}
+.shop-item-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px}
+.shop-item-price{font-size:13px;color:var(--cyan);margin-bottom:10px}
+.btn-buy{background:var(--cyan-light);border:1px solid rgba(139,233,253,.4);color:var(--cyan);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;padding:6px 14px;cursor:pointer;border-radius:20px;transition:all .15s}
+.btn-buy:hover:not(:disabled){background:var(--cyan);color:var(--bg)}
 .btn-buy:disabled{opacity:.35;cursor:not-allowed}
-.history-list{display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto}
-.history-item{display:flex;align-items:center;gap:8px;font-size:11px;padding:5px 8px;background:rgba(255,255,255,.03);border-radius:8px}
+.history-list{display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto}
+.history-item{display:flex;align-items:center;gap:10px;font-size:13px;padding:7px 10px;background:rgba(255,255,255,.03);border-radius:8px}
 .history-item-desc{flex:1;color:var(--text-mid)}
-.history-item-amount{font-weight:700}
+.history-item-amount{font-weight:700;white-space:nowrap}
 .history-item-amount.plus{color:var(--mint)}
 .history-item-amount.minus{color:var(--pink)}
-.history-item-date{color:var(--text-dim);font-size:10px}
+.history-item-date{color:var(--text-dim);font-size:12px;white-space:nowrap}
+.bonus-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bonus-input{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:14px;padding:8px 12px;border-radius:20px;outline:none;flex:1;min-width:100px}
+.bonus-input:focus{border-color:var(--mint)}
+.bonus-qty{max-width:80px}
 
-/* ── Overlay ── */
+/* ── Modal ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:200}
 .modal-overlay.visible{display:flex}
-.modal-card{background:linear-gradient(135deg,#1a1235,#0f1a2e);border:1px solid rgba(255,121,198,.4);border-radius:24px;padding:24px;max-width:440px;width:90%;max-height:80vh;overflow-y:auto;animation:slideUp .3s ease}
-.modal-title{font-family:'Quicksand',sans-serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:14px}
+.modal-card{background:linear-gradient(135deg,#1a1235,#0f1a2e);border:1px solid rgba(255,121,198,.4);border-radius:24px;padding:24px;max-width:460px;width:90%;max-height:85vh;overflow-y:auto;animation:slideUp .3s ease}
+.modal-title{font-family:'Quicksand',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:14px}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
-.betise-item{display:flex;gap:8px;align-items:flex-start;background:rgba(255,121,198,.05);border:1px solid rgba(255,121,198,.2);border-radius:10px;padding:8px 10px;margin-bottom:6px}
-.betise-date{font-size:10px;color:var(--pink);font-weight:700;white-space:nowrap}
-.betise-text{font-size:12px;color:var(--text-mid);flex:1}
-.bonus-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.bonus-input{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:13px;padding:7px 12px;border-radius:20px;outline:none;flex:1;min-width:100px}
-.bonus-input:focus{border-color:var(--mint)}
-.bonus-qty{width:70px}
+.betise-item{display:flex;gap:10px;align-items:flex-start;background:rgba(255,121,198,.05);border:1px solid rgba(255,121,198,.2);border-radius:10px;padding:9px 12px;margin-bottom:7px}
+.betise-date{font-size:12px;color:var(--pink);font-weight:700;white-space:nowrap}
+.betise-text{font-size:13px;color:var(--text-mid);flex:1}
 
-/* ── Print styles ── */
+/* ══════════════════════════════
+   PRINT STYLES
+══════════════════════════════ */
 @media print{
-  body{background:white;color:black;padding:0}
-  body::before,body::after{display:none}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{background:white!important;color:#111!important;padding:0;font-family:Arial,sans-serif;font-size:13px}
+  body::before,body::after{display:none!important}
   .no-print{display:none!important}
   .print-only{display:block!important}
-  .panel,.weeks-section,.objectives-section,.admin-section,.child-cards,.shop-grid{border:1px solid #ccc;background:white}
-  .slot-input,.obj-input,.week-small-input{color:black;background:white}
-  .tl-btn{border:2px solid #999}
-  .tl-green.active{background:#4caf50}
-  .tl-yellow.active{background:#ffeb3b}
-  .tl-red.active{background:#f44336}
-  .print-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-  .print-week{border:1px solid #ddd;padding:8px;page-break-inside:avoid}
-  .print-title{font-size:20px;font-weight:700;margin-bottom:4px}
-  .print-subtitle{font-size:13px;color:#666;margin-bottom:16px}
-  .print-month-header{margin-bottom:16px}
-  header,.nav-tabs,.month-actions,.btn-craque,.btn-resume,.btn-month{display:none!important}
-  @page{margin:1.5cm}
+  .page{max-width:100%}
+  input::placeholder{color:transparent!important}
+  input{color:#111!important;background:transparent!important;border:none!important;padding:0!important}
+
+  .print-month-header{margin-bottom:18px;border-bottom:2px solid #333;padding-bottom:10px}
+  .print-title{font-size:22px;font-weight:700;color:#111}
+  .print-subtitle{font-size:14px;color:#555;margin-top:2px}
+
+  .objectives-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  .obj-input-wrap{border:1px solid #ccc;border-radius:8px;padding:8px}
+  .obj-label{font-size:12px;color:#555;font-weight:700;margin-bottom:4px}
+  .obj-input{font-size:13px;color:#111;width:100%;border:none!important}
+
+  /* Summary print */
+  .panel-section{border:1px solid #ccc!important;background:white!important;border-radius:8px;margin-bottom:12px;padding:12px}
+  .section-title{color:#333!important;font-size:13px}
+  .summary-card{border:1px solid #ddd;border-radius:8px;padding:10px}
+  .summary-card-val{color:#111!important;font-size:20px}
+  .summary-card-val.green{color:#2ecc71!important}
+  .summary-card-val.yellow{color:#f1c40f!important}
+  .summary-card-val.red{color:#e74c3c!important}
+  .summary-card-label{color:#555!important;font-size:12px}
+
+  /* Week rows print */
+  .weeks-section{border:1px solid #ccc;border-radius:8px;overflow:hidden;margin-bottom:16px;background:white}
+  .week-row{border-bottom:1px solid #ddd;padding:10px 14px;page-break-inside:avoid}
+
+  /* Hide screen radio, show print circle */
+  .radio-input{display:none!important}
+  .print-circle-wrap{display:flex!important;flex-direction:column;align-items:center;gap:4px}
+  .print-circle{width:22px;height:22px;border-radius:50%;border:2px solid #999;display:inline-block}
+  .print-circle.filled-green{background:#2ecc71;border-color:#2ecc71}
+  .print-circle.filled-yellow{background:#f1c40f;border-color:#f1c40f}
+  .print-circle.filled-red{background:#e74c3c;border-color:#e74c3c}
+
+  /* Print week header with day circles */
+  .print-week-header{display:flex!important;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+  .print-week-title{font-size:14px;font-weight:700;color:#222;min-width:80px}
+  .print-day-circles{display:flex;gap:5px;align-items:center}
+  .print-day-circle{width:26px;height:26px;border-radius:50%;border:1.5px solid #bbb;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#444}
+  .print-beh-circle-wrap{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:#555}
+
+  /* Obj/beh grid print */
+  .print-week-grid{display:grid;grid-template-columns:110px 1fr 1fr 1fr;gap:8px;align-items:center}
+  .print-week-grid-label{font-size:12px;color:#555;font-weight:600}
+  .print-obj-cell{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
+  .print-obj-name{font-size:11px;color:#666;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .week-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+  .week-inputs .week-small-input{background:transparent!important;border:none!important;border-bottom:1px solid #ccc!important;border-radius:0!important;color:#111!important;font-size:12px!important;padding:4px 0!important}
+
+  .betises-count{display:none!important}
+  .week-dates,.week-pearls-earned{font-size:12px;color:#555}
+
+  @page{margin:1.5cm;size:A4 portrait}
 }
 .print-only{display:none}
-
-/* ── Child selector in month view ── */
-.child-select-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
-.styled-select{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:13px;padding:7px 14px;border-radius:20px;outline:none;cursor:pointer}
-.styled-select:focus{border-color:var(--purple)}
+.print-circle-wrap{display:none}
+.print-week-header{display:none}
 </style>
 </head>
 <body>
 <div class="page">
 
-  <!-- Header -->
   <div class="header no-print">
     <div class="header-info">
-      <div class="title-row">
-        <h1>Comportement</h1>
-      </div>
+      <div class="title-row"><h1>Comportement</h1></div>
       <div class="header-date">Suivi des enfants</div>
     </div>
     <div class="header-center"></div>
     <div class="header-right">
-      <a href="index.html" style="color:var(--text-dim);font-size:12px;text-decoration:none;font-weight:600">← Accueil</a>
+      <a href="index.html" style="color:var(--text-dim);font-size:13px;text-decoration:none;font-weight:600">← Accueil</a>
     </div>
   </div>
 
-  <!-- Nav tabs -->
   <div class="nav-tabs no-print">
     <button class="nav-tab active" onclick="showView('accueil')">🏠 Accueil</button>
     <button class="nav-tab" onclick="showView('mensuel')">📅 Vue mensuelle</button>
@@ -170,24 +233,28 @@
     <button class="nav-tab" onclick="showView('admin')">⚙️ Admin</button>
   </div>
 
-  <!-- ═══ VUE ACCUEIL ═══ -->
+  <!-- ═══ ACCUEIL ═══ -->
   <div class="view active" id="view-accueil">
     <div class="child-cards" id="home-cards"></div>
-    <p style="color:var(--text-dim);font-size:13px;margin-top:16px" id="home-empty" style="display:none">
+    <p style="color:var(--text-dim);font-size:14px;margin-top:16px;display:none" id="home-empty">
       Aucun enfant configuré. Va dans <strong>Admin</strong> pour en ajouter.
     </p>
   </div>
 
-  <!-- ═══ VUE MENSUELLE ═══ -->
+  <!-- ═══ MENSUEL ═══ -->
   <div class="view" id="view-mensuel">
-    <div class="child-select-bar no-print">
-      <select class="styled-select" id="month-child-select" onchange="renderMonthView()"></select>
-      <div class="month-nav">
-        <button class="btn-month" onclick="changeMonth(-1)">‹</button>
-        <div class="month-label" id="month-label"></div>
-        <button class="btn-month" onclick="changeMonth(1)">›</button>
+    <!-- Screen header -->
+    <div class="no-print" style="margin-bottom:16px">
+      <div class="child-select-bar">
+        <select class="styled-select" id="month-child-select" onchange="renderMonthView()"></select>
+        <div class="month-nav">
+          <button class="btn-month" onclick="changeMonth(-1)">‹</button>
+          <div class="month-label" id="month-label"></div>
+          <button class="btn-month" onclick="changeMonth(1)">›</button>
+        </div>
+        <span class="pearl-badge" id="month-pearl-badge">🔮 0 perle</span>
       </div>
-      <span class="pearl-badge" id="month-pearl-badge">🔮 0 perles</span>
+      <div class="month-child-title" id="month-child-title"></div>
     </div>
 
     <!-- Print header -->
@@ -197,19 +264,19 @@
     </div>
 
     <!-- Objectives -->
-    <div class="objectives-section">
+    <div class="panel-section">
       <div class="section-title">🎯 Objectifs du mois</div>
       <div class="objectives-grid">
         <div class="obj-input-wrap">
-          <label class="obj-label">Objectif 1</label>
+          <div class="obj-label">Objectif 1</div>
           <input class="obj-input" id="obj1" placeholder="Ex: Ranger ma chambre" oninput="saveObjectives()">
         </div>
         <div class="obj-input-wrap">
-          <label class="obj-label">Objectif 2</label>
+          <div class="obj-label">Objectif 2</div>
           <input class="obj-input" id="obj2" placeholder="Ex: Faire mes devoirs seul" oninput="saveObjectives()">
         </div>
         <div class="obj-input-wrap">
-          <label class="obj-label">Objectif 3</label>
+          <div class="obj-label">Objectif 3</div>
           <input class="obj-input" id="obj3" placeholder="Ex: Être gentil avec..." oninput="saveObjectives()">
         </div>
       </div>
@@ -218,20 +285,27 @@
     <!-- Weeks -->
     <div class="weeks-section" id="weeks-container"></div>
 
+    <!-- Summary -->
+    <div class="panel-section" id="month-summary">
+      <div class="section-title">📊 Résumé du mois</div>
+      <div class="summary-grid" id="summary-grid"></div>
+    </div>
+
     <!-- Actions -->
     <div class="month-actions no-print">
-      <button class="btn-craque panel-btn" onclick="openAddBetise()">+ Bêtise</button>
       <button class="btn-resume panel-btn" onclick="printMonth()">🖨 Imprimer / PDF</button>
       <button class="btn-resume panel-btn" onclick="exportJSON()">⬇ Export JSON</button>
     </div>
   </div>
 
-  <!-- ═══ VUE MAGASIN ═══ -->
+  <!-- ═══ MAGASIN ═══ -->
   <div class="view" id="view-magasin">
-    <div class="child-select-bar">
+    <div class="child-select-bar" style="margin-bottom:6px">
       <select class="styled-select" id="shop-child-select" onchange="renderShop()"></select>
-      <span class="pearl-badge" id="shop-pearl-badge">🔮 0 perles</span>
+      <span class="pearl-badge" id="shop-pearl-badge">🔮 0 perle</span>
     </div>
+    <div class="shop-child-title" id="shop-child-title"></div>
+    <div style="margin-bottom:16px"></div>
 
     <div class="admin-section">
       <div class="section-title">🔮 Ajouter des perles bonus</div>
@@ -253,9 +327,8 @@
     </div>
   </div>
 
-  <!-- ═══ VUE ADMIN ═══ -->
+  <!-- ═══ ADMIN ═══ -->
   <div class="view" id="view-admin">
-
     <div class="admin-section">
       <div class="section-title">👧 Enfants</div>
       <div class="admin-list" id="admin-children-list"></div>
@@ -264,7 +337,6 @@
         <button class="btn-sm" onclick="addChild()">+ Ajouter</button>
       </div>
     </div>
-
     <div class="admin-section">
       <div class="section-title">🛍 Articles du magasin</div>
       <div class="admin-list" id="admin-items-list"></div>
@@ -274,20 +346,15 @@
         <button class="btn-sm" onclick="addShopItem()">+ Ajouter</button>
       </div>
     </div>
-
     <div class="admin-section">
       <div class="section-title">💾 Données</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn-sm" onclick="exportJSON()">⬇ Exporter tout (JSON)</button>
-        <label class="btn-sm" style="cursor:pointer">
-          ⬆ Importer JSON
-          <input type="file" accept=".json" style="display:none" onchange="importJSON(event)">
-        </label>
+        <label class="btn-sm" style="cursor:pointer">⬆ Importer JSON<input type="file" accept=".json" style="display:none" onchange="importJSON(event)"></label>
         <button class="btn-sm" style="background:linear-gradient(135deg,#ff5555,#bd93f9)" onclick="if(confirm('Effacer toutes les données ?'))clearAll()">🗑 Tout effacer</button>
       </div>
     </div>
   </div>
-
 </div>
 
 <!-- ═══ MODAL BÊTISES ═══ -->
@@ -296,7 +363,7 @@
     <div class="modal-title" id="betise-modal-title">Bêtises</div>
     <div id="betise-list"></div>
     <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
-      <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;font-weight:600">AJOUTER UNE BÊTISE</div>
+      <div style="font-size:13px;color:var(--text-dim);margin-bottom:8px;font-weight:600">AJOUTER UNE BÊTISE</div>
       <div style="display:flex;flex-direction:column;gap:8px">
         <input type="date" class="week-small-input" id="betise-date-input">
         <input class="week-small-input" id="betise-comment" placeholder="Description...">
@@ -308,55 +375,40 @@
     </div>
   </div>
 </div>
-<div class="modal-overlay" id="betise-modal" onclick="if(event.target===this)closeBetiseModal()"></div>
 
 <script>
-// ═══════════════════════════════════════════
-// DATA LAYER
-// ═══════════════════════════════════════════
-const LS = {
-  get:(k)=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}},
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const LS={
+  get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}},
   set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)),
 };
-
-function getData(){
-  return LS.get('comportement_data') || {
-    children:[],
-    shopItems:[],
-  };
-}
+function getData(){return LS.get('comportement_data')||{children:[],shopItems:[]};}
 function saveData(d){LS.set('comportement_data',d);}
-
-function getMonthData(childId,year,month){
-  const key=`comp_m_${childId}_${year}_${month}`;
-  return LS.get(key)||{objectives:['','',''],weeks:{},betises:[]};
+function getMonthData(cid,y,m){
+  return LS.get(`comp_m_${cid}_${y}_${m}`)||{objectives:['','',''],weeks:{},betises:[]};
 }
-function saveMonthData(childId,year,month,md){
-  const key=`comp_m_${childId}_${year}_${month}`;
-  LS.set(key,md);
-}
+function saveMonthData(cid,y,m,md){LS.set(`comp_m_${cid}_${y}_${m}`,md);}
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 // STATE
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 let currentView='accueil';
 let currentYear=new Date().getFullYear();
 let currentMonth=new Date().getMonth()+1;
-let betiseModalWeekIdx=null; // null = free add
-
 const MONTHS_FR=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-const DAYS_FR=['dim','lun','mar','mer','jeu','ven','sam'];
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 // NAVIGATION
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 function showView(v){
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
+  const labels={accueil:'Accueil',mensuel:'mensuelle',magasin:'Magasin',admin:'Admin'};
   document.querySelectorAll('.nav-tab').forEach(el=>{
-    if(el.textContent.includes({accueil:'Accueil',mensuel:'mensuelle',magasin:'Magasin',admin:'Admin'}[v]))
-      el.classList.add('active');
+    if(el.textContent.includes(labels[v]))el.classList.add('active');
   });
   currentView=v;
   if(v==='accueil')renderHome();
@@ -365,76 +417,98 @@ function showView(v){
   if(v==='admin')renderAdmin();
 }
 
-// ═══════════════════════════════════════════
-// WEEK HELPERS
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+function getChildById(id){return getData().children.find(c=>c.id===id);}
+function fmtDate(d){return d.getDate()+'/'+(d.getMonth()+1);}
+function fmtDateFull(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function getWeeksOfMonth(year,month){
-  // Returns array of {weekNum,start:Date,end:Date}
   const weeks=[];
-  const firstDay=new Date(year,month-1,1);
   const lastDay=new Date(year,month,0);
-  // Find monday of first week
-  let d=new Date(firstDay);
+  let d=new Date(year,month-1,1);
   const dow=d.getDay();
-  // go back to monday
   d.setDate(d.getDate()-(dow===0?6:dow-1));
   while(d<=lastDay){
     const mon=new Date(d);
     const sun=new Date(d);sun.setDate(sun.getDate()+6);
-    // ISO week number
     const tmpD=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
     const day=tmpD.getUTCDay()||7;tmpD.setUTCDate(tmpD.getUTCDate()+4-day);
     const y1=new Date(Date.UTC(tmpD.getUTCFullYear(),0,1));
     const wn=Math.ceil((((tmpD-y1)/86400000)+1)/7);
-    weeks.push({weekNum:wn,start:mon,end:sun});
+    // Collect days within the month
+    const daysInMonth=[];
+    for(let i=0;i<7;i++){
+      const dd=new Date(mon);dd.setDate(dd.getDate()+i);
+      if(dd.getMonth()+1===month)daysInMonth.push(dd.getDate());
+    }
+    weeks.push({weekNum:wn,start:mon,end:sun,daysInMonth});
     d.setDate(d.getDate()+7);
   }
   return weeks;
 }
 
-function fmtDate(d){return d.getDate()+'/'+(d.getMonth()+1);}
-function fmtDateFull(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function colorLabel(c){return c==='green'?'Vert':c==='yellow'?'Jaune':c==='red'?'Rouge':'—';}
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
+// RADIO SVG CHECK
+// ══════════════════════════════════════════
+const CHECK_SVG=`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+function radioGroup(name,value,onchangeFn){
+  const uid=name.replace(/[^a-z0-9]/gi,'_')+'_'+Math.random().toString(36).slice(2,6);
+  return `<div class="radio-input">
+    <input type="radio" id="${uid}_g" name="${uid}" value="green" ${value==='green'?'checked':''} onchange="${onchangeFn}('green')">
+    <label for="${uid}_g"><span id="${uid}-span-g">${CHECK_SVG}</span></label>
+    <input type="radio" id="${uid}_y" name="${uid}" value="yellow" ${value==='yellow'?'checked':''} onchange="${onchangeFn}('yellow')">
+    <label for="${uid}_y"><span>${CHECK_SVG}</span></label>
+    <input type="radio" id="${uid}_r" name="${uid}" value="red" ${value==='red'?'checked':''} onchange="${onchangeFn}('red')">
+    <label for="${uid}_r"><span>${CHECK_SVG}</span></label>
+  </div>
+  <div class="print-circle-wrap">
+    <div class="print-circle ${value?'filled-'+value:''}"></div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
 // PEARL LOGIC
-// ═══════════════════════════════════════════
-function getChildById(id){return getData().children.find(c=>c.id===id);}
+// ══════════════════════════════════════════
+function pearlsForNote(n){return n==='green'?2:n==='yellow'?1:0;}
 
-function awardWeekPearls(childId,weekNum,note,oldNote){
+function awardWeekPearls(childId,wk,newNote,oldNote,betisesInWeek){
   const d=getData();
-  const c=d.children.find(x=>x.id===childId);
-  if(!c){return;}
-  const oldGain=oldNote==='green'?2:oldNote==='yellow'?1:0;
-  const newGain=note==='green'?2:note==='yellow'?1:0;
-  const diff=newGain-oldGain;
+  const c=d.children.find(x=>x.id===childId);if(!c)return;
+  const diff=pearlsForNote(newNote)-pearlsForNote(oldNote);
   if(diff===0)return;
-  c.pearls=(c.pearls||0)+diff;
-  if(c.pearls<0)c.pearls=0;
+  c.pearls=Math.max(0,(c.pearls||0)+diff);
   if(!c.history)c.history=[];
-  if(diff!==0){
-    c.history.unshift({date:new Date().toISOString().slice(0,10),desc:`Semaine S${weekNum} (comportement)`,amount:diff});
-    if(c.history.length>100)c.history.pop();
-  }
+  const betisesTxt=betisesInWeek>0?`, ${betisesInWeek} bêtise${betisesInWeek>1?'s':''}`:' ';
+  c.history.unshift({
+    date:new Date().toISOString().slice(0,10),
+    desc:`Semaine S${wk} : comportement ${colorLabel(newNote)}${betisesTxt}`,
+    amount:diff
+  });
+  if(c.history.length>100)c.history.pop();
   saveData(d);
 }
 
-// ═══════════════════════════════════════════
-// HOME VIEW
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
+// HOME
+// ══════════════════════════════════════════
 function renderHome(){
   const d=getData();
   const cont=document.getElementById('home-cards');
   const empty=document.getElementById('home-empty');
   cont.innerHTML='';
-  if(!d.children.length){empty&&(empty.style.display='block');return;}
-  empty&&(empty.style.display='none');
+  if(!d.children.length){empty.style.display='block';return;}
+  empty.style.display='none';
   d.children.forEach(c=>{
-    // Find last month with data
     const now=new Date();
     let objs=['','',''];
     for(let i=0;i<3;i++){
-      const y=now.getFullYear(),m=now.getMonth()+1-i;
-      const yr=m<=0?y-1:y,mo=((m-1+12)%12)+1;
+      const m=now.getMonth()+1-i;
+      const yr=m<=0?now.getFullYear()-1:now.getFullYear();
+      const mo=((m-1+12)%12)+1;
       const md=getMonthData(c.id,yr,mo);
       if(md.objectives.some(o=>o)){objs=md.objectives;break;}
     }
@@ -446,27 +520,21 @@ function renderHome(){
       <div class="child-card-pearls">🔮 ${c.pearls||0} perle${(c.pearls||0)!==1?'s':''}</div>
       <div class="child-card-goals">
         ${objs.map((o,i)=>`<div class="child-card-goal-item"><span class="dot dot-gray"></span><span>${o||'Objectif '+(i+1)+' non défini'}</span></div>`).join('')}
-      </div>
-    `;
+      </div>`;
     cont.appendChild(card);
   });
 }
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 // MONTH VIEW
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 function populateChildSelects(){
   const d=getData();
   ['month-child-select','shop-child-select'].forEach(id=>{
-    const sel=document.getElementById(id);
-    if(!sel)return;
+    const sel=document.getElementById(id);if(!sel)return;
     const cur=sel.value;
     sel.innerHTML='<option value="">— Choisir un enfant —</option>';
-    d.children.forEach(c=>{
-      const o=document.createElement('option');
-      o.value=c.id;o.textContent=c.name;
-      sel.appendChild(o);
-    });
+    d.children.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;sel.appendChild(o);});
     if(cur)sel.value=cur;
     if(!sel.value&&d.children.length)sel.value=d.children[0].id;
   });
@@ -481,121 +549,132 @@ function changeMonth(dir){
 
 function renderMonthView(){
   const childId=document.getElementById('month-child-select')?.value;
-  const label=document.getElementById('month-label');
-  if(label)label.textContent=MONTHS_FR[currentMonth-1]+' '+currentYear;
-
-  // Print header
+  document.getElementById('month-label').textContent=MONTHS_FR[currentMonth-1]+' '+currentYear;
   const child=childId?getChildById(childId):null;
+  const titleEl=document.getElementById('month-child-title');
+  if(titleEl)titleEl.textContent=child?child.name:'';
+  const badge=document.getElementById('month-pearl-badge');
+  const p=child?child.pearls||0:0;
+  if(badge)badge.textContent=`🔮 ${p} perle${p!==1?'s':''}`;
   const pt=document.getElementById('print-title');
   const ps=document.getElementById('print-subtitle');
   if(pt)pt.textContent=child?child.name:'';
   if(ps)ps.textContent=MONTHS_FR[currentMonth-1]+' '+currentYear;
 
-  const badge=document.getElementById('month-pearl-badge');
-  if(badge)badge.textContent='🔮 '+(child?child.pearls||0:0)+' perle'+(((child?child.pearls||0:0))!==1?'s':'');
-
   if(!childId){
-    document.getElementById('weeks-container').innerHTML='<p style="padding:16px;color:var(--text-dim);font-size:13px">Sélectionnez un enfant.</p>';
+    document.getElementById('weeks-container').innerHTML='<p style="padding:16px;color:var(--text-dim)">Sélectionnez un enfant.</p>';
     return;
   }
 
   const md=getMonthData(childId,currentYear,currentMonth);
-  // Objectives
   ['obj1','obj2','obj3'].forEach((id,i)=>{
-    const el=document.getElementById(id);
-    if(el)el.value=md.objectives[i]||'';
+    const el=document.getElementById(id);if(el)el.value=md.objectives[i]||'';
   });
 
-  // Weeks
   const weeks=getWeeksOfMonth(currentYear,currentMonth);
   const cont=document.getElementById('weeks-container');
   cont.innerHTML='';
 
-  weeks.forEach((w,wi)=>{
+  weeks.forEach((w)=>{
     const wk=String(w.weekNum);
     const wdata=md.weeks[wk]||{behavior:'',obj1:'',obj2:'',obj3:'',best:'',worst:''};
-    const betisesCount=(md.betises||[]).filter(b=>{
-      const bd=new Date(b.date);
-      return bd>=w.start&&bd<=w.end;
-    }).length;
+    const betisesInWeek=(md.betises||[]).filter(b=>{const bd=new Date(b.date);return bd>=w.start&&bd<=w.end;}).length;
+    const pearnsEarned=pearlsForNote(wdata.behavior);
 
-    const row=document.createElement('div');
-    row.className='week-row';
+    const row=document.createElement('div');row.className='week-row';
 
-    const pearlsEarned=wdata.behavior==='green'?2:wdata.behavior==='yellow'?1:0;
+    // Day circles HTML for print
+    const dayCirclesHtml=w.daysInMonth.map(d=>`<div class="print-day-circle">${d}</div>`).join('');
+
+    // Behavior radio
+    const behId=`beh_${wk}_${childId.slice(-4)}`;
+    const behRadio=buildRadio(behId,'beh',wdata.behavior||'',`setField('${childId}',${currentYear},${currentMonth},'${wk}','behavior',v,${w.daysInMonth.join(',')||0})`);
+
+    // Obj radios
+    const objRadios=[1,2,3].map(n=>{
+      const objName=md.objectives[n-1]||`Objectif ${n}`;
+      const oid=`obj${n}_${wk}_${childId.slice(-4)}`;
+      const radio=buildRadio(oid,`o${n}`,wdata[`obj${n}`]||'',`setField('${childId}',${currentYear},${currentMonth},'${wk}','obj${n}',v,0)`);
+      return `<div class="obj-cell">
+        <div class="radio-label-text" style="font-size:13px;color:var(--text-dim)">${objName}</div>
+        ${radio}
+      </div>`;
+    }).join('');
 
     row.innerHTML=`
-      <div class="week-header">
+      <!-- Screen week header -->
+      <div class="week-header no-print">
         <span class="week-label">Semaine ${w.weekNum}</span>
         <span class="week-dates">${fmtDate(w.start)} → ${fmtDate(w.end)}</span>
-        ${pearlsEarned>0?`<span class="week-pearls-earned">+${pearlsEarned} 🔮</span>`:''}
-        <span class="betises-count" onclick="openBetiseWeek(${wi})">${betisesCount} bêtise${betisesCount!==1?'s':''}</span>
+        ${pearnsEarned>0?`<span class="week-pearls-earned">+${pearnsEarned} 🔮</span>`:''}
+        <span class="betises-count" onclick="openBetiseWeek('${childId}',${currentYear},${currentMonth},'${wk}','${w.start.toISOString()}','${w.end.toISOString()}')">${betisesInWeek} bêtise${betisesInWeek!==1?'s':''}</span>
       </div>
-      <div class="week-content">
-        <span class="week-note-label">Comportement</span>
-        <div class="traffic-lights">
-          <button class="tl-btn tl-green ${wdata.behavior==='green'?'active':''}" title="Vert" onclick="setBehavior('${childId}',${currentYear},${currentMonth},'${wk}','green',${wi})"></button>
-          <button class="tl-btn tl-yellow ${wdata.behavior==='yellow'?'active':''}" title="Jaune" onclick="setBehavior('${childId}',${currentYear},${currentMonth},'${wk}','yellow',${wi})"></button>
-          <button class="tl-btn tl-red ${wdata.behavior==='red'?'active':''}" title="Rouge" onclick="setBehavior('${childId}',${currentYear},${currentMonth},'${wk}','red',${wi})"></button>
+      <!-- Print week header -->
+      <div class="print-week-header">
+        <span class="print-week-title">Semaine ${w.weekNum}</span>
+        <div class="print-day-circles">${dayCirclesHtml}</div>
+        <div class="print-beh-circle-wrap">
+          Comportement :
+          <div class="print-circle ${wdata.behavior?'filled-'+wdata.behavior:''}"></div>
         </div>
       </div>
-      <div class="obj-lights-row" style="margin-top:8px">
+      <!-- Behavior (screen) -->
+      <div class="week-grid no-print">
+        <span class="week-note-label">Comportement</span>
+        ${behRadio}
+      </div>
+      <!-- Print behavior row (hidden, beh shown in header) -->
+      <!-- Objectives -->
+      <div class="objs-grid" style="margin-bottom:10px">
         ${[1,2,3].map(n=>{
-          const objName=md.objectives[n-1]||('Objectif '+n);
-          const val=wdata['obj'+n]||'';
-          return `<div class="obj-light-cell">
-            <div class="obj-light-name" title="${objName}">${objName}</div>
-            <div class="traffic-lights">
-              <button class="tl-btn tl-green ${val==='green'?'active':''}" onclick="setObjNote('${childId}',${currentYear},${currentMonth},'${wk}',${n},'green')"></button>
-              <button class="tl-btn tl-yellow ${val==='yellow'?'active':''}" onclick="setObjNote('${childId}',${currentYear},${currentMonth},'${wk}',${n},'yellow')"></button>
-              <button class="tl-btn tl-red ${val==='red'?'active':''}" onclick="setObjNote('${childId}',${currentYear},${currentMonth},'${wk}',${n},'red')"></button>
-            </div>
+          const objName=md.objectives[n-1]||`Objectif ${n}`;
+          const oid=`o${n}_${wk}_${childId.slice(-4)}`;
+          const val=wdata[`obj${n}`]||'';
+          const radio=buildRadio(oid,`o${n}x`,val,`setField('${childId}',${currentYear},${currentMonth},'${wk}','obj${n}',v,0)`);
+          return `<div class="obj-cell">
+            <div style="font-size:13px;color:var(--text-dim)">${objName}</div>
+            ${radio}
           </div>`;
         }).join('')}
       </div>
-      <div class="week-inputs" style="margin-top:8px">
-        <input class="week-small-input" placeholder="⭐ Meilleur moment de la semaine..." value="${(wdata.best||'').replace(/"/g,'&quot;')}" onchange="saveWeekField('${childId}',${currentYear},${currentMonth},'${wk}','best',this.value)">
-        <input class="week-small-input" placeholder="😬 Moment difficile..." value="${(wdata.worst||'').replace(/"/g,'&quot;')}" onchange="saveWeekField('${childId}',${currentYear},${currentMonth},'${wk}','worst',this.value)">
-      </div>
-    `;
+      <!-- Best / worst -->
+      <div class="week-inputs">
+        <input class="week-small-input" placeholder="⭐ Meilleur moment..." value="${esc(wdata.best||'')}" onchange="saveWeekField('${childId}',${currentYear},${currentMonth},'${wk}','best',this.value)">
+        <input class="week-small-input" placeholder="😬 Moment difficile..." value="${esc(wdata.worst||'')}" onchange="saveWeekField('${childId}',${currentYear},${currentMonth},'${wk}','worst',this.value)">
+      </div>`;
     cont.appendChild(row);
   });
+
+  renderSummary(childId,currentYear,currentMonth,md,weeks);
 }
 
-function saveObjectives(){
-  const childId=document.getElementById('month-child-select')?.value;
-  if(!childId)return;
-  const md=getMonthData(childId,currentYear,currentMonth);
-  md.objectives=[
-    document.getElementById('obj1').value,
-    document.getElementById('obj2').value,
-    document.getElementById('obj3').value,
-  ];
-  saveMonthData(childId,currentYear,currentMonth,md);
-  // Update week obj names without full re-render
-  document.querySelectorAll('.obj-light-name').forEach((el,i)=>{
-    const n=i%3;
-    el.textContent=md.objectives[n]||('Objectif '+(n+1));
-    el.title=el.textContent;
-  });
+function esc(s){return s.replace(/"/g,'&quot;');}
+
+function buildRadio(uid,prefix,value,onchangeExpr){
+  const colors=['green','yellow','red'];
+  const inputs=colors.map((c,i)=>`
+    <input type="radio" id="${uid}_${c}" name="${uid}" value="${c}" ${value===c?'checked':''} onchange="(function(v){${onchangeExpr}})(this.value)">
+    <label for="${uid}_${c}"><span>${CHECK_SVG}</span></label>`).join('');
+  return `<div class="radio-input">${inputs}</div>
+  <div class="print-circle-wrap"><div class="print-circle ${value?'filled-'+value:''}"></div></div>`;
 }
 
-function setBehavior(childId,year,month,wk,val,wi){
+function setField(childId,year,month,wk,field,val,_unused){
   const md=getMonthData(childId,year,month);
   if(!md.weeks[wk])md.weeks[wk]={behavior:'',obj1:'',obj2:'',obj3:'',best:'',worst:''};
-  const old=md.weeks[wk].behavior||'';
-  md.weeks[wk].behavior=val;
+  const old=md.weeks[wk][field]||'';
+  md.weeks[wk][field]=val;
   saveMonthData(childId,year,month,md);
-  awardWeekPearls(childId,wk,val,old);
-  renderMonthView();
-}
-
-function setObjNote(childId,year,month,wk,n,val){
-  const md=getMonthData(childId,year,month);
-  if(!md.weeks[wk])md.weeks[wk]={behavior:'',obj1:'',obj2:'',obj3:'',best:'',worst:''};
-  md.weeks[wk]['obj'+n]=val;
-  saveMonthData(childId,year,month,md);
-  renderMonthView();
+  if(field==='behavior'){
+    const betisesInWeek=(md.betises||[]).length;
+    awardWeekPearls(childId,wk,val,old,betisesInWeek);
+    // Update pearl badge
+    const child=getChildById(childId);
+    const p=child?child.pearls||0:0;
+    const badge=document.getElementById('month-pearl-badge');
+    if(badge)badge.textContent=`🔮 ${p} perle${p!==1?'s':''}`;
+  }
+  renderSummary(childId,year,month,getMonthData(childId,year,month),getWeeksOfMonth(year,month));
 }
 
 function saveWeekField(childId,year,month,wk,field,val){
@@ -605,44 +684,54 @@ function saveWeekField(childId,year,month,wk,field,val){
   saveMonthData(childId,year,month,md);
 }
 
-// ═══════════════════════════════════════════
-// BÊTISES MODAL
-// ═══════════════════════════════════════════
-let betiseChildId=null,betiseYear=null,betiseMonth=null,betiseWeekIdx=null;
-
-function openAddBetise(){
-  betiseChildId=document.getElementById('month-child-select')?.value;
-  if(!betiseChildId)return;
-  betiseYear=currentYear;betiseMonth=currentMonth;betiseWeekIdx=null;
-  openBetiseModal('Ajouter une bêtise');
+function saveObjectives(){
+  const childId=document.getElementById('month-child-select')?.value;
+  if(!childId)return;
+  const md=getMonthData(childId,currentYear,currentMonth);
+  md.objectives=['obj1','obj2','obj3'].map(id=>document.getElementById(id).value);
+  saveMonthData(childId,currentYear,currentMonth,md);
 }
 
-function openBetiseWeek(wi){
-  betiseChildId=document.getElementById('month-child-select')?.value;
-  if(!betiseChildId)return;
-  betiseYear=currentYear;betiseMonth=currentMonth;betiseWeekIdx=wi;
-  openBetiseModal('Bêtises');
+// ══════════════════════════════════════════
+// SUMMARY
+// ══════════════════════════════════════════
+function renderSummary(childId,year,month,md,weeks){
+  const grid=document.getElementById('summary-grid');
+  if(!grid)return;
+  let green=0,yellow=0,red=0,totalBetises=(md.betises||[]).length,totalPearls=0;
+  weeks.forEach(w=>{
+    const wdata=md.weeks[String(w.weekNum)]||{};
+    if(wdata.behavior==='green')green++;
+    else if(wdata.behavior==='yellow')yellow++;
+    else if(wdata.behavior==='red')red++;
+    totalPearls+=pearlsForNote(wdata.behavior);
+  });
+  grid.innerHTML=`
+    <div class="summary-card"><div class="summary-card-val green">${green}</div><div class="summary-card-label">Semaines vertes</div></div>
+    <div class="summary-card"><div class="summary-card-val yellow">${yellow}</div><div class="summary-card-label">Semaines jaunes</div></div>
+    <div class="summary-card"><div class="summary-card-val red">${red}</div><div class="summary-card-label">Semaines rouges</div></div>
+    <div class="summary-card"><div class="summary-card-val">${totalBetises}</div><div class="summary-card-label">Bêtises ce mois</div></div>
+    <div class="summary-card"><div class="summary-card-val" style="color:var(--cyan)">${totalPearls}</div><div class="summary-card-label">Perles gagnées</div></div>`;
 }
 
-function openBetiseModal(title){
-  document.getElementById('betise-modal-title').textContent=title;
-  const md=getMonthData(betiseChildId,betiseYear,betiseMonth);
-  const list=document.getElementById('betise-list');
+// ══════════════════════════════════════════
+// BETISES MODAL
+// ══════════════════════════════════════════
+let _bmChildId,_bmYear,_bmMonth,_bmWkStart,_bmWkEnd;
+
+function openBetiseWeek(childId,year,month,wk,startIso,endIso){
+  _bmChildId=childId;_bmYear=year;_bmMonth=month;
+  _bmWkStart=startIso?new Date(startIso):null;
+  _bmWkEnd=endIso?new Date(endIso):null;
+  const md=getMonthData(childId,year,month);
   let betises=md.betises||[];
-  if(betiseWeekIdx!==null){
-    const weeks=getWeeksOfMonth(betiseYear,betiseMonth);
-    const w=weeks[betiseWeekIdx];
-    betises=betises.filter(b=>{const bd=new Date(b.date);return bd>=w.start&&bd<=w.end;});
-  }
-  list.innerHTML=betises.length?betises.map(b=>`
-    <div class="betise-item">
-      <span class="betise-date">${b.date}</span>
-      <span class="betise-text">${b.comment}</span>
-    </div>`).join(''):'<p style="font-size:12px;color:var(--text-dim)">Aucune bêtise enregistrée.</p>';
-
-  // default date
-  const today=new Date();
-  document.getElementById('betise-date-input').value=fmtDateFull(today);
+  if(_bmWkStart&&_bmWkEnd)betises=betises.filter(b=>{const bd=new Date(b.date);return bd>=_bmWkStart&&bd<=_bmWkEnd;});
+  document.getElementById('betise-modal-title').textContent=`Bêtises — Semaine ${wk}`;
+  const list=document.getElementById('betise-list');
+  list.innerHTML=betises.length
+    ?betises.map(b=>`<div class="betise-item"><span class="betise-date">${b.date}</span><span class="betise-text">${b.comment}</span></div>`).join('')
+    :'<p style="font-size:13px;color:var(--text-dim);margin-bottom:8px">Aucune bêtise cette semaine.</p>';
+  document.getElementById('betise-date-input').value=fmtDateFull(new Date());
   document.getElementById('betise-comment').value='';
   document.getElementById('betise-modal').classList.add('visible');
 }
@@ -653,54 +742,61 @@ function addBetise(){
   const date=document.getElementById('betise-date-input').value;
   const comment=document.getElementById('betise-comment').value.trim();
   if(!date||!comment)return;
-  const md=getMonthData(betiseChildId,betiseYear,betiseMonth);
+  const md=getMonthData(_bmChildId,_bmYear,_bmMonth);
   if(!md.betises)md.betises=[];
   md.betises.push({date,comment});
   md.betises.sort((a,b)=>a.date.localeCompare(b.date));
-  saveMonthData(betiseChildId,betiseYear,betiseMonth,md);
-  openBetiseModal(document.getElementById('betise-modal-title').textContent);
+  saveMonthData(_bmChildId,_bmYear,_bmMonth,md);
+  // Refresh betises list in modal
+  const all=md.betises;
+  let betises=all;
+  if(_bmWkStart&&_bmWkEnd)betises=all.filter(b=>{const bd=new Date(b.date);return bd>=_bmWkStart&&bd<=_bmWkEnd;});
+  const list=document.getElementById('betise-list');
+  list.innerHTML=betises.map(b=>`<div class="betise-item"><span class="betise-date">${b.date}</span><span class="betise-text">${b.comment}</span></div>`).join('');
+  document.getElementById('betise-comment').value='';
+  // Refresh week row count
   renderMonthView();
 }
 
-document.getElementById('betise-modal').addEventListener('click',function(e){
-  if(e.target===this)closeBetiseModal();
-});
+document.getElementById('betise-modal').addEventListener('click',function(e){if(e.target===this)closeBetiseModal();});
 
-// ═══════════════════════════════════════════
-// SHOP VIEW
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
+// SHOP
+// ══════════════════════════════════════════
 function renderShop(){
   const childId=document.getElementById('shop-child-select')?.value;
   const child=childId?getChildById(childId):null;
+  const titleEl=document.getElementById('shop-child-title');
+  if(titleEl)titleEl.textContent=child?child.name:'';
+  const p=child?child.pearls||0:0;
   const badge=document.getElementById('shop-pearl-badge');
-  if(badge)badge.textContent='🔮 '+(child?child.pearls||0:0)+' perle'+(((child?child.pearls||0:0))!==1?'s':'');
+  if(badge)badge.textContent=`🔮 ${p} perle${p!==1?'s':''}`;
 
   const d=getData();
   const grid=document.getElementById('shop-grid');
-  if(grid){
-    grid.innerHTML=d.shopItems.length?d.shopItems.map((item,i)=>`
-      <div class="shop-item">
+  if(grid)grid.innerHTML=d.shopItems.length
+    ?d.shopItems.map((item,i)=>`<div class="shop-item">
         <div class="shop-item-name">${item.name}</div>
         <div class="shop-item-price">🔮 ${item.price} perle${item.price!==1?'s':''}</div>
-        <button class="btn-buy" ${!child||((child.pearls||0)<item.price)?'disabled':''} onclick="buyItem(${i})">Acheter</button>
-      </div>`).join(''):'<p style="font-size:13px;color:var(--text-dim)">Aucun article. Ajoutez-en dans Admin.</p>';
-  }
+        <button class="btn-buy" ${!child||(p<item.price)?'disabled':''} onclick="buyItem(${i})">Acheter</button>
+      </div>`).join('')
+    :'<p style="font-size:13px;color:var(--text-dim)">Aucun article. Ajoutez-en dans Admin.</p>';
 
   const hist=document.getElementById('history-list');
   if(hist&&child){
-    const h=(child.history||[]);
-    hist.innerHTML=h.length?h.map(e=>`
-      <div class="history-item">
-        <span class="history-item-desc">${e.desc}</span>
-        <span class="history-item-amount ${e.amount>0?'plus':'minus'}">${e.amount>0?'+':''}${e.amount} 🔮</span>
-        <span class="history-item-date">${e.date}</span>
-      </div>`).join(''):'<p style="font-size:12px;color:var(--text-dim)">Aucun historique.</p>';
+    const h=child.history||[];
+    hist.innerHTML=h.length
+      ?h.map(e=>`<div class="history-item">
+          <span class="history-item-desc">${e.desc}</span>
+          <span class="history-item-amount ${e.amount>0?'plus':'minus'}">${e.amount>0?'+':''}${e.amount} 🔮</span>
+          <span class="history-item-date">${e.date}</span>
+        </div>`).join('')
+      :'<p style="font-size:13px;color:var(--text-dim)">Aucun historique.</p>';
   }
 }
 
 function buyItem(idx){
-  const childId=document.getElementById('shop-child-select')?.value;
-  if(!childId)return;
+  const childId=document.getElementById('shop-child-select')?.value;if(!childId)return;
   const d=getData();
   const c=d.children.find(x=>x.id===childId);
   const item=d.shopItems[idx];
@@ -709,8 +805,7 @@ function buyItem(idx){
   c.pearls-=item.price;
   if(!c.history)c.history=[];
   c.history.unshift({date:new Date().toISOString().slice(0,10),desc:'Achat : '+item.name,amount:-item.price});
-  saveData(d);
-  renderShop();
+  saveData(d);renderShop();
 }
 
 function addBonus(){
@@ -719,8 +814,7 @@ function addBonus(){
   const reason=document.getElementById('bonus-reason').value.trim()||'Bonus';
   if(!childId||qty<1)return;
   const d=getData();
-  const c=d.children.find(x=>x.id===childId);
-  if(!c)return;
+  const c=d.children.find(x=>x.id===childId);if(!c)return;
   c.pearls=(c.pearls||0)+qty;
   if(!c.history)c.history=[];
   c.history.unshift({date:new Date().toISOString().slice(0,10),desc:'Bonus : '+reason,amount:qty});
@@ -729,83 +823,60 @@ function addBonus(){
   renderShop();
 }
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 // ADMIN
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 function renderAdmin(){
   const d=getData();
-  // Children
-  const cl=document.getElementById('admin-children-list');
-  cl.innerHTML=d.children.map((c,i)=>`
+  document.getElementById('admin-children-list').innerHTML=d.children.map((c,i)=>`
     <div class="admin-item">
       <span class="admin-item-name">${c.name}</span>
       <span class="admin-item-detail">🔮 ${c.pearls||0} perles</span>
       <button class="btn-del-sm" onclick="removeChild(${i})">Supprimer</button>
-    </div>`).join('')||'<p style="font-size:12px;color:var(--text-dim)">Aucun enfant.</p>';
-
-  // Items
-  const il=document.getElementById('admin-items-list');
-  il.innerHTML=d.shopItems.map((item,i)=>`
+    </div>`).join('')||'<p style="font-size:13px;color:var(--text-dim)">Aucun enfant.</p>';
+  document.getElementById('admin-items-list').innerHTML=d.shopItems.map((item,i)=>`
     <div class="admin-item">
       <span class="admin-item-name">${item.name}</span>
       <span class="admin-item-detail">🔮 ${item.price}</span>
       <button class="btn-del-sm" onclick="removeShopItem(${i})">Supprimer</button>
-    </div>`).join('')||'<p style="font-size:12px;color:var(--text-dim)">Aucun article.</p>';
+    </div>`).join('')||'<p style="font-size:13px;color:var(--text-dim)">Aucun article.</p>';
 }
 
 function addChild(){
-  const name=document.getElementById('new-child-name').value.trim();
-  if(!name)return;
+  const name=document.getElementById('new-child-name').value.trim();if(!name)return;
   const d=getData();
   d.children.push({id:'c'+Date.now(),name,pearls:0,history:[]});
-  saveData(d);
-  document.getElementById('new-child-name').value='';
-  renderAdmin();
+  saveData(d);document.getElementById('new-child-name').value='';renderAdmin();
 }
-
 function removeChild(i){
   if(!confirm('Supprimer cet enfant et toutes ses données ?'))return;
-  const d=getData();
-  d.children.splice(i,1);
-  saveData(d);
-  renderAdmin();
+  const d=getData();d.children.splice(i,1);saveData(d);renderAdmin();
 }
-
 function addShopItem(){
   const name=document.getElementById('new-item-name').value.trim();
   const price=parseInt(document.getElementById('new-item-price').value)||1;
   if(!name)return;
-  const d=getData();
-  d.shopItems.push({name,price});
-  saveData(d);
+  const d=getData();d.shopItems.push({name,price});saveData(d);
   document.getElementById('new-item-name').value='';
   document.getElementById('new-item-price').value='';
   renderAdmin();
 }
-
 function removeShopItem(i){
-  const d=getData();
-  d.shopItems.splice(i,1);
-  saveData(d);
-  renderAdmin();
+  const d=getData();d.shopItems.splice(i,1);saveData(d);renderAdmin();
 }
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 // EXPORT / IMPORT
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 function exportJSON(){
   const d=getData();
-  // Gather all month data
   const months={};
-  const keys=Object.keys(localStorage).filter(k=>k.startsWith('comp_m_'));
-  keys.forEach(k=>{months[k]=LS.get(k);});
+  Object.keys(localStorage).filter(k=>k.startsWith('comp_m_')).forEach(k=>{months[k]=LS.get(k);});
   const blob=new Blob([JSON.stringify({global:d,months},null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download='comportement_'+new Date().toISOString().slice(0,10)+'.json';
+  const a=document.createElement('a');a.href=url;a.download='comportement_'+new Date().toISOString().slice(0,10)+'.json';
   a.click();URL.revokeObjectURL(url);
 }
-
 function importJSON(e){
   const file=e.target.files[0];if(!file)return;
   const r=new FileReader();
@@ -814,27 +885,21 @@ function importJSON(e){
       const data=JSON.parse(ev.target.result);
       if(data.global)saveData(data.global);
       if(data.months)Object.entries(data.months).forEach(([k,v])=>LS.set(k,v));
-      alert('Import réussi !');
-      renderAdmin();
+      alert('Import réussi !');renderAdmin();
     }catch{alert('Fichier invalide.');}
   };
   r.readAsText(file);
 }
-
 function clearAll(){
-  const keys=Object.keys(localStorage).filter(k=>k.startsWith('comp')||k==='comportement_data');
-  keys.forEach(k=>localStorage.removeItem(k));
+  Object.keys(localStorage).filter(k=>k.startsWith('comp')).forEach(k=>localStorage.removeItem(k));
   renderAdmin();
 }
 
-// ═══════════════════════════════════════════
-// PRINT
-// ═══════════════════════════════════════════
 function printMonth(){window.print();}
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 // INIT
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 renderHome();
 </script>
 </body>
