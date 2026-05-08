@@ -22,9 +22,12 @@
 .styled-select:focus{border-color:var(--purple)}
 .btn-icon{background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:16px;width:34px;height:34px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .btn-icon:hover{border-color:var(--purple)}
-.btn-danger{background:linear-gradient(135deg,#ff5555,#bd93f9)}
+.btn-danger{background:linear-gradient(135deg,#ff5555,#bd93f9)!important}
+.btn-warn{background:linear-gradient(135deg,#f1c40f,#e67e22)!important;color:#111!important}
 .btn-del-sm{background:transparent;border:1px solid rgba(255,80,80,.3);color:#ff5555;font-size:12px;padding:5px 10px;cursor:pointer;border-radius:10px;transition:all .15s}
 .btn-del-sm:hover{background:rgba(255,80,80,.15)}
+.btn-reset-sm{background:transparent;border:1px solid rgba(241,196,15,.4);color:#f1c40f;font-size:12px;padding:5px 10px;cursor:pointer;border-radius:10px;transition:all .15s}
+.btn-reset-sm:hover{background:rgba(241,196,15,.15)}
 
 /* Traffic light radio */
 .tl-radio{display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border-radius:50px;transition:background-color .25s;background:rgba(255,255,255,.08)}
@@ -43,14 +46,15 @@
 .weeks-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px}
 .week-row{border-bottom:1px solid var(--border);padding:12px 16px}
 .week-row:last-child{border-bottom:none}
-.week-meta{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.week-meta{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.week-left{display:flex;align-items:center;gap:10px}
 .week-num{font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;color:var(--purple)}
 .week-dates{font-size:13px;color:var(--text-dim)}
 .week-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .week-pearls{font-size:13px;color:var(--cyan);font-weight:700}
 .betises-pill{background:var(--pink-light);border:1px solid rgba(255,121,198,.3);border-radius:20px;padding:4px 12px;font-size:13px;color:var(--pink);cursor:pointer;font-weight:700;transition:background .15s}
 .betises-pill:hover{background:rgba(255,121,198,.3)}
-.objs-row{display:flex;align-items:center;gap:0;width:100%}
+.objs-row{display:flex;align-items:center;gap:16px;width:100%;margin-bottom:10px}
 .obj-cell{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
 .obj-cell .label-sm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex-shrink:1}
 
@@ -70,8 +74,9 @@
 
 /* Admin / shop */
 .admin-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
-.admin-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:10px 14px}
-.admin-item-name{flex:1;font-size:14px}.admin-item-detail{font-size:13px;color:var(--text-dim)}
+.admin-item{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:10px 14px;flex-wrap:wrap}
+.admin-item-name{flex:1;font-size:14px;min-width:80px}
+.admin-item-detail{font-size:13px;color:var(--text-dim)}
 .shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:12px}
 .shop-item{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;transition:all .2s}
 .shop-item:hover{border-color:var(--cyan)}
@@ -110,41 +115,44 @@
   .print-subtitle{font-size:14px;color:#555;margin-top:2px}
 
   /* Objectives */
-  .objectives-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
-  .obj-wrap{border:1px solid #ccc;border-radius:8px;padding:8px}
-  .obj-wrap .label-sm{font-size:12px;color:#555;display:block;margin-bottom:4px}
-  .obj-wrap .field{border:none!important;background:transparent!important;color:#111!important;font-size:13px;padding:0}
+  .objectives-grid{display:grid!important;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+  .obj-wrap{border:1px solid #ccc;border-radius:8px;padding:12px;min-height:60px}
+  .obj-wrap .label-sm{font-size:12px;color:#555;display:block;margin-bottom:6px;font-weight:700}
+  .obj-wrap .field{border:none!important;background:transparent!important;color:#111!important;font-size:13px;padding:0;width:100%}
   .obj-wrap .field::placeholder{color:transparent!important}
 
   /* Weeks */
   .weeks-section{border:1px solid #ccc;border-radius:8px;background:white;margin-bottom:12px}
   .week-row{border-bottom:1px solid #ddd;padding:10px 14px;page-break-inside:avoid}
-  /* Hide screen week-meta entirely, show print header instead */
   .week-meta{display:none!important}
-  .tl-radio{display:none!important}
   .objs-row{display:none!important}
-  .week-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+  .tl-radio{display:none!important}
   .field{color:#111!important;background:transparent!important;border:none!important;border-bottom:1px solid #ccc!important;border-radius:0!important;padding:4px 0!important}
   .field::placeholder{color:transparent!important}
 
-  /* Print-only week structure */
-  .print-week-head{display:flex!important;align-items:center;justify-content:space-between;margin-bottom:8px}
-  .print-week-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .print-week-title{font-size:14px;font-weight:700;color:#222}
-  .print-day-circle{display:inline-flex!important;width:22px;height:22px;border-radius:50%;border:1.5px solid #bbb;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#444;margin-right:2px}
-  .print-week-right{display:flex;align-items:center;gap:6px;font-size:12px;color:#555}
-  .print-circle{display:inline-block!important;width:18px;height:18px;border-radius:50%;border:1.5px solid #999;vertical-align:middle}
+  /* Print week structure */
+  .print-week-head{display:flex!important;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .print-week-left{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+  .print-week-title{font-size:13px;font-weight:700;color:#222;white-space:nowrap;margin-right:4px}
+  .print-day-circle{display:inline-flex!important;width:20px;height:20px;border-radius:50%;border:1.5px solid #bbb;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#444;margin-right:2px;flex-shrink:0}
+  .print-week-right{display:flex;align-items:center;gap:6px;font-size:12px;color:#555;flex-shrink:0}
+  .print-circle{display:inline-block!important;width:16px;height:16px;border-radius:50%;border:1.5px solid #999;vertical-align:middle;flex-shrink:0}
   .pc-green{background:#2ecc71;border-color:#2ecc71}.pc-yellow{background:#f1c40f;border-color:#f1c40f}.pc-red{background:#e74c3c;border-color:#e74c3c}
 
-  /* Print objectives row */
-  .print-objs-row{display:flex!important;width:100%;gap:0;margin-bottom:8px}
-  .print-obj-cell{flex:1;display:flex;align-items:center;gap:6px;font-size:12px;color:#444}
-  .print-obj-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* Print objectives row: obj1 circle SPACE obj2 circle SPACE obj3 circle */
+  .print-objs-row{display:flex!important;align-items:center;gap:0;width:100%;margin-bottom:6px}
+  .print-obj-cell{display:flex;align-items:center;gap:4px;flex:1}
+  .print-obj-name{font-size:11px;color:#444;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+  /* Spacer between cells */
+  .print-obj-cell+.print-obj-cell{margin-left:16px}
 
-  /* Summary: show only empty box with title */
+  /* Summary */
   .summary-grid{display:none!important}
   .panel-section{border:1px solid #ccc!important;background:white!important;border-radius:8px;padding:12px;margin-bottom:12px}
-  #month-summary{min-height:80px}
+  #month-summary{min-height:120px}
+
+  /* Best/worst inputs */
+  .week-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 
   @page{margin:1.5cm;size:A4 portrait}
 }
@@ -173,7 +181,7 @@
     <button class="nav-tab active" onclick="showView('accueil')">🏠 Accueil</button>
     <button class="nav-tab" onclick="showView('mensuel')">📅 Vue mensuelle</button>
     <button class="nav-tab" onclick="showView('magasin')">🛍 Magasin</button>
-    <button class="nav-tab" onclick="showView('admin')">⚙️ Admin</button>
+    <button class="nav-tab" onclick="askAdminPwd()">⚙️ Admin</button>
   </div>
 
   <!-- ACCUEIL -->
@@ -294,6 +302,19 @@
   </div>
 </div>
 
+<!-- MODAL MOT DE PASSE ADMIN -->
+<div class="modal-overlay" id="pwd-modal">
+  <div class="modal-card" style="max-width:340px">
+    <div class="modal-title">🔒 Accès Admin</div>
+    <input class="field" type="password" id="pwd-input" placeholder="Mot de passe..." onkeydown="if(event.key==='Enter')checkPwd()">
+    <p id="pwd-error" style="color:#ff5555;font-size:13px;margin-top:8px;display:none">Mot de passe incorrect.</p>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closePwdModal()">Annuler</button>
+      <button class="btn" onclick="checkPwd()">Entrer</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── Data ──────────────────────────────────────────────────────
 const LS={
@@ -315,25 +336,44 @@ const esc=s=>(s||'').replace(/"/g,'&quot;');
 const fmtD=d=>d.getDate()+'/'+(d.getMonth()+1);
 const fmtISO=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 
-// ── Week calculation ──────────────────────────────────────────
+// ── Week calc ─────────────────────────────────────────────────
 function getWeeks(year,month){
-  const weeks=[],last=new Date(year,month,0);
-  let d=new Date(year,month-1,1);
-  d.setDate(d.getDate()-(d.getDay()===0?6:d.getDay()-1));
-  while(d<=last){
-    const mon=new Date(d),sun=new Date(d);sun.setDate(sun.getDate()+6);
-    const u=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
-    const dw=u.getUTCDay()||7;u.setUTCDate(u.getUTCDate()+4-dw);
+  const weeks=[], daysInMonth=new Date(year,month,0).getDate();
+  // Build a set of all dates in this month
+  const monthDates=new Set();
+  for(let d=1;d<=daysInMonth;d++) monthDates.add(d);
+
+  // Find monday of the week containing day 1
+  const firstDay=new Date(year,month-1,1);
+  const dow=firstDay.getDay(); // 0=Sun
+  let monOffset=dow===0?-6:1-dow; // days to go back to reach Monday
+  let monDate=new Date(year,month-1,1+monOffset);
+
+  while(true){
+    // ISO week number
+    const u=new Date(Date.UTC(monDate.getFullYear(),monDate.getMonth(),monDate.getDate()));
+    const dw=u.getUTCDay()||7; u.setUTCDate(u.getUTCDate()+4-dw);
     const y1=new Date(Date.UTC(u.getUTCFullYear(),0,1));
     const wn=Math.ceil((((u-y1)/86400000)+1)/7);
-    // All 7 days of the week, filtered to those in the month
-    const daysInMonth=[];
+
+    const sunDate=new Date(monDate); sunDate.setDate(sunDate.getDate()+6);
+
+    // Collect days of this week that belong to our month
+    const daysThisWeek=[];
     for(let i=0;i<7;i++){
-      const dd=new Date(year,month-1,mon.getDate()+i);
-      if(dd.getMonth()+1===month)daysInMonth.push(dd.getDate());
+      const dd=new Date(monDate); dd.setDate(monDate.getDate()+i);
+      if(dd.getFullYear()===year && dd.getMonth()+1===month){
+        daysThisWeek.push(dd.getDate());
+      }
     }
-    weeks.push({wn,start:mon,end:sun,daysInMonth});
-    d.setDate(d.getDate()+7);
+
+    if(daysThisWeek.length>0){
+      weeks.push({wn, start:new Date(monDate), end:sunDate, daysInMonth:daysThisWeek});
+    }
+
+    // Stop when the week starts after the last day of the month
+    monDate.setDate(monDate.getDate()+7);
+    if(monDate.getFullYear()>year || (monDate.getFullYear()===year && monDate.getMonth()+1>month)) break;
   }
   return weeks;
 }
@@ -352,6 +392,26 @@ function tlRadio(val,fnName,args){
 function printCircle(val){
   return `<span class="print-circle${val?' pc-'+val:''}"></span>`;
 }
+
+// ── Admin password ────────────────────────────────────────────
+function askAdminPwd(){
+  document.getElementById('pwd-input').value='';
+  document.getElementById('pwd-error').style.display='none';
+  document.getElementById('pwd-modal').classList.add('visible');
+  setTimeout(()=>document.getElementById('pwd-input').focus(),100);
+}
+function checkPwd(){
+  if(document.getElementById('pwd-input').value==='admin'){
+    closePwdModal();
+    showView('admin');
+  } else {
+    document.getElementById('pwd-error').style.display='block';
+    document.getElementById('pwd-input').value='';
+    document.getElementById('pwd-input').focus();
+  }
+}
+function closePwdModal(){document.getElementById('pwd-modal').classList.remove('visible');}
+document.getElementById('pwd-modal').addEventListener('click',e=>{if(e.target===document.getElementById('pwd-modal'))closePwdModal();});
 
 // ── Navigation ────────────────────────────────────────────────
 function showView(v){
@@ -404,7 +464,6 @@ function changeMonth(dir){
   curM+=dir;if(curM>12){curM=1;curY++;}if(curM<1){curM=12;curY--;}
   renderMonthView();
 }
-
 function updatePearlBadge(childId){
   const c=childId?getChild(childId):null;
   const p=c?c.pearls||0:0;
@@ -429,8 +488,7 @@ function renderMonthView(){
   ['obj1','obj2','obj3'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.value=md.objectives[i]||'';});
 
   const weeks=getWeeks(curY,curM);
-  const cont=document.getElementById('weeks-container');
-  cont.innerHTML='';
+  const cont=document.getElementById('weeks-container');cont.innerHTML='';
 
   weeks.forEach(w=>{
     const wk=String(w.wn);
@@ -438,15 +496,16 @@ function renderMonthView(){
     const betN=(md.betises||[]).filter(b=>{const bd=new Date(b.date);return bd>=w.start&&bd<=w.end;}).length;
     const pe=pearlsFor(wd.behavior);
     const objNames=md.objectives.map((o,i)=>o||`Obj. ${i+1}`);
-    // Stringify args for onclick
     const qa=`'${childId}',${curY},${curM},'${wk}'`;
 
     const row=document.createElement('div');row.className='week-row';
     row.innerHTML=`
       <!-- Screen header -->
       <div class="week-meta no-print">
-        <span class="week-num">Semaine ${wk}</span>
-        <span class="week-dates">${fmtD(w.start)} → ${fmtD(w.end)}</span>
+        <div class="week-left">
+          <span class="week-num">Semaine ${wk}</span>
+          <span class="week-dates">${fmtD(w.start)} → ${fmtD(w.end)}</span>
+        </div>
         <div class="week-right">
           <span class="label-sm">Comportement</span>
           ${tlRadio(wd.behavior,'setBehavior',qa)}
@@ -454,19 +513,18 @@ function renderMonthView(){
           <span class="betises-pill" onclick="openBetises('${childId}',${curY},${curM},'${wk}','${w.start.toISOString()}','${w.end.toISOString()}')">${betN} bêtise${betN!==1?'s':''}</span>
         </div>
       </div>
-      <!-- Print header -->
+      <!-- Print week header: left=num+days, right=comportement -->
       <div class="print-week-head">
         <div class="print-week-left">
           <span class="print-week-title">Semaine ${wk}</span>
           ${w.daysInMonth.map(d=>`<span class="print-day-circle">${d}</span>`).join('')}
         </div>
-        <div class="print-week-right">Comportement : ${printCircle(wd.behavior)}</div>
+        <div class="print-week-right">Comportement :&nbsp;${printCircle(wd.behavior)}</div>
       </div>
-      <!-- Print objectives row -->
+      <!-- Print objectives: name cercle ESPACE name cercle ESPACE name cercle -->
       <div class="print-objs-row">
         ${[0,1,2].map(n=>`<div class="print-obj-cell">
-          <span class="print-obj-name">${objNames[n]}</span>
-          ${printCircle(wd['obj'+(n+1)])}
+          <span class="print-obj-name">${objNames[n]}</span>${printCircle(wd['obj'+(n+1)])}
         </div>`).join('')}
       </div>
       <!-- Screen objectives row -->
@@ -489,34 +547,27 @@ function renderMonthView(){
   renderSummary(childId,curY,curM,md,weeks);
 }
 
-// ── Field setters (called from inline onclick) ────────────────
+// ── Setters ───────────────────────────────────────────────────
 function setBehavior(childId,y,m,wk,val){
   const md=getMonthData(childId,y,m);
   if(!md.weeks[wk])md.weeks[wk]={behavior:'',obj1:'',obj2:'',obj3:'',best:'',worst:''};
   const old=md.weeks[wk].behavior||'';
-  if(old===val)return; // no change
   md.weeks[wk].behavior=val;
   saveMonthData(childId,y,m,md);
 
-  // Update pearls: adjust diff and update/create single history entry for this week
   const d=getData(),c=d.children.find(x=>x.id===childId);
   if(c){
-    const diff=pearlsFor(val)-pearlsFor(old);
+    // Recalculate total pearls from scratch for this week (replace, not add)
+    const oldGain=pearlsFor(old), newGain=pearlsFor(val), diff=newGain-oldGain;
     if(diff!==0){
       c.pearls=Math.max(0,(c.pearls||0)+diff);
       if(!c.history)c.history=[];
       const bets=(md.betises||[]).length;
       const desc=`Semaine S${wk} : comportement ${colLabel(val)}${bets>0?', '+bets+' bêtise'+(bets>1?'s':''):''}`;
-      // Replace existing entry for this week if present, else prepend
-      const key=`S${wk}`;
+      const key='S'+wk+'_'+y+'_'+m;
       const idx=c.history.findIndex(h=>h.week===key);
-      const entry={date:fmtISO(new Date()),desc,amount:pearlsFor(val),week:key};
-      if(idx>=0){
-        // Recalculate: remove old amount, put new
-        c.history[idx]=entry;
-      } else {
-        c.history.unshift(entry);
-      }
+      const entry={date:fmtISO(new Date()),desc,amount:newGain,week:key};
+      if(idx>=0) c.history[idx]=entry; else c.history.unshift(entry);
       if(c.history.length>200)c.history.pop();
       saveData(d);
     }
@@ -647,17 +698,52 @@ function addBonus(){
 function renderAdmin(){
   const d=getData();
   document.getElementById('admin-children-list').innerHTML=d.children.map((c,i)=>`
-    <div class="admin-item"><span class="admin-item-name">${c.name}</span><span class="admin-item-detail">🔮 ${c.pearls||0} perles</span>
-    <button class="btn-del-sm" onclick="removeChild(${i})">Supprimer</button></div>`).join('')
+    <div class="admin-item">
+      <span class="admin-item-name">${c.name}</span>
+      <span class="admin-item-detail">🔮 ${c.pearls||0} perles</span>
+      <button class="btn-reset-sm" onclick="resetChild(${i})">Remise à 0</button>
+      <button class="btn-del-sm" onclick="removeChild(${i})">Supprimer</button>
+    </div>`).join('')
     ||'<p style="color:var(--text-dim)">Aucun enfant.</p>';
   document.getElementById('admin-items-list').innerHTML=d.shopItems.map((item,i)=>`
-    <div class="admin-item"><span class="admin-item-name">${item.name}</span><span class="admin-item-detail">🔮 ${item.price}</span>
-    <button class="btn-del-sm" onclick="removeShopItem(${i})">Supprimer</button></div>`).join('')
+    <div class="admin-item">
+      <span class="admin-item-name">${item.name}</span>
+      <span class="admin-item-detail">🔮 ${item.price}</span>
+      <button class="btn-del-sm" onclick="removeShopItem(${i})">Supprimer</button>
+    </div>`).join('')
     ||'<p style="color:var(--text-dim)">Aucun article.</p>';
 }
-function addChild(){const name=document.getElementById('new-child-name').value.trim();if(!name)return;const d=getData();d.children.push({id:'c'+Date.now(),name,pearls:0,history:[]});saveData(d);document.getElementById('new-child-name').value='';renderAdmin();}
-function removeChild(i){if(!confirm('Supprimer ?'))return;const d=getData();d.children.splice(i,1);saveData(d);renderAdmin();}
-function addShopItem(){const name=document.getElementById('new-item-name').value.trim(),price=parseInt(document.getElementById('new-item-price').value)||1;if(!name)return;const d=getData();d.shopItems.push({name,price});saveData(d);document.getElementById('new-item-name').value='';document.getElementById('new-item-price').value='';renderAdmin();}
+
+function addChild(){
+  const name=document.getElementById('new-child-name').value.trim();if(!name)return;
+  const d=getData();d.children.push({id:'c'+Date.now(),name,pearls:0,history:[]});
+  saveData(d);document.getElementById('new-child-name').value='';renderAdmin();
+}
+function removeChild(i){
+  if(!confirm('Supprimer cet enfant et toutes ses données ?'))return;
+  const d=getData();
+  const cid=d.children[i].id;
+  // Remove all month data
+  Object.keys(localStorage).filter(k=>k.startsWith(`comp_m_${cid}_`)).forEach(k=>localStorage.removeItem(k));
+  d.children.splice(i,1);saveData(d);renderAdmin();
+}
+function resetChild(i){
+  if(!confirm('Remettre à zéro les perles, l\'historique et les bêtises de cet enfant ?'))return;
+  const d=getData();
+  const c=d.children[i];
+  c.pearls=0;c.history=[];
+  // Clear all month data (betises + weeks) for this child
+  Object.keys(localStorage).filter(k=>k.startsWith(`comp_m_${c.id}_`)).forEach(k=>{
+    const md=LS.get(k);
+    if(md){md.betises=[];md.weeks={};LS.set(k,md);}
+  });
+  saveData(d);renderAdmin();
+}
+function addShopItem(){
+  const name=document.getElementById('new-item-name').value.trim(),price=parseInt(document.getElementById('new-item-price').value)||1;
+  if(!name)return;const d=getData();d.shopItems.push({name,price});saveData(d);
+  document.getElementById('new-item-name').value='';document.getElementById('new-item-price').value='';renderAdmin();
+}
 function removeShopItem(i){const d=getData();d.shopItems.splice(i,1);saveData(d);renderAdmin();}
 
 // ── Export / Import ───────────────────────────────────────────
