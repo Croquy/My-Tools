@@ -6,185 +6,153 @@
 <title>Comportement - My Tools</title>
 <link rel="stylesheet" href="style.css">
 <style>
-/* ── Navigation ── */
-.nav-tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap }
-.nav-tab { background:var(--surface); border:1px solid var(--border); color:var(--text-mid); font-family:'Nunito',sans-serif; font-size:14px; font-weight:600; padding:8px 18px; cursor:pointer; border-radius:30px; transition:all .2s }
-.nav-tab:hover:not(.active) { border-color:var(--purple) }
-.nav-tab.active { background:linear-gradient(135deg,var(--pink),var(--purple)); border-color:transparent; color:white }
-.view { display:none }
-.view.active { display:block }
+.nav-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.nav-tab{background:var(--surface);border:1px solid var(--border);color:var(--text-mid);font-family:'Nunito',sans-serif;font-size:14px;font-weight:600;padding:8px 18px;cursor:pointer;border-radius:30px;transition:all .2s}
+.nav-tab:hover:not(.active){border-color:var(--purple)}
+.nav-tab.active{background:linear-gradient(135deg,var(--pink),var(--purple));border-color:transparent;color:white}
+.view{display:none}.view.active{display:block}
 
-/* ── Shared layout ── */
-.panel-section { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px; margin-bottom:16px }
-.section-title { font-family:'Quicksand',sans-serif; font-size:14px; font-weight:700; color:var(--pink); margin-bottom:12px; letter-spacing:.05em }
-.row-grid { display:grid; gap:8px; align-items:center }
-.cols-2 { grid-template-columns:1fr 1fr }
-.cols-3 { grid-template-columns:1fr 1fr 1fr }
-.label-sm { font-size:13px; color:var(--text-dim); font-weight:600 }
+.panel-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px}
+.section-title{font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;color:var(--pink);margin-bottom:12px;letter-spacing:.05em}
+.label-sm{font-size:13px;color:var(--text-dim);font-weight:600}
+.field{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:14px;padding:8px 12px;border-radius:10px;outline:none;width:100%;transition:border-color .15s}
+.field:focus{border-color:var(--pink)}.field::placeholder{color:var(--text-dim)}
+.field-round{border-radius:30px}
+.styled-select{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:16px;font-weight:600;padding:8px 16px;border-radius:20px;outline:none;cursor:pointer}
+.styled-select:focus{border-color:var(--purple)}
+.btn-icon{background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:16px;width:34px;height:34px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.btn-icon:hover{border-color:var(--purple)}
+.btn-danger{background:linear-gradient(135deg,#ff5555,#bd93f9)}
+.btn-del-sm{background:transparent;border:1px solid rgba(255,80,80,.3);color:#ff5555;font-size:12px;padding:5px 10px;cursor:pointer;border-radius:10px;transition:all .15s}
+.btn-del-sm:hover{background:rgba(255,80,80,.15)}
 
-/* ── Inputs ── */
-.field { background:rgba(255,255,255,.06); border:1px solid var(--border); color:var(--text); font-family:'Nunito',sans-serif; font-size:14px; padding:8px 12px; border-radius:10px; outline:none; width:100%; transition:border-color .15s }
-.field:focus { border-color:var(--pink) }
-.field::placeholder { color:var(--text-dim) }
-.field-round { border-radius:30px }
+/* Traffic light radio */
+.tl-radio{display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border-radius:50px;transition:background-color .25s;background:rgba(255,255,255,.08)}
+.tl-radio input[type=radio]{display:none}
+.tl-radio label{display:flex;align-items:center;cursor:pointer}
+.tl-radio label span{display:block;width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.4);box-shadow:0 1px 4px rgba(0,0,0,.5);transition:transform .15s;position:relative}
+.tl-radio label span::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/14px no-repeat;opacity:0;transition:opacity .2s}
+.tl-radio label:hover span{transform:scale(1.1)}
+.tl-radio input[type=radio]:checked+label span::after{opacity:1}
+.tl-g span{background:#2ecc71}.tl-y span{background:#f1c40f}.tl-r span{background:#e74c3c}
+.tl-radio:has(.tl-g input:checked){background:#2ecc71}
+.tl-radio:has(.tl-y input:checked){background:#f1c40f}
+.tl-radio:has(.tl-r input:checked){background:#e74c3c}
 
-/* ── Select ── */
-.styled-select { background:var(--surface); border:1px solid var(--border); color:var(--text); font-family:'Nunito',sans-serif; font-size:16px; font-weight:600; padding:8px 16px; border-radius:20px; outline:none; cursor:pointer }
-.styled-select:focus { border-color:var(--purple) }
+/* Week rows */
+.weeks-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px}
+.week-row{border-bottom:1px solid var(--border);padding:12px 16px}
+.week-row:last-child{border-bottom:none}
+.week-meta{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.week-num{font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;color:var(--purple)}
+.week-dates{font-size:13px;color:var(--text-dim)}
+.week-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.week-pearls{font-size:13px;color:var(--cyan);font-weight:700}
+.betises-pill{background:var(--pink-light);border:1px solid rgba(255,121,198,.3);border-radius:20px;padding:4px 12px;font-size:13px;color:var(--pink);cursor:pointer;font-weight:700;transition:background .15s}
+.betises-pill:hover{background:rgba(255,121,198,.3)}
+.objs-row{display:flex;align-items:center;gap:0;width:100%}
+.obj-cell{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+.obj-cell .label-sm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex-shrink:1}
 
-/* ── Buttons (extending style.css .btn) ── */
-.btn-icon { background:var(--surface); border:1px solid var(--border); color:var(--text); font-size:16px; width:34px; height:34px; cursor:pointer; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:all .15s }
-.btn-icon:hover { border-color:var(--purple) }
-.btn-danger { background:linear-gradient(135deg,#ff5555,#bd93f9) }
-.btn-del-sm { background:transparent; border:1px solid rgba(255,80,80,.3); color:#ff5555; font-size:12px; padding:5px 10px; cursor:pointer; border-radius:10px; transition:all .15s }
-.btn-del-sm:hover { background:rgba(255,80,80,.15) }
+/* Summary */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.summary-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.summary-val{font-family:'Quicksand',sans-serif;font-size:24px;font-weight:700}
+.summary-val.c-green{color:#2ecc71}.summary-val.c-yellow{color:#f1c40f}.summary-val.c-red{color:#e74c3c}.summary-val.c-cyan{color:var(--cyan)}
+.summary-label{font-size:13px;color:var(--text-dim);margin-top:4px}
 
-/* ── Traffic-light radio ── */
-/* Wrapper acts as the colored "pill" background */
-.tl-radio { display:inline-flex; align-items:center; gap:4px; padding:5px 8px; border-radius:50px; transition:background-color .25s; background:rgba(255,255,255,.08) }
-.tl-radio input[type=radio] { display:none }
-.tl-radio label { display:flex; align-items:center; cursor:pointer }
-.tl-radio label span {
-  display:block; width:28px; height:28px; border-radius:50%;
-  border:2px solid rgba(255,255,255,.4);
-  box-shadow:0 1px 4px rgba(0,0,0,.5);
-  transition:transform .15s;
-  position:relative;
+/* Home cards */
+.child-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.child-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;cursor:pointer;transition:all .2s}
+.child-card:hover{border-color:var(--purple);transform:translateY(-2px)}
+.child-card-name{font-family:'Quicksand',sans-serif;font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--pink),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.child-card-pearls{font-size:14px;color:var(--cyan);font-weight:700;margin-bottom:10px}
+
+/* Admin / shop */
+.admin-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.admin-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:10px 14px}
+.admin-item-name{flex:1;font-size:14px}.admin-item-detail{font-size:13px;color:var(--text-dim)}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:12px}
+.shop-item{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;transition:all .2s}
+.shop-item:hover{border-color:var(--cyan)}
+.shop-item-name{font-size:14px;font-weight:600;margin-bottom:6px}
+.shop-item-price{font-size:13px;color:var(--cyan);margin-bottom:10px}
+.btn-buy{background:var(--cyan-light);border:1px solid rgba(139,233,253,.4);color:var(--cyan);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;padding:6px 14px;cursor:pointer;border-radius:20px;transition:all .15s}
+.btn-buy:hover:not(:disabled){background:var(--cyan);color:var(--bg)}
+.btn-buy:disabled{opacity:.35;cursor:not-allowed}
+.history-list{display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto}
+.history-item{display:flex;align-items:center;gap:10px;font-size:13px;padding:7px 10px;background:rgba(255,255,255,.03);border-radius:8px}
+.history-item-desc{flex:1;color:var(--text-mid)}
+.h-plus{color:var(--mint);font-weight:700}.h-minus{color:var(--pink);font-weight:700}
+.history-item-date{font-size:12px;color:var(--text-dim);white-space:nowrap}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:200}
+.modal-overlay.visible{display:flex}
+.modal-card{background:linear-gradient(135deg,#1a1235,#0f1a2e);border:1px solid rgba(255,121,198,.4);border-radius:24px;padding:24px;max-width:460px;width:90%;max-height:85vh;overflow-y:auto;animation:slideUp .3s ease}
+.modal-title{font-family:'Quicksand',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:14px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.betise-item{display:flex;gap:10px;align-items:flex-start;background:rgba(255,121,198,.05);border:1px solid rgba(255,121,198,.2);border-radius:10px;padding:9px 12px;margin-bottom:7px}
+.betise-date{font-size:12px;color:var(--pink);font-weight:700;white-space:nowrap}
+.betise-text{font-size:13px;color:var(--text-mid);flex:1}
+
+/* ═══ PRINT ═══════════════════════════════════ */
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{background:white!important;color:#111!important;padding:0;font-size:13px}
+  body::before,body::after{display:none!important}
+  .no-print{display:none!important}
+  .print-only{display:block!important}
+  .page{max-width:100%}
+
+  .print-month-header{border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:16px}
+  .print-title{font-size:22px;font-weight:700}
+  .print-subtitle{font-size:14px;color:#555;margin-top:2px}
+
+  /* Objectives */
+  .objectives-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  .obj-wrap{border:1px solid #ccc;border-radius:8px;padding:8px}
+  .obj-wrap .label-sm{font-size:12px;color:#555;display:block;margin-bottom:4px}
+  .obj-wrap .field{border:none!important;background:transparent!important;color:#111!important;font-size:13px;padding:0}
+  .obj-wrap .field::placeholder{color:transparent!important}
+
+  /* Weeks */
+  .weeks-section{border:1px solid #ccc;border-radius:8px;background:white;margin-bottom:12px}
+  .week-row{border-bottom:1px solid #ddd;padding:10px 14px;page-break-inside:avoid}
+  /* Hide screen week-meta entirely, show print header instead */
+  .week-meta{display:none!important}
+  .tl-radio{display:none!important}
+  .objs-row{display:none!important}
+  .week-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+  .field{color:#111!important;background:transparent!important;border:none!important;border-bottom:1px solid #ccc!important;border-radius:0!important;padding:4px 0!important}
+  .field::placeholder{color:transparent!important}
+
+  /* Print-only week structure */
+  .print-week-head{display:flex!important;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .print-week-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .print-week-title{font-size:14px;font-weight:700;color:#222}
+  .print-day-circle{display:inline-flex!important;width:22px;height:22px;border-radius:50%;border:1.5px solid #bbb;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#444;margin-right:2px}
+  .print-week-right{display:flex;align-items:center;gap:6px;font-size:12px;color:#555}
+  .print-circle{display:inline-block!important;width:18px;height:18px;border-radius:50%;border:1.5px solid #999;vertical-align:middle}
+  .pc-green{background:#2ecc71;border-color:#2ecc71}.pc-yellow{background:#f1c40f;border-color:#f1c40f}.pc-red{background:#e74c3c;border-color:#e74c3c}
+
+  /* Print objectives row */
+  .print-objs-row{display:flex!important;width:100%;gap:0;margin-bottom:8px}
+  .print-obj-cell{flex:1;display:flex;align-items:center;gap:6px;font-size:12px;color:#444}
+  .print-obj-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* Summary: show only empty box with title */
+  .summary-grid{display:none!important}
+  .panel-section{border:1px solid #ccc!important;background:white!important;border-radius:8px;padding:12px;margin-bottom:12px}
+  #month-summary{min-height:80px}
+
+  @page{margin:1.5cm;size:A4 portrait}
 }
-.tl-radio label span::after { /* checkmark */
-  content:''; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/14px no-repeat;
-  opacity:0; transition:opacity .2s;
-}
-.tl-radio label:hover span { transform:scale(1.1) }
-.tl-radio input[type=radio]:checked + label span::after { opacity:1 }
-
-/* Circle colors */
-.tl-g span { background:#2ecc71 }
-.tl-y span { background:#f1c40f }
-.tl-r span { background:#e74c3c }
-
-/* Pill background when checked */
-.tl-radio:has(.tl-g input:checked) { background:#2ecc71 }
-.tl-radio:has(.tl-y input:checked) { background:#f1c40f }
-.tl-radio:has(.tl-r input:checked) { background:#e74c3c }
-
-/* ── Row: label + radio inline ── */
-.note-row { display:flex; align-items:center; gap:10px; margin-bottom:8px }
-
-/* ── Week rows ── */
-.weeks-section { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:16px }
-.week-row { border-bottom:1px solid var(--border); padding:14px 16px }
-.week-row:last-child { border-bottom:none }
-.week-meta { display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap }
-.week-num { font-family:'Quicksand',sans-serif; font-size:14px; font-weight:700; color:var(--purple) }
-.week-dates { font-size:13px; color:var(--text-dim) }
-.week-pearls { font-size:13px; color:var(--cyan); font-weight:700 }
-.betises-pill { background:var(--pink-light); border:1px solid rgba(255,121,198,.3); border-radius:20px; padding:4px 12px; font-size:13px; color:var(--pink); cursor:pointer; font-weight:700; transition:background .15s }
-.betises-pill:hover { background:rgba(255,121,198,.3) }
-
-/* ── Summary ── */
-.summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px }
-.summary-card { background:rgba(255,255,255,.04); border:1px solid var(--border); border-radius:12px; padding:12px; text-align:center }
-.summary-val { font-family:'Quicksand',sans-serif; font-size:24px; font-weight:700 }
-.summary-val.c-green { color:#2ecc71 }
-.summary-val.c-yellow { color:#f1c40f }
-.summary-val.c-red { color:#e74c3c }
-.summary-val.c-cyan { color:var(--cyan) }
-.summary-label { font-size:13px; color:var(--text-dim); margin-top:4px }
-
-/* ── Home cards ── */
-.child-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:16px }
-.child-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; cursor:pointer; transition:all .2s }
-.child-card:hover { border-color:var(--purple); transform:translateY(-2px) }
-.child-card-name { font-family:'Quicksand',sans-serif; font-size:20px; font-weight:700; background:linear-gradient(135deg,var(--pink),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:6px }
-.child-card-pearls { font-size:14px; color:var(--cyan); font-weight:700; margin-bottom:10px }
-
-/* ── Admin / shop shared ── */
-.admin-list { display:flex; flex-direction:column; gap:8px; margin-bottom:12px }
-.admin-item { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.04); border:1px solid var(--border); border-radius:10px; padding:10px 14px }
-.admin-item-name { flex:1; font-size:14px }
-.admin-item-detail { font-size:13px; color:var(--text-dim) }
-.shop-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(155px,1fr)); gap:10px; margin-bottom:12px }
-.shop-item { background:rgba(255,255,255,.04); border:1px solid var(--border); border-radius:12px; padding:14px; text-align:center; transition:all .2s }
-.shop-item:hover { border-color:var(--cyan) }
-.shop-item-name { font-size:14px; font-weight:600; margin-bottom:6px }
-.shop-item-price { font-size:13px; color:var(--cyan); margin-bottom:10px }
-.btn-buy { background:var(--cyan-light); border:1px solid rgba(139,233,253,.4); color:var(--cyan); font-family:'Nunito',sans-serif; font-size:13px; font-weight:700; padding:6px 14px; cursor:pointer; border-radius:20px; transition:all .15s }
-.btn-buy:hover:not(:disabled) { background:var(--cyan); color:var(--bg) }
-.btn-buy:disabled { opacity:.35; cursor:not-allowed }
-.history-list { display:flex; flex-direction:column; gap:5px; max-height:220px; overflow-y:auto }
-.history-item { display:flex; align-items:center; gap:10px; font-size:13px; padding:7px 10px; background:rgba(255,255,255,.03); border-radius:8px }
-.history-item-desc { flex:1; color:var(--text-mid) }
-.h-plus { color:var(--mint); font-weight:700 }
-.h-minus { color:var(--pink); font-weight:700 }
-.history-item-date { font-size:12px; color:var(--text-dim); white-space:nowrap }
-
-/* ── Modal ── */
-.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:200 }
-.modal-overlay.visible { display:flex }
-.modal-card { background:linear-gradient(135deg,#1a1235,#0f1a2e); border:1px solid rgba(255,121,198,.4); border-radius:24px; padding:24px; max-width:460px; width:90%; max-height:85vh; overflow-y:auto; animation:slideUp .3s ease }
-.modal-title { font-family:'Quicksand',sans-serif; font-size:18px; font-weight:700; color:var(--text); margin-bottom:14px }
-.modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:14px }
-.betise-item { display:flex; gap:10px; align-items:flex-start; background:rgba(255,121,198,.05); border:1px solid rgba(255,121,198,.2); border-radius:10px; padding:9px 12px; margin-bottom:7px }
-.betise-date { font-size:12px; color:var(--pink); font-weight:700; white-space:nowrap }
-.betise-text { font-size:13px; color:var(--text-mid); flex:1 }
-
-/* ══ PRINT ══════════════════════════════ */
-@media print {
-  * { -webkit-print-color-adjust:exact; print-color-adjust:exact }
-  body { background:white!important; color:#111!important; padding:0; font-size:13px }
-  body::before, body::after { display:none!important }
-  .no-print { display:none!important }
-  .print-only { display:block!important }
-  .page { max-width:100% }
-
-  .print-month-header { border-bottom:2px solid #333; padding-bottom:10px; margin-bottom:16px }
-  .print-title { font-size:22px; font-weight:700 }
-  .print-subtitle { font-size:14px; color:#555; margin-top:2px }
-
-  /* Objectives print */
-  .objectives-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px }
-  .obj-wrap { border:1px solid #ccc; border-radius:8px; padding:8px }
-  .obj-wrap .label-sm { font-size:12px; color:#555; display:block; margin-bottom:4px }
-  .obj-wrap .field { border:none!important; background:transparent!important; color:#111!important; font-size:13px; padding:0 }
-  .obj-wrap .field::placeholder { color:transparent!important }
-
-  /* Weeks print */
-  .weeks-section { border:1px solid #ccc; border-radius:8px; background:white; margin-bottom:16px }
-  .week-row { border-bottom:1px solid #ddd; padding:10px 14px; page-break-inside:avoid }
-  .week-meta .betises-pill { display:none }
-
-  /* Hide screen radios, show print circles */
-  .tl-radio { display:none!important }
-  .print-circle { display:inline-block!important; width:20px; height:20px; border-radius:50%; border:1.5px solid #999; vertical-align:middle }
-  .pc-green { background:#2ecc71; border-color:#2ecc71 }
-  .pc-yellow { background:#f1c40f; border-color:#f1c40f }
-  .pc-red { background:#e74c3c; border-color:#e74c3c }
-
-  /* Print week header with day circles */
-  .print-week-head { display:flex!important; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap }
-  .print-week-title { font-size:14px; font-weight:700; min-width:85px }
-  .print-day-circle { display:inline-flex!important; width:24px; height:24px; border-radius:50%; border:1.5px solid #bbb; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#444; margin-right:3px }
-  .print-beh { margin-left:auto; display:flex; align-items:center; gap:6px; font-size:12px; color:#555 }
-
-  .note-row { margin-bottom:6px }
-  .note-row .label-sm { font-size:12px; color:#555; min-width:100px }
-
-  /* Summary print: just title + empty box */
-  .summary-grid { display:none!important }
-  .panel-section { border:1px solid #ccc!important; background:white!important; border-radius:8px; padding:12px; margin-bottom:12px }
-
-  .field { color:#111!important; background:transparent!important; border:none!important; border-bottom:1px solid #ccc!important; border-radius:0!important; padding:4px 0!important }
-  .field::placeholder { color:transparent!important }
-
-  @page { margin:1.5cm; size:A4 portrait }
-}
-/* Hidden by default, shown in print */
-.print-only { display:none }
-.print-circle { display:none }
-.print-week-head { display:none }
-.print-day-circle { display:none }
+.print-only{display:none}
+.print-circle{display:none}
+.print-week-head{display:none}
+.print-day-circle{display:none}
+.print-objs-row{display:none}
 </style>
 </head>
 <body>
@@ -216,43 +184,37 @@
 
   <!-- MENSUEL -->
   <div class="view" id="view-mensuel">
-    <!-- Screen controls -->
     <div class="no-print" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px">
       <select class="styled-select" id="month-child-select" onchange="renderMonthView()"></select>
       <div style="display:flex;align-items:center;gap:8px">
         <button class="btn-icon" onclick="changeMonth(-1)">‹</button>
-        <span class="month-label" id="month-label" style="font-family:'Quicksand',sans-serif;font-size:16px;font-weight:700;min-width:140px;text-align:center"></span>
+        <span id="month-label" style="font-family:'Quicksand',sans-serif;font-size:16px;font-weight:700;min-width:140px;text-align:center"></span>
         <button class="btn-icon" onclick="changeMonth(1)">›</button>
       </div>
       <span id="month-pearl-badge" style="background:var(--cyan-light);border:1px solid rgba(139,233,253,.3);border-radius:20px;padding:5px 14px;font-size:14px;color:var(--cyan);font-weight:700">🔮 0 perle</span>
     </div>
 
-    <!-- Print header -->
     <div class="print-only print-month-header">
       <div class="print-title" id="print-title"></div>
       <div class="print-subtitle" id="print-subtitle"></div>
     </div>
 
-    <!-- Objectives -->
     <div class="panel-section">
       <div class="section-title">🎯 Objectifs du mois</div>
-      <div class="row-grid cols-3 objectives-grid">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px" class="objectives-grid">
         <div class="obj-wrap"><span class="label-sm">Objectif 1</span><input class="field" id="obj1" placeholder="Ex: Ranger ma chambre" oninput="saveObjectives()"></div>
         <div class="obj-wrap"><span class="label-sm">Objectif 2</span><input class="field" id="obj2" placeholder="Ex: Faire mes devoirs" oninput="saveObjectives()"></div>
         <div class="obj-wrap"><span class="label-sm">Objectif 3</span><input class="field" id="obj3" placeholder="Ex: Être gentil avec..." oninput="saveObjectives()"></div>
       </div>
     </div>
 
-    <!-- Weeks -->
     <div class="weeks-section" id="weeks-container"></div>
 
-    <!-- Summary -->
-    <div class="panel-section">
+    <div class="panel-section" id="month-summary">
       <div class="section-title">📊 Résumé du mois</div>
       <div class="summary-grid" id="summary-grid"></div>
     </div>
 
-    <!-- Actions -->
     <div class="no-print" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
       <button class="btn secondary" onclick="printMonth()">🖨 Imprimer / PDF</button>
       <button class="btn secondary" onclick="exportJSON()">⬇ Export JSON</button>
@@ -334,7 +296,10 @@
 
 <script>
 // ── Data ──────────────────────────────────────────────────────
-const LS={get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
+const LS={
+  get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}},
+  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))
+};
 const getData=()=>LS.get('comportement_data')||{children:[],shopItems:[]};
 const saveData=d=>LS.set('comportement_data',d);
 const getMonthData=(cid,y,m)=>LS.get(`comp_m_${cid}_${y}_${m}`)||{objectives:['','',''],weeks:{},betises:[]};
@@ -346,12 +311,11 @@ let curY=new Date().getFullYear(), curM=new Date().getMonth()+1;
 const MFR=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 const colLabel=c=>c==='green'?'Vert':c==='yellow'?'Jaune':c==='red'?'Rouge':'—';
 const pearlsFor=n=>n==='green'?2:n==='yellow'?1:0;
-
-// ── Utils ─────────────────────────────────────────────────────
 const esc=s=>(s||'').replace(/"/g,'&quot;');
 const fmtD=d=>d.getDate()+'/'+(d.getMonth()+1);
 const fmtISO=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 
+// ── Week calculation ──────────────────────────────────────────
 function getWeeks(year,month){
   const weeks=[],last=new Date(year,month,0);
   let d=new Date(year,month-1,1);
@@ -362,8 +326,12 @@ function getWeeks(year,month){
     const dw=u.getUTCDay()||7;u.setUTCDate(u.getUTCDate()+4-dw);
     const y1=new Date(Date.UTC(u.getUTCFullYear(),0,1));
     const wn=Math.ceil((((u-y1)/86400000)+1)/7);
+    // All 7 days of the week, filtered to those in the month
     const daysInMonth=[];
-    for(let i=0;i<7;i++){const dd=new Date(mon);dd.setDate(dd.getDate()+i);if(dd.getMonth()+1===month)daysInMonth.push(dd.getDate());}
+    for(let i=0;i<7;i++){
+      const dd=new Date(year,month-1,mon.getDate()+i);
+      if(dd.getMonth()+1===month)daysInMonth.push(dd.getDate());
+    }
     weeks.push({wn,start:mon,end:sun,daysInMonth});
     d.setDate(d.getDate()+7);
   }
@@ -372,19 +340,17 @@ function getWeeks(year,month){
 
 // ── Radio builder ─────────────────────────────────────────────
 let _rid=0;
-function tlRadio(val,onchange){
+function tlRadio(val,fnName,args){
   const id='tl'+(++_rid);
-  const col=(c,label)=>`
-    <span class="tl-${c}">
-      <input type="radio" id="${id}_${c}" name="${id}" value="${c}" ${val===c?'checked':''} onchange="${onchange}(this.value)">
-      <label for="${id}_${c}"><span></span></label>
-    </span>`;
-  return `<div class="tl-radio">${col('g','Vert')}${col('y','Jaune')}${col('r','Rouge')}</div>`;
+  const col=c=>`<span class="tl-${c[0]}">
+    <input type="radio" id="${id}_${c}" name="${id}" value="${c}" ${val===c?'checked':''}
+      onchange="${fnName}(${args},'${c}')">
+    <label for="${id}_${c}"><span></span></label>
+  </span>`;
+  return `<div class="tl-radio">${col('green')}${col('yellow')}${col('red')}</div>`;
 }
-
 function printCircle(val){
-  const cls=val?`pc-${val}`:'' ;
-  return `<span class="print-circle ${cls}"></span>`;
+  return `<span class="print-circle${val?' pc-'+val:''}"></span>`;
 }
 
 // ── Navigation ────────────────────────────────────────────────
@@ -399,11 +365,10 @@ function showView(v){
   if(v==='magasin'){populateSelects();renderShop();}
   if(v==='admin')renderAdmin();
 }
-
 function populateSelects(){
   const d=getData();
-  ['month-child-select','shop-child-select'].forEach(id=>{
-    const sel=document.getElementById(id);if(!sel)return;
+  ['month-child-select','shop-child-select'].forEach(sid=>{
+    const sel=document.getElementById(sid);if(!sel)return;
     const cur=sel.value;
     sel.innerHTML='<option value="">— Enfant —</option>';
     d.children.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;sel.appendChild(o);});
@@ -435,78 +400,88 @@ function renderHome(){
 }
 
 // ── Month view ────────────────────────────────────────────────
-function changeMonth(d){
-  curM+=d;if(curM>12){curM=1;curY++;}if(curM<1){curM=12;curY--;}
+function changeMonth(dir){
+  curM+=dir;if(curM>12){curM=1;curY++;}if(curM<1){curM=12;curY--;}
   renderMonthView();
 }
 
 function updatePearlBadge(childId){
-  const c=getChild(childId);
+  const c=childId?getChild(childId):null;
   const p=c?c.pearls||0:0;
-  const txt=`🔮 ${p} perle${p!==1?'s':''}`;
-  document.getElementById('month-pearl-badge').textContent=txt;
+  document.getElementById('month-pearl-badge').textContent=`🔮 ${p} perle${p!==1?'s':''}`;
 }
 
 function renderMonthView(){
-  const childId=document.getElementById('month-child-select')?.value;
+  const childId=document.getElementById('month-child-select')?.value||'';
   document.getElementById('month-label').textContent=MFR[curM-1]+' '+curY;
   const c=childId?getChild(childId):null;
   const pt=document.getElementById('print-title'),ps=document.getElementById('print-subtitle');
-  if(pt)pt.textContent=c?c.name:'';
-  if(ps)ps.textContent=MFR[curM-1]+' '+curY;
+  if(pt)pt.textContent=c?c.name:'';if(ps)ps.textContent=MFR[curM-1]+' '+curY;
   updatePearlBadge(childId);
 
-  if(!childId){document.getElementById('weeks-container').innerHTML='<p style="padding:16px;color:var(--text-dim)">Sélectionnez un enfant.</p>';return;}
+  if(!childId){
+    document.getElementById('weeks-container').innerHTML='<p style="padding:16px;color:var(--text-dim)">Sélectionnez un enfant.</p>';
+    document.getElementById('summary-grid').innerHTML='';
+    return;
+  }
 
   const md=getMonthData(childId,curY,curM);
   ['obj1','obj2','obj3'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.value=md.objectives[i]||'';});
 
   const weeks=getWeeks(curY,curM);
-  const cont=document.getElementById('weeks-container');cont.innerHTML='';
+  const cont=document.getElementById('weeks-container');
+  cont.innerHTML='';
 
   weeks.forEach(w=>{
-    const wk=String(w.wn),wd=md.weeks[wk]||{behavior:'',obj1:'',obj2:'',obj3:'',best:'',worst:''};
+    const wk=String(w.wn);
+    const wd=md.weeks[wk]||{behavior:'',obj1:'',obj2:'',obj3:'',best:'',worst:''};
     const betN=(md.betises||[]).filter(b=>{const bd=new Date(b.date);return bd>=w.start&&bd<=w.end;}).length;
     const pe=pearlsFor(wd.behavior);
-
-    // fn refs for radios
-    const behFn=`(v=>setField('${childId}',${curY},${curM},'${wk}','behavior',v))`;
-    const o1Fn=`(v=>setField('${childId}',${curY},${curM},'${wk}','obj1',v))`;
-    const o2Fn=`(v=>setField('${childId}',${curY},${curM},'${wk}','obj2',v))`;
-    const o3Fn=`(v=>setField('${childId}',${curY},${curM},'${wk}','obj3',v))`;
-
-    const objNames=md.objectives.map((o,i)=>o||`Objectif ${i+1}`);
+    const objNames=md.objectives.map((o,i)=>o||`Obj. ${i+1}`);
+    // Stringify args for onclick
+    const qa=`'${childId}',${curY},${curM},'${wk}'`;
 
     const row=document.createElement('div');row.className='week-row';
     row.innerHTML=`
-      <!-- Print header with day circles -->
-      <div class="print-week-head">
-        <span class="print-week-title">Semaine ${wk}</span>
-        ${w.daysInMonth.map(d=>`<span class="print-day-circle">${d}</span>`).join('')}
-        <span class="print-beh">&nbsp;Comportement :&nbsp;${printCircle(wd.behavior)}</span>
-      </div>
-      <!-- Behaviour + meta inline -->
-      <div class="week-meta" style="gap:10px;margin-bottom:10px;flex-wrap:wrap">
+      <!-- Screen header -->
+      <div class="week-meta no-print">
         <span class="week-num">Semaine ${wk}</span>
         <span class="week-dates">${fmtD(w.start)} → ${fmtD(w.end)}</span>
-        <span class="label-sm">Comportement</span>
-        ${tlRadio(wd.behavior,`(function(v){(${behFn})(v)})`)}
-        ${printCircle(wd.behavior)}
-        ${pe>0?`<span class="week-pearls">+${pe} 🔮</span>`:''}
-        <span class="betises-pill" onclick="openBetises('${childId}',${curY},${curM},'${wk}','${w.start.toISOString()}','${w.end.toISOString()}')">${betN} bêtise${betN!==1?'s':''}</span>
+        <div class="week-right">
+          <span class="label-sm">Comportement</span>
+          ${tlRadio(wd.behavior,'setBehavior',qa)}
+          ${pe>0?`<span class="week-pearls">+${pe} 🔮</span>`:''}
+          <span class="betises-pill" onclick="openBetises('${childId}',${curY},${curM},'${wk}','${w.start.toISOString()}','${w.end.toISOString()}')">${betN} bêtise${betN!==1?'s':''}</span>
+        </div>
       </div>
-      <!-- Objectives inline -->
-      <div class="note-row" style="flex-wrap:wrap;gap:12px;align-items:center">
-        ${[{name:objNames[0],val:wd.obj1,fn:o1Fn},{name:objNames[1],val:wd.obj2,fn:o2Fn},{name:objNames[2],val:wd.obj3,fn:o3Fn}].map(o=>`
-          <span class="label-sm">${o.name}</span>
-          ${tlRadio(o.val,`(function(v){(${o.fn})(v)})`)}
-          ${printCircle(o.val)}
-        `).join('')}
+      <!-- Print header -->
+      <div class="print-week-head">
+        <div class="print-week-left">
+          <span class="print-week-title">Semaine ${wk}</span>
+          ${w.daysInMonth.map(d=>`<span class="print-day-circle">${d}</span>`).join('')}
+        </div>
+        <div class="print-week-right">Comportement : ${printCircle(wd.behavior)}</div>
+      </div>
+      <!-- Print objectives row -->
+      <div class="print-objs-row">
+        ${[0,1,2].map(n=>`<div class="print-obj-cell">
+          <span class="print-obj-name">${objNames[n]}</span>
+          ${printCircle(wd['obj'+(n+1)])}
+        </div>`).join('')}
+      </div>
+      <!-- Screen objectives row -->
+      <div class="objs-row no-print">
+        ${[0,1,2].map(n=>`<div class="obj-cell">
+          <span class="label-sm">${objNames[n]}</span>
+          ${tlRadio(wd['obj'+(n+1)],'setObjNote',`${qa},${n+1}`)}
+        </div>`).join('')}
       </div>
       <!-- Best / worst -->
-      <div class="row-grid cols-2" style="margin-top:8px">
-        <input class="field" placeholder="⭐ Meilleur moment..." value="${esc(wd.best)}" onchange="saveWeekField('${childId}',${curY},${curM},'${wk}','best',this.value)">
-        <input class="field" placeholder="😬 Moment difficile..." value="${esc(wd.worst)}" onchange="saveWeekField('${childId}',${curY},${curM},'${wk}','worst',this.value)">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px" class="week-inputs">
+        <input class="field" placeholder="⭐ Meilleur moment..." value="${esc(wd.best)}"
+          onchange="saveWeekField('${childId}',${curY},${curM},'${wk}','best',this.value)">
+        <input class="field" placeholder="😬 Moment difficile..." value="${esc(wd.worst)}"
+          onchange="saveWeekField('${childId}',${curY},${curM},'${wk}','worst',this.value)">
       </div>`;
     cont.appendChild(row);
   });
@@ -514,27 +489,48 @@ function renderMonthView(){
   renderSummary(childId,curY,curM,md,weeks);
 }
 
-function setField(childId,y,m,wk,field,val){
+// ── Field setters (called from inline onclick) ────────────────
+function setBehavior(childId,y,m,wk,val){
   const md=getMonthData(childId,y,m);
   if(!md.weeks[wk])md.weeks[wk]={behavior:'',obj1:'',obj2:'',obj3:'',best:'',worst:''};
-  const old=md.weeks[wk][field]||'';
-  md.weeks[wk][field]=val;
+  const old=md.weeks[wk].behavior||'';
+  if(old===val)return; // no change
+  md.weeks[wk].behavior=val;
   saveMonthData(childId,y,m,md);
-  if(field==='behavior'){
-    const d=getData(),c=d.children.find(x=>x.id===childId);if(!c)return;
+
+  // Update pearls: adjust diff and update/create single history entry for this week
+  const d=getData(),c=d.children.find(x=>x.id===childId);
+  if(c){
     const diff=pearlsFor(val)-pearlsFor(old);
     if(diff!==0){
       c.pearls=Math.max(0,(c.pearls||0)+diff);
       if(!c.history)c.history=[];
       const bets=(md.betises||[]).length;
-      c.history.unshift({date:fmtISO(new Date()),desc:`Semaine S${wk} : comportement ${colLabel(val)}${bets>0?', '+bets+' bêtise'+(bets>1?'s':''):''}`,amount:diff});
-      if(c.history.length>100)c.history.pop();
+      const desc=`Semaine S${wk} : comportement ${colLabel(val)}${bets>0?', '+bets+' bêtise'+(bets>1?'s':''):''}`;
+      // Replace existing entry for this week if present, else prepend
+      const key=`S${wk}`;
+      const idx=c.history.findIndex(h=>h.week===key);
+      const entry={date:fmtISO(new Date()),desc,amount:pearlsFor(val),week:key};
+      if(idx>=0){
+        // Recalculate: remove old amount, put new
+        c.history[idx]=entry;
+      } else {
+        c.history.unshift(entry);
+      }
+      if(c.history.length>200)c.history.pop();
       saveData(d);
     }
     updatePearlBadge(childId);
   }
-  const mdFresh=getMonthData(childId,y,m);
-  renderSummary(childId,y,m,mdFresh,getWeeks(y,m));
+  renderSummary(childId,y,m,getMonthData(childId,y,m),getWeeks(y,m));
+}
+
+function setObjNote(childId,y,m,wk,n,val){
+  const md=getMonthData(childId,y,m);
+  if(!md.weeks[wk])md.weeks[wk]={behavior:'',obj1:'',obj2:'',obj3:'',best:'',worst:''};
+  md.weeks[wk]['obj'+n]=val;
+  saveMonthData(childId,y,m,md);
+  renderSummary(childId,y,m,getMonthData(childId,y,m),getWeeks(y,m));
 }
 
 function saveWeekField(childId,y,m,wk,field,val){
@@ -555,8 +551,11 @@ function saveObjectives(){
 function renderSummary(childId,y,m,md,weeks){
   const el=document.getElementById('summary-grid');if(!el)return;
   let g=0,yel=0,r=0,tp=0;
-  weeks.forEach(w=>{const wd=md.weeks[String(w.wn)]||{};
-    if(wd.behavior==='green')g++;else if(wd.behavior==='yellow')yel++;else if(wd.behavior==='red')r++;
+  weeks.forEach(w=>{
+    const wd=md.weeks[String(w.wn)]||{};
+    if(wd.behavior==='green')g++;
+    else if(wd.behavior==='yellow')yel++;
+    else if(wd.behavior==='red')r++;
     tp+=pearlsFor(wd.behavior);
   });
   const tb=(md.betises||[]).length;
@@ -568,10 +567,10 @@ function renderSummary(childId,y,m,md,weeks){
     <div class="summary-card"><div class="summary-val c-cyan">${tp}</div><div class="summary-label">Perles gagnées</div></div>`;
 }
 
-// ── Bêtises modal ─────────────────────────────────────────────
+// ── Bêtises ───────────────────────────────────────────────────
 let _bm={};
 function openBetises(childId,y,m,wk,startIso,endIso){
-  _bm={childId,y,m,wk,start:new Date(startIso),end:new Date(endIso)};
+  _bm={childId,y:+y,m:+m,wk,start:new Date(startIso),end:new Date(endIso)};
   refreshBetiseList();
   document.getElementById('betise-date-input').value=fmtISO(new Date());
   document.getElementById('betise-comment').value='';
@@ -603,7 +602,7 @@ document.getElementById('betise-modal').addEventListener('click',e=>{if(e.target
 
 // ── Shop ──────────────────────────────────────────────────────
 function renderShop(){
-  const childId=document.getElementById('shop-child-select')?.value;
+  const childId=document.getElementById('shop-child-select')?.value||'';
   const c=childId?getChild(childId):null;
   const p=c?c.pearls||0:0;
   document.getElementById('shop-pearl-badge').textContent=`🔮 ${p} perle${p!==1?'s':''}`;
@@ -614,7 +613,7 @@ function renderShop(){
         <div class="shop-item-price">🔮 ${item.price} perle${item.price!==1?'s':''}</div>
         <button class="btn-buy" ${!c||p<item.price?'disabled':''} onclick="buyItem(${i})">Acheter</button>
       </div>`).join('')
-    :'<p style="color:var(--text-dim)">Aucun article. Ajoutez-en dans Admin.</p>';
+    :'<p style="color:var(--text-dim)">Aucun article — ajoutez-en dans Admin.</p>';
   document.getElementById('history-list').innerHTML=c&&(c.history||[]).length
     ?(c.history).map(e=>`<div class="history-item">
         <span class="history-item-desc">${e.desc}</span>
@@ -648,10 +647,12 @@ function addBonus(){
 function renderAdmin(){
   const d=getData();
   document.getElementById('admin-children-list').innerHTML=d.children.map((c,i)=>`
-    <div class="admin-item"><span class="admin-item-name">${c.name}</span><span class="admin-item-detail">🔮 ${c.pearls||0} perles</span><button class="btn-del-sm" onclick="removeChild(${i})">Supprimer</button></div>`).join('')
+    <div class="admin-item"><span class="admin-item-name">${c.name}</span><span class="admin-item-detail">🔮 ${c.pearls||0} perles</span>
+    <button class="btn-del-sm" onclick="removeChild(${i})">Supprimer</button></div>`).join('')
     ||'<p style="color:var(--text-dim)">Aucun enfant.</p>';
   document.getElementById('admin-items-list').innerHTML=d.shopItems.map((item,i)=>`
-    <div class="admin-item"><span class="admin-item-name">${item.name}</span><span class="admin-item-detail">🔮 ${item.price}</span><button class="btn-del-sm" onclick="removeShopItem(${i})">Supprimer</button></div>`).join('')
+    <div class="admin-item"><span class="admin-item-name">${item.name}</span><span class="admin-item-detail">🔮 ${item.price}</span>
+    <button class="btn-del-sm" onclick="removeShopItem(${i})">Supprimer</button></div>`).join('')
     ||'<p style="color:var(--text-dim)">Aucun article.</p>';
 }
 function addChild(){const name=document.getElementById('new-child-name').value.trim();if(!name)return;const d=getData();d.children.push({id:'c'+Date.now(),name,pearls:0,history:[]});saveData(d);document.getElementById('new-child-name').value='';renderAdmin();}
@@ -674,7 +675,6 @@ function importJSON(e){
 function clearAll(){Object.keys(localStorage).filter(k=>k.startsWith('comp')).forEach(k=>localStorage.removeItem(k));renderAdmin();}
 function printMonth(){window.print();}
 
-// ── Init ──────────────────────────────────────────────────────
 renderHome();
 </script>
 </body>
