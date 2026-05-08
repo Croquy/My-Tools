@@ -358,15 +358,14 @@ function getWeeks(year,month){
 
     const sunDate=new Date(monDate); sunDate.setDate(sunDate.getDate()+6);
 
-    // All 7 days of the week, flagging which belong to the current month
+    // All 7 days, flagged as in-month or not
     const allDays=[];
     for(let i=0;i<7;i++){
       const dd=new Date(monDate); dd.setDate(monDate.getDate()+i);
       allDays.push({day:dd.getDate(), inMonth: dd.getFullYear()===year && dd.getMonth()+1===month});
     }
-    const hasAnyInMonth=allDays.some(d=>d.inMonth);
-
-    if(hasAnyInMonth){
+    const hasInMonth=allDays.some(d=>d.inMonth);
+    if(hasInMonth){
       weeks.push({wn, start:new Date(monDate), end:sunDate, allDays});
     }
 
@@ -516,15 +515,13 @@ function renderMonthView(){
       <div class="print-week-head">
         <div class="print-week-left">
           <span class="print-week-title">Semaine ${wk}</span>
-          ${w.daysInMonth.map(d=>`<span class="print-day-circle">${d}</span>`).join('')}
+          ${w.allDays.map(d=>`<span class="print-day-circle${d.inMonth?'':' print-day-out'}">${d.day}</span>`).join('')}
         </div>
         <div class="print-week-right">Comportement :&nbsp;${printCircle(wd.behavior)}</div>
       </div>
-      <!-- Print objectives: name cercle ESPACE name cercle ESPACE name cercle -->
+      <!-- Print objectives: name cercle   name cercle   name cercle -->
       <div class="print-objs-row">
-        ${[0,1,2].map(n=>`<div class="print-obj-cell">
-          <span class="print-obj-name">${objNames[n]}</span>${printCircle(wd['obj'+(n+1)])}
-        </div>`).join('')}
+        ${[0,1,2].map((n,i)=>`${i>0?'<span class="print-obj-sep"></span>':''}<div class="print-obj-cell"><span class="print-obj-name">${objNames[n]}</span>${printCircle(wd['obj'+(n+1)])}</div>`).join('')}
       </div>
       <!-- Screen objectives row -->
       <div class="objs-row no-print">
