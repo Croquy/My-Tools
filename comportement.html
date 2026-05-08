@@ -358,17 +358,16 @@ function getWeeks(year,month){
 
     const sunDate=new Date(monDate); sunDate.setDate(sunDate.getDate()+6);
 
-    // Collect days of this week that belong to our month
-    const daysThisWeek=[];
+    // All 7 days of the week, flagging which belong to the current month
+    const allDays=[];
     for(let i=0;i<7;i++){
       const dd=new Date(monDate); dd.setDate(monDate.getDate()+i);
-      if(dd.getFullYear()===year && dd.getMonth()+1===month){
-        daysThisWeek.push(dd.getDate());
-      }
+      allDays.push({day:dd.getDate(), inMonth: dd.getFullYear()===year && dd.getMonth()+1===month});
     }
+    const hasAnyInMonth=allDays.some(d=>d.inMonth);
 
-    if(daysThisWeek.length>0){
-      weeks.push({wn, start:new Date(monDate), end:sunDate, daysInMonth:daysThisWeek});
+    if(hasAnyInMonth){
+      weeks.push({wn, start:new Date(monDate), end:sunDate, allDays});
     }
 
     // Stop when the week starts after the last day of the month
