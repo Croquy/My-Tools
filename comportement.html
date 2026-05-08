@@ -479,40 +479,29 @@ function renderMonthView(){
 
     const row=document.createElement('div');row.className='week-row';
     row.innerHTML=`
-      <!-- Screen meta -->
-      <div class="week-meta no-print">
-        <span class="week-num">Semaine ${wk}</span>
-        <span class="week-dates">${fmtD(w.start)} → ${fmtD(w.end)}</span>
-        ${pe>0?`<span class="week-pearls">+${pe} 🔮</span>`:''}
-        <span class="betises-pill" onclick="openBetises('${childId}',${curY},${curM},'${wk}','${w.start.toISOString()}','${w.end.toISOString()}')">${betN} bêtise${betN!==1?'s':''}</span>
-      </div>
       <!-- Print header with day circles -->
       <div class="print-week-head">
         <span class="print-week-title">Semaine ${wk}</span>
         ${w.daysInMonth.map(d=>`<span class="print-day-circle">${d}</span>`).join('')}
         <span class="print-beh">&nbsp;Comportement :&nbsp;${printCircle(wd.behavior)}</span>
       </div>
-      <!-- Behaviour -->
-      <div class="note-row">
-        <span class="label-sm" style="min-width:110px">Comportement</span>
+      <!-- Behaviour + meta inline -->
+      <div class="week-meta" style="gap:10px;margin-bottom:10px;flex-wrap:wrap">
+        <span class="week-num">Semaine ${wk}</span>
+        <span class="week-dates">${fmtD(w.start)} → ${fmtD(w.end)}</span>
+        <span class="label-sm">Comportement</span>
         ${tlRadio(wd.behavior,`(function(v){(${behFn})(v)})`)}
         ${printCircle(wd.behavior)}
+        ${pe>0?`<span class="week-pearls">+${pe} 🔮</span>`:''}
+        <span class="betises-pill" onclick="openBetises('${childId}',${curY},${curM},'${wk}','${w.start.toISOString()}','${w.end.toISOString()}')">${betN} bêtise${betN!==1?'s':''}</span>
       </div>
-      <!-- Objectives -->
-      <div class="note-row">
-        <span class="label-sm" style="min-width:110px">${objNames[0]}</span>
-        ${tlRadio(wd.obj1,`(function(v){(${o1Fn})(v)})`)}
-        ${printCircle(wd.obj1)}
-      </div>
-      <div class="note-row">
-        <span class="label-sm" style="min-width:110px">${objNames[1]}</span>
-        ${tlRadio(wd.obj2,`(function(v){(${o2Fn})(v)})`)}
-        ${printCircle(wd.obj2)}
-      </div>
-      <div class="note-row">
-        <span class="label-sm" style="min-width:110px">${objNames[2]}</span>
-        ${tlRadio(wd.obj3,`(function(v){(${o3Fn})(v)})`)}
-        ${printCircle(wd.obj3)}
+      <!-- Objectives inline -->
+      <div class="note-row" style="flex-wrap:wrap;gap:12px;align-items:center">
+        ${[{name:objNames[0],val:wd.obj1,fn:o1Fn},{name:objNames[1],val:wd.obj2,fn:o2Fn},{name:objNames[2],val:wd.obj3,fn:o3Fn}].map(o=>`
+          <span class="label-sm">${o.name}</span>
+          ${tlRadio(o.val,`(function(v){(${o.fn})(v)})`)}
+          ${printCircle(o.val)}
+        `).join('')}
       </div>
       <!-- Best / worst -->
       <div class="row-grid cols-2" style="margin-top:8px">
@@ -544,7 +533,8 @@ function setField(childId,y,m,wk,field,val){
     }
     updatePearlBadge(childId);
   }
-  renderSummary(childId,y,m,getMonthData(childId,y,m),getWeeks(y,m));
+  const mdFresh=getMonthData(childId,y,m);
+  renderSummary(childId,y,m,mdFresh,getWeeks(y,m));
 }
 
 function saveWeekField(childId,y,m,wk,field,val){
