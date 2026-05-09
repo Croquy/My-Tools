@@ -519,9 +519,9 @@ function renderMonthView(){
         </div>
         <div class="print-week-right">Comportement :&nbsp;${printCircle(wd.behavior)}</div>
       </div>
-      <!-- Print objectives: name cercle   name cercle   name cercle -->
+      <!-- Print objectives: juste les noms, sans cercle -->
       <div class="print-objs-row">
-        ${[0,1,2].map((n,i)=>`${i>0?'<span class="print-obj-sep"></span>':''}<div class="print-obj-cell"><span class="print-obj-name">${objNames[n]}</span>${printCircle(wd['obj'+(n+1)])}</div>`).join('')}
+        ${[0,1,2].map(n=>`<div class="print-obj-cell"><span class="print-obj-name">${objNames[n]}</span></div>`).join('')}
       </div>
       <!-- Screen objectives row -->
       <div class="objs-row no-print">
