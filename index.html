@@ -1,55 +1,110 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Tools - Accueil</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Tools - Accueil</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="page">
-        <header class="header">
-            <div class="header-left">
-                <h1>My Tools</h1>
-                <p class="header-subtitle">Tes outils du quotidien</p>
-            </div>
-            <div class="header-center"></div>
-            <div class="header-right"></div>
-        </header>
+  <div class="page">
 
-        <div class="cards-container">
-            <!-- Morning Card -->
-            <div class="card">
-                <div class="card-icon">🌅</div>
-                <h2 class="card-title">Morning</h2>
-                <p class="card-sub">Organise ta journée avec style</p>
-                <a href="morning.html" class="card-link">Accéder →</a>
-            </div>
+    <header class="header">
+      <div class="header-left">
+        <h1>My Tools</h1>
+        <p class="header-subtitle">Tes outils du quotidien</p>
+      </div>
+      <div class="header-center"></div>
+      <div class="header-right"></div>
+    </header>
 
-            <!-- Comptes Card -->
-            <div class="card">
-                <div class="card-icon">💰</div>
-                <h2 class="card-title">Comptes</h2>
-                <p class="card-sub">Gère tes finances communes</p>
-                <a href="comptes.html" class="card-link">Accéder →</a>
-            </div>
+    <div class="categories">
 
-            <!-- Quiz Card -->
-            <div class="card">
-                <div class="card-icon">🧠</div>
-                <h2 class="card-title">Quiz</h2>
-                <p class="card-sub">Teste ton vocabulaire</p>
-                <a href="quiz_coeli/index.html" class="card-link">Accéder →</a>
-            </div>
-
-            <!-- Comportement Card -->
-            <div class="card">
-                <div class="card-icon">⭐</div>
-                <h2 class="card-title">Comportement</h2>
-                <p class="card-sub">Suivi des enfants & perles</p>
-                <a href="comportement.html" class="card-link">Accéder →</a>
-            </div>
+      <!-- ── Enfant ── -->
+      <div class="category cat-enfant">
+        <div class="category-header">
+          <div class="category-icon">👶</div>
+          <div>
+            <div class="category-name">Enfant</div>
+            <div class="category-desc">Suivi, apprentissage & éducation</div>
+          </div>
         </div>
+        <div class="cards-grid">
+
+          <a href="comportement.html" class="card">
+            <div class="card-icon">⭐</div>
+            <div class="card-title">Comportement</div>
+            <p class="card-sub">Suivi des enfants & perles</p>
+            <div class="card-arrow">Accéder →</div>
+          </a>
+
+          <a href="quiz_coeli/index.html" class="card">
+            <div class="card-icon">🧠</div>
+            <div class="card-title">Quiz</div>
+            <p class="card-sub">Teste ton vocabulaire</p>
+            <div class="card-arrow">Accéder →</div>
+          </a>
+
+        </div>
+      </div>
+
+      <!-- ── Organisation ── -->
+      <div class="category cat-orga">
+        <div class="category-header">
+          <div class="category-icon">🗂️</div>
+          <div>
+            <div class="category-name">Organisation</div>
+            <div class="category-desc">Planification & gestion du quotidien</div>
+          </div>
+        </div>
+        <div class="cards-grid">
+
+          <a href="morning.html" class="card">
+            <div class="card-icon">🌅</div>
+            <div class="card-title">Morning</div>
+            <p class="card-sub">Organise ta journée avec style</p>
+            <div class="card-arrow">Accéder →</div>
+          </a>
+
+          <a href="agenda.html" class="card">
+            <div class="card-icon">📅</div>
+            <div class="card-title">Agenda</div>
+            <p class="card-sub">Agenda hebdomadaire à imprimer</p>
+            <div class="card-arrow">Accéder →</div>
+          </a>
+
+          <a href="comptes.html" class="card">
+            <div class="card-icon">💰</div>
+            <div class="card-title">Comptes</div>
+            <p class="card-sub">Gère tes finances communes</p>
+            <div class="card-arrow">Accéder →</div>
+          </a>
+
+        </div>
+      </div>
+
+      <!-- ── Projet ── -->
+      <div class="category cat-projet">
+        <div class="category-header">
+          <div class="category-icon">🔧</div>
+          <div>
+            <div class="category-name">Projet</div>
+            <div class="category-desc">Outils métier & chiffrage</div>
+          </div>
+        </div>
+        <div class="cards-grid">
+
+          <a href="chiffrage.html" class="card">
+            <div class="card-icon">📊</div>
+            <div class="card-title">Chiffrage</div>
+            <p class="card-sub">Simplifie le chiffrage de tes projets</p>
+            <div class="card-arrow">Accéder →</div>
+          </a>
+
+        </div>
+      </div>
+
     </div>
+  </div>
 </body>
 </html>
