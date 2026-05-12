@@ -1016,3 +1016,146 @@ body::after {
     grid-template-columns: 1fr;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════ */
+/* INDEX — CATÉGORIES & CARDS                                                    */
+/* ══════════════════════════════════════════════════════════════════════════════ */
+
+.categories {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Bloc catégorie ── */
+.category {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px 24px 24px;
+  animation: popIn 0.35s ease both;
+}
+
+.category:nth-child(2) { animation-delay: 0.07s; }
+.category:nth-child(3) { animation-delay: 0.14s; }
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.category-icon {
+  font-size: 1.2rem;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.category-name {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.category-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* ── Grille de cards ── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+/* ── Card ── */
+.card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.card:hover { transform: translateY(-3px); }
+
+.card-icon {
+  font-size: 1.6rem;
+  margin-bottom: 6px;
+}
+
+.card-title {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.card-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.card-arrow {
+  margin-top: auto;
+  padding-top: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* ── Enfant — rose/pink ── */
+.cat-enfant .category-icon { background: var(--pink-light); }
+.cat-enfant .category-name { background-image: linear-gradient(135deg, var(--pink), var(--purple)); }
+.cat-enfant .card:hover {
+  border-color: rgba(255, 121, 198, 0.45);
+  background: var(--pink-light);
+  box-shadow: 0 8px 24px rgba(255, 121, 198, 0.12);
+}
+.cat-enfant .card-arrow { color: var(--pink); }
+
+/* ── Organisation — violet/purple ── */
+.cat-orga .category-icon { background: var(--purple-light); }
+.cat-orga .category-name { background-image: linear-gradient(135deg, var(--purple), var(--cyan)); }
+.cat-orga .card:hover {
+  border-color: rgba(189, 147, 249, 0.45);
+  background: var(--purple-light);
+  box-shadow: 0 8px 24px rgba(189, 147, 249, 0.12);
+}
+.cat-orga .card-arrow { color: var(--purple); }
+
+/* ── Projet — cyan/mint ── */
+.cat-projet .category-icon { background: var(--cyan-light); }
+.cat-projet .category-name { background-image: linear-gradient(135deg, var(--cyan), var(--mint)); }
+.cat-projet .card:hover {
+  border-color: rgba(139, 233, 253, 0.45);
+  background: var(--cyan-light);
+  box-shadow: 0 8px 24px rgba(139, 233, 253, 0.10);
+}
+.cat-projet .card-arrow { color: var(--cyan); }
+
+/* ── Responsive index ── */
+@media (max-width: 600px) {
+  .cards-grid { grid-template-columns: 1fr 1fr; }
+}
