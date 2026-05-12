@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Agenda Hebdomadaire</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Handlee&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ─── Variables globales ─── */
+:root {
+  --accent: #B8A1D9;
+  --pastel: #F3ECFF;
+  --text: #444;
+  --border: 1.5px solid var(--accent);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 20px;
+  background: #f3f3f3;
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+}
+
+/* ─── Contrôles (masqués à l'impression) ─── */
+.controls {
+  width: 1120px;
+  margin: auto auto 20px;
+  background: white;
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid #ddd;
+}
+
+.controls-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+input, textarea {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  font-family: inherit;
+}
+
+textarea { resize: none; height: 100px; }
+
+button {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 18px;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* ─── Page A4 paysage ─── */
+.page {
+  width: 297mm;
+  height: 210mm;
+  background: white;
+  margin: auto;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ─── Moitié gauche / droite ─── */
+.half {
+  width: 148.5mm;
+  height: 210mm;
+  padding: 10mm;
+}
+
+/* ─── Bloc générique (bordure arrondie) ─── */
+.block {
+  border: var(--border);
+  border-radius: 16px;
+  padding: 8px;
+  background: white;
+}
+
+/* ─── Titres cursive ─── */
+.block-title {
+  font-family: 'Handlee', cursive;
+  color: var(--accent);
+  text-align: center;
+  font-size: 22px;
+}
+
+.small-title { font-size: 18px; margin-bottom: 2px; }
+
+/* ══════════════════════════
+   PAGE GAUCHE
+══════════════════════════ */
+.left-page {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+}
+
+/* ── Haut : calendrier + bloc Semaine ── */
+.top-section {
+  height: 20%;
+  display: flex;
+  gap: 8px;
+}
+
+.calendar-block  { width: 35%; }
+.semaine-block   { width: 65%; }
+
+/* ── Milieu : todo + thèmes (Orga & Équipe) ── */
+.middle-section {
+  height: 50%;
+  display: flex;
+  gap: 8px;
+}
+
+.todo-block { width: 35%; }
+
+/* Conteneur des deux thèmes — ils occupent tout l'espace disponible */
+.themes-block {
+  width: 65%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.theme-box { flex: 1; } /* Orga et Équipe se partagent l'espace équitablement */
+
+/* ── Bas : Pensées (fond pastel) ── */
+.bottom-section { height: 30%; }
+
+.pensees {
+  height: 100%;
+  background: var(--pastel);
+  border-radius: 20px;
+  padding: 12px;
+}
+
+/* ─── Lignes de papier réglé ─── */
+.write-lines,
+.day-content,
+.pensees-lines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent, transparent 23px,
+    rgba(0,0,0,0.08) 24px
+  );
+}
+
+.write-lines   { height: calc(100% - 28px); }
+.pensees-lines { height: calc(100% - 35px); }
+
+/* ─── Todo : cases à cocher réparties sur toute la hauteur ─── */
+.todo-lines {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* répartition uniforme sur la hauteur */
+  height: calc(100% - 28px);     /* hauteur dispo sous le titre */
+  margin-top: 4px;
+}
+
+.todo-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  min-height: 16px;
+}
+
+.checkbox {
+  width: 14px;
+  height: 14px;
+  border: var(--border);
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* ─── Numéro de semaine dans le calendrier ─── */
+.calendar .week-num {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 8px;
+  text-align: center;
+  opacity: 0.85;
+  padding: 2px 1px; /* minimal pour ne pas gaspiller d'espace */
+  white-space: nowrap;
+}
+
+/* ══════════════════════════
+   PAGE DROITE — Jours
+══════════════════════════ */
+.right-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 8px;
+  height: 100%;
+}
+
+.day-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Handlee', cursive;
+  color: var(--accent);
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+
+.day-content { flex: 1; }
+
+/* ─── Mini calendrier mensuel ─── */
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  font-size: 9px;
+  text-align: center;
+}
+
+.calendar div { padding: 2px; border-radius: 6px; }
+
+.calendar .dow {
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 8px;
+  padding: 3px 0;
+}
+
+/* Séparateur visuel avant Samedi */
+.calendar .weekend-sep { border-left: 1px solid rgba(0,0,0,0.12); }
+
+/* Cases de la semaine active */
+.active-week { background: var(--pastel); font-weight: bold; }
+
+/* Jour férié : fond accent coloré, texte blanc */
+.calendar .jour-ferie {
+  background: var(--accent);
+  color: white;
+  font-weight: 700;
+  border-radius: 4px;
+}
+
+/* Vacances scolaires : texte souligné en accent */
+.calendar .vacance {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 1.5px;
+  font-style: italic;
+}
+
+/* ─── Impression ─── */
+@media print {
+  body { background: white; padding: 0; }
+  .controls { display: none; }
+  .page { margin: 0; }
+  @page { size: A4 landscape; margin: 0; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ════════════════════════════════
+     PANNEAU DE CONTRÔLE
+════════════════════════════════ -->
+<div class="controls">
+  <div class="controls-row">
+    <div style="flex:1;">
+      <label>Semaine :</label>
+      <input type="week" id="weekPicker">
+    </div>
+    <div>
+      <label>Zone scolaire :</label><br>
+      <select id="zonePicker" style="padding:9px 14px;border-radius:12px;border:1px solid #ccc;font-family:inherit;font-size:14px;">
+        <option value="none">— Aucune —</option>
+        <option value="A">Zone A</option>
+        <option value="B">Zone B</option>
+        <option value="C">Zone C</option>
+      </select>
+    </div>
+    <div style="padding-top:22px;">
+      <button onclick="window.print()">Imprimer</button>
+    </div>
+  </div>
+
+  <label>TODO (1 ligne = 1 tâche)</label>
+  <textarea id="todoInput"></textarea>
+</div>
+
+
+<!-- ════════════════════════════════
+     PAGE A4 PAYSAGE
+════════════════════════════════ -->
+<div class="page">
+
+  <!-- ── PAGE GAUCHE ── -->
+  <div class="half left-page">
+
+    <!-- Haut : calendrier + Semaine X -->
+    <div class="top-section">
+
+      <div class="block calendar-block">
+        <div class="block-title" id="calendarTitle"></div>
+        <div class="calendar" id="calendar"></div>
+      </div>
+
+      <!-- Bloc Semaine X : titre centré avec numéro de semaine -->
+      <div class="block semaine-block">
+        <div class="block-title" id="semaineNum">Semaine</div>
+        <div class="write-lines"></div>
+      </div>
+
+    </div>
+
+    <!-- Milieu : Todo + Orga + Équipe (bloc vide supprimé) -->
+    <div class="middle-section">
+
+      <div class="block todo-block">
+        <div class="block-title">Todo</div>
+        <div class="todo-lines" id="todoLines"></div>
+      </div>
+
+      <div class="themes-block">
+        <div class="block theme-box">
+          <div class="block-title small-title">Orga</div>
+          <div class="write-lines"></div>
+        </div>
+        <div class="block theme-box">
+          <div class="block-title small-title">Équipe</div>
+          <div class="write-lines"></div>
+        </div>
+        <!-- Bloc sans nom supprimé -->
+      </div>
+
+    </div>
+
+    <!-- Bas : Pensées -->
+    <div class="bottom-section">
+      <div class="pensees">
+        <div class="block-title">Pensées</div>
+        <div class="pensees-lines"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── PAGE DROITE : jours de la semaine ── -->
+  <div class="half right-page" id="daysContainer"></div>
+
+</div>
+
+
+<script>
+/* ════════════════════════════════
+   THÈME COULEUR ALÉATOIRE
+════════════════════════════════ */
+const themes = [
+  { accent: "#B8A1D9", pastel: "#F3ECFF" }, // violet doux
+  { accent: "#9B7FCC", pastel: "#EDE5FF" }, // violet moyen
+  { accent: "#D9A8D0", pastel: "#FCEEFF" }, // rose mauve
+  { accent: "#E07FAF", pastel: "#FFF0F6" }, // rose vif
+  { accent: "#F4A7C3", pastel: "#FFF4F8" }, // rose poudré
+  { accent: "#7FB8E0", pastel: "#EBF5FF" }, // bleu ciel
+  { accent: "#5B9BD5", pastel: "#E6F2FF" }, // bleu moyen
+  { accent: "#89C4C4", pastel: "#E8F9F9" }, // bleu-vert teal
+  { accent: "#7DC4A0", pastel: "#EDFAF3" }, // vert menthe
+  { accent: "#A8D5BA", pastel: "#EEF9F1" }, // vert sauge
+];
+
+const theme = themes[Math.floor(Math.random() * themes.length)];
+document.documentElement.style.setProperty('--accent', theme.accent);
+document.documentElement.style.setProperty('--pastel', theme.pastel);
+document.documentElement.style.setProperty('--border', '1.5px solid ' + theme.accent);
+
+
+/* ════════════════════════════════
+   GÉNÉRATION DES BLOCS JOURS
+════════════════════════════════ */
+const dayNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Weekend"];
+const daysContainer = document.getElementById("daysContainer");
+
+dayNames.forEach(name => {
+  const block = document.createElement("div");
+  block.className = "block day-block";
+  block.innerHTML = `
+    <div class="day-header">
+      <span>${name}</span>
+      <span class="date"></span>
+    </div>
+    <div class="day-content"></div>
+  `;
+  daysContainer.appendChild(block);
+});
+
+
+/* ════════════════════════════════
+   TODO — mise à jour dynamique
+════════════════════════════════ */
+function updateTodo() {
+  const lines = document.getElementById("todoInput").value.split("\n");
+  const container = document.getElementById("todoLines");
+  container.innerHTML = "";
+
+  /* Affiche 10 lignes max (remplies ou vides) */
+  for (let i = 0; i < 10; i++) {
+    const div = document.createElement("div");
+    div.className = "todo-line";
+    div.innerHTML = `<div class="checkbox"></div><div>${lines[i] || ""}</div>`;
+    container.appendChild(div);
+  }
+}
+
+document.getElementById("todoInput").addEventListener("input", updateTodo);
+updateTodo();
+
+
+/* ════════════════════════════════
+   UTILITAIRES DE DATES ISO
+════════════════════════════════ */
+
+/** Retourne le numéro de semaine ISO d'une date */
+function getISOWeek(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+  const week1 = new Date(d.getFullYear(), 0, 4);
+  return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+}
+
+/** Retourne le lundi d'une semaine ISO (année + n° semaine) */
+function getMondayFromISOWeek(year, weekNum) {
+  const simple = new Date(year, 0, 1 + (weekNum - 1) * 7);
+  const dow = simple.getDay();
+  const monday = new Date(simple);
+  monday.setDate(simple.getDate() + (dow <= 4 ? 1 - dow : 8 - dow));
+  return monday;
+}
+
+/** Clé "YYYY-MM-DD" pour comparer des dates */
+function dateKey(y, m, d) {
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+
+/* ════════════════════════════════
+   JOURS FÉRIÉS FRANÇAIS
+   (11 jours fixes ou mobiles par an)
+   Couvre 2024, 2025, 2026, 2027
+════════════════════════════════ */
+
+/** Calcule le dimanche de Pâques (algorithme de Butcher) */
+function easterSunday(year) {
+  const a = year % 19, b = Math.floor(year/100), c = year % 100;
+  const d = Math.floor(b/4), e = b % 4, f = Math.floor((b+8)/25);
+  const g = Math.floor((b-f+1)/3), h = (19*a+b-d-g+15) % 30;
+  const i = Math.floor(c/4), k = c % 4;
+  const l = (32+2*e+2*i-h-k) % 7;
+  const m = Math.floor((a+11*h+22*l)/451);
+  const month = Math.floor((h+l-7*m+114)/31) - 1; // 0-based
+  const day   = ((h+l-7*m+114) % 31) + 1;
+  return new Date(year, month, day);
+}
+
+/** Retourne un Set de clés "YYYY-MM-DD" des jours fériés pour une année */
+function getHolidays(year) {
+  const easter = easterSunday(year);
+  const add = (date, days) => {
+    const d = new Date(date); d.setDate(d.getDate() + days); return d;
+  };
+  const key = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+  return new Set([
+    `${year}-01-01`, // Jour de l'An
+    key(add(easter, 1)),  // Lundi de Pâques
+    `${year}-05-01`, // Fête du travail
+    `${year}-05-08`, // Victoire 1945
+    key(add(easter, 39)), // Ascension
+    key(add(easter, 50)), // Lundi de Pentecôte
+    `${year}-07-14`, // Fête nationale
+    `${year}-08-15`, // Assomption
+    `${year}-11-01`, // Toussaint
+    `${year}-11-11`, // Armistice
+    `${year}-12-25`, // Noël
+  ]);
+}
+
+
+/* ════════════════════════════════
+   VACANCES SCOLAIRES — API data.education.gouv.fr
+   On charge les périodes une seule fois par zone,
+   puis on les met en cache dans vacancesCache.
+════════════════════════════════ */
+
+// Cache : { "A": [[start, end], ...], "B": [...], "C": [...] }
+const vacancesCache = {};
+
+/**
+ * Charge depuis l'API officielle les périodes de vacances pour une zone.
+ * Filtre sur "Élèves" uniquement (pas les enseignants).
+ * Retourne un tableau de [startKey, endKey] en "YYYY-MM-DD".
+ */
+async function fetchVacances(zone) {
+  if (vacancesCache[zone]) return vacancesCache[zone]; // déjà en cache
+
+  const zoneLabel = encodeURIComponent(`Zone ${zone}`);
+  const url = `https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-calendrier-scolaire/records`
+            + `?where=zones%3D${zoneLabel}%20and%20population%3D%22%C3%89l%C3%A8ves%22`
+            + `&select=start_date%2Cend_date`
+            + `&limit=100`
+            + `&timezone=Europe%2FParis`;
+
+  try {
+    const res  = await fetch(url);
+    const json = await res.json();
+    // L'API renvoie des dates ISO "2026-02-07T00:00:00+01:00" — on garde juste les 10 premiers chars
+    const ranges = (json.results || []).map(r => [
+      r.start_date.substring(0, 10),
+      r.end_date.substring(0, 10)
+    ]);
+    vacancesCache[zone] = ranges;
+    return ranges;
+  } catch (e) {
+    console.warn("Impossible de charger les vacances scolaires :", e);
+    return [];
+  }
+}
+
+/** Retourne true si une date (objet Date) est dans une des plages */
+function isVacance(date, ranges) {
+  const key = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  return ranges.some(([start, end]) => key >= start && key <= end);
+}
+
+
+/* ════════════════════════════════
+   CALENDRIER MENSUEL MINIATURE
+   (async pour attendre les données API)
+════════════════════════════════ */
+async function generateCalendar(mondayDate) {
+  const months = [
+    "Janvier","Février","Mars","Avril","Mai","Juin",
+    "Juillet","Août","Septembre","Octobre","Novembre","Décembre"
+  ];
+
+  const year       = mondayDate.getFullYear();
+  const month      = mondayDate.getMonth();
+  const lastDay    = new Date(year, month + 1, 0);
+  const startDay   = (new Date(year, month, 1).getDay() + 6) % 7;
+  const activeWeek = getISOWeek(mondayDate);
+  const zone       = document.getElementById("zonePicker").value;
+
+  // Jours fériés (calcul local, pas d'API nécessaire)
+  const holidays = new Set([...getHolidays(year), ...getHolidays(year + 1)]);
+
+  // Vacances scolaires : chargées depuis l'API, mises en cache
+  const vacRanges = zone !== 'none' ? await fetchVacances(zone) : [];
+
+  document.getElementById("calendarTitle").textContent = `${months[month]} ${year}`;
+  document.getElementById("semaineNum").textContent    = `Semaine ${activeWeek}`;
+
+  const cal = document.getElementById("calendar");
+  cal.innerHTML = "";
+  cal.style.gridTemplateColumns = "min-content repeat(7, 1fr)";
+
+  /* En-têtes */
+  const emptyHeader = document.createElement("div");
+  emptyHeader.innerHTML = "&nbsp;";
+  cal.appendChild(emptyHeader);
+  ["L","M","M","J","V","S","D"].forEach(d => {
+    const h = document.createElement("div");
+    h.className = "dow";
+    h.textContent = d;
+    cal.appendChild(h);
+  });
+
+  /* Rendu ligne par ligne (1 ligne = 1 semaine) */
+  let day = 1 - startDay;
+  while (day <= lastDay.getDate()) {
+    /* Numéro de semaine en début de ligne */
+    const refDay  = day < 1 ? 1 : day;
+    const refDate = new Date(year, month, refDay);
+    const wNum    = document.createElement("div");
+    wNum.className = "week-num";
+    wNum.textContent = getISOWeek(refDate);
+    cal.appendChild(wNum);
+
+    /* 7 cases */
+    for (let col = 0; col < 7; col++, day++) {
+      const div = document.createElement("div");
+      if (day < 1 || day > lastDay.getDate()) {
+        div.innerHTML = "&nbsp;";
+      } else {
+        const current = new Date(year, month, day);
+        const dk      = dateKey(year, month, day);
+        div.textContent = day;
+
+        if (getISOWeek(current) === activeWeek) div.classList.add("active-week");
+        if (col === 5) div.classList.add("weekend-sep");
+
+        /* Jour férié → fond accent plein (priorité max) */
+        if (holidays.has(dk)) {
+          div.classList.add("jour-ferie");
+        }
+        /* Vacances scolaires → italique souligné */
+        else if (zone !== 'none' && isVacance(current, vacRanges)) {
+          div.classList.add("vacance");
+        }
+      }
+      cal.appendChild(div);
+    }
+  }
+}
+
+
+/* ════════════════════════════════
+   MISE À JOUR COMPLÈTE (async)
+════════════════════════════════ */
+async function updateWeek() {
+  const val = document.getElementById("weekPicker").value;
+  if (!val) return;
+
+  const [year, weekStr] = val.split("-W");
+  const monday = getMondayFromISOWeek(parseInt(year), parseInt(weekStr));
+
+  // Le calendrier attend l'API si nécessaire
+  await generateCalendar(monday);
+
+  /* Dates Lundi → Vendredi */
+  const dateEls = document.querySelectorAll(".date");
+  for (let i = 0; i < 5; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    dateEls[i].textContent = `${d.getDate()}/${d.getMonth() + 1}`;
+  }
+
+  /* Week-end */
+  const sat = new Date(monday); sat.setDate(monday.getDate() + 5);
+  const sun = new Date(monday); sun.setDate(monday.getDate() + 6);
+  dateEls[5].textContent = `${sat.getDate()} - ${sun.getDate()}/${sun.getMonth() + 1}`;
+}
+
+document.getElementById("weekPicker").addEventListener("change", updateWeek);
+document.getElementById("zonePicker").addEventListener("change", updateWeek);
+
+/* Initialisation sur la semaine courante */
+const now = new Date();
+const currentWeek = `${now.getFullYear()}-W${String(getISOWeek(now)).padStart(2, "0")}`;
+document.getElementById("weekPicker").value = currentWeek;
+updateWeek();
+</script>
