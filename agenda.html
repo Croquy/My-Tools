@@ -372,25 +372,73 @@ button {
 
 <script>
 /* ════════════════════════════════
-   THÈME COULEUR ALÉATOIRE
+   THÈME COULEUR PAR SEMAINE
+   52 couleurs interpolées entre les 12 mois
+   (bleus hiver → verts printemps → roses été → violets automne)
 ════════════════════════════════ */
-const themes = [
-  { accent: "#B8A1D9", pastel: "#F3ECFF" }, // violet doux
-  { accent: "#9B7FCC", pastel: "#EDE5FF" }, // violet moyen
-  { accent: "#D9A8D0", pastel: "#FCEEFF" }, // rose mauve
-  { accent: "#E07FAF", pastel: "#FFF0F6" }, // rose vif
-  { accent: "#F4A7C3", pastel: "#FFF4F8" }, // rose poudré
-  { accent: "#7FB8E0", pastel: "#EBF5FF" }, // bleu ciel
-  { accent: "#5B9BD5", pastel: "#E6F2FF" }, // bleu moyen
-  { accent: "#89C4C4", pastel: "#E8F9F9" }, // bleu-vert teal
-  { accent: "#7DC4A0", pastel: "#EDFAF3" }, // vert menthe
-  { accent: "#A8D5BA", pastel: "#EEF9F1" }, // vert sauge
+const WEEK_THEMES = [
+  null, // index 0 non utilisé (semaines 1-52)
+  { accent: "#7FB7DF", pastel: "#E7EEF3" }, // S01
+  { accent: "#81B3DD", pastel: "#E7EDF2" }, // S02
+  { accent: "#83B0DB", pastel: "#E7EDF2" }, // S03
+  { accent: "#85ACD8", pastel: "#E8ECF2" }, // S04
+  { accent: "#87A9D6", pastel: "#E8ECF1" }, // S05
+  { accent: "#87ADD3", pastel: "#E8EDF1" }, // S06
+  { accent: "#85BCD0", pastel: "#E8EFF1" }, // S07
+  { accent: "#82CACC", pastel: "#E8F1F1" }, // S08
+  { accent: "#80C8B9", pastel: "#E9F1EF" }, // S09
+  { accent: "#7DC5A5", pastel: "#E9F0ED" }, // S10
+  { accent: "#78C09B", pastel: "#E9F0ED" }, // S11
+  { accent: "#71BC94", pastel: "#E9F0EC" }, // S12
+  { accent: "#6BB78E", pastel: "#E9F0EC" }, // S13
+  { accent: "#64B387", pastel: "#E9F0EC" }, // S14
+  { accent: "#60AF83", pastel: "#E9F0EC" }, // S15
+  { accent: "#70B88E", pastel: "#E9F0EC" }, // S16
+  { accent: "#7FC09A", pastel: "#E9F0EC" }, // S17
+  { accent: "#8FC8A7", pastel: "#E9F0EC" }, // S18
+  { accent: "#9FD0B3", pastel: "#E9F0EC" }, // S19
+  { accent: "#A4D5AA", pastel: "#E9F0EA" }, // S20
+  { accent: "#BAD79B", pastel: "#EDF1E8" }, // S21
+  { accent: "#D9D093", pastel: "#F1F0E8" }, // S22
+  { accent: "#DC9E8A", pastel: "#F2EAE7" }, // S23
+  { accent: "#DF80A4", pastel: "#F3E7EB" }, // S24
+  { accent: "#E485B2", pastel: "#F3E6EC" }, // S25
+  { accent: "#E98DB6", pastel: "#F3E6EC" }, // S26
+  { accent: "#ED96BA", pastel: "#F4E6EB" }, // S27
+  { accent: "#F19FBE", pastel: "#F4E5EB" }, // S28
+  { accent: "#F3A6C3", pastel: "#F4E5EB" }, // S29
+  { accent: "#EEA6C8", pastel: "#F3E6EC" }, // S30
+  { accent: "#E8A6CC", pastel: "#F3E7EE" }, // S31
+  { accent: "#E2A6CF", pastel: "#F2E8EE" }, // S32
+  { accent: "#DCA7D0", pastel: "#F1E8EF" }, // S33
+  { accent: "#D8A7D4", pastel: "#F1E9F0" }, // S34
+  { accent: "#D5A5D8", pastel: "#F0E9F1" }, // S35
+  { accent: "#CCA4D8", pastel: "#EFE9F1" }, // S36
+  { accent: "#C2A2D8", pastel: "#EDE9F1" }, // S37
+  { accent: "#B8A1D8", pastel: "#ECE8F1" }, // S38
+  { accent: "#B29AD6", pastel: "#ECE8F1" }, // S39
+  { accent: "#AC93D3", pastel: "#ECE8F1" }, // S40
+  { accent: "#A68BD0", pastel: "#ECE8F1" }, // S41
+  { accent: "#9F84CE", pastel: "#ECE8F1" }, // S42
+  { accent: "#957DCC", pastel: "#EBE8F1" }, // S43
+  { accent: "#8075CE", pastel: "#E9E8F1" }, // S44
+  { accent: "#6D74CF", pastel: "#E8E8F2" }, // S45
+  { accent: "#6682D1", pastel: "#E7EAF2" }, // S46
+  { accent: "#5D93D4", pastel: "#E7ECF2" }, // S47
+  { accent: "#61A4D2", pastel: "#E7EEF2" }, // S48
+  { accent: "#6CAFCE", pastel: "#E8EFF2" }, // S49
+  { accent: "#76B9CA", pastel: "#E8EFF1" }, // S50
+  { accent: "#7FBFC7", pastel: "#E9F0F0" }, // S51
+  { accent: "#89C3C4", pastel: "#E9F0F0" }, // S52
 ];
 
-const theme = themes[Math.floor(Math.random() * themes.length)];
-document.documentElement.style.setProperty('--accent', theme.accent);
-document.documentElement.style.setProperty('--pastel', theme.pastel);
-document.documentElement.style.setProperty('--border', '1.5px solid ' + theme.accent);
+/* Applique le thème selon le numéro de semaine ISO */
+function applyWeekTheme(isoWeek) {
+  const theme = WEEK_THEMES[isoWeek] || WEEK_THEMES[1];
+  document.documentElement.style.setProperty('--accent', theme.accent);
+  document.documentElement.style.setProperty('--pastel', theme.pastel);
+  document.documentElement.style.setProperty('--border', '1.5px solid ' + theme.accent);
+}
 
 
 /* ════════════════════════════════
@@ -641,6 +689,9 @@ async function updateWeek() {
 
   const [year, weekStr] = val.split("-W");
   const monday = getMondayFromISOWeek(parseInt(year), parseInt(weekStr));
+
+  // Applique le thème de la semaine
+  applyWeekTheme(parseInt(weekStr));
 
   // Le calendrier attend l'API si nécessaire
   await generateCalendar(monday);
