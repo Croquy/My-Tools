@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Agenda Mensuel</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Handlee&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ─── Palette fixe par mois ─── */
+:root {
+  --accent: #9B7FCC;
+  --pastel: #EDE5FF;
+  --text:   #444;
+  --border: 1.5px solid var(--accent);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+  background: #f3f3f3;
+  padding: 20px;
+}
+
+/* ─── Bouton impression (masqué à l'impression) ─── */
+.controls {
+  width: 297mm;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.controls button {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.controls .info {
+  font-size: 13px;
+  color: #888;
+}
+
+/* ─── Page A4 paysage ─── */
+.page {
+  width: 297mm;
+  height: 210mm;
+  background: white;
+  margin: 0 auto;
+  padding: 10mm 12mm;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ─── En-tête : mois + année ─── */
+.month-header {
+  text-align: center;
+  margin-bottom: 6mm;
+}
+
+.month-title {
+  font-family: 'Handlee', cursive;
+  font-size: 28px;
+  color: var(--accent);
+  letter-spacing: 2px;
+}
+
+
+
+/* ─── Grille mensuelle ─── */
+.grid {
+  flex: 1;
+  display: grid;
+  /* col 0 = numéro de semaine, cols 1-7 = jours */
+  grid-template-columns: 28px repeat(7, 1fr);
+  grid-auto-rows: auto;
+  gap: 3px;
+  overflow: hidden;
+}
+
+/* ─── En-têtes colonnes (vide + L M M J V S D) ─── */
+.col-header {
+  font-family: 'Handlee', cursive;
+  font-size: 13px;
+  color: var(--accent);
+  text-align: center;
+  padding: 4px 0;
+  font-weight: normal;
+}
+
+.col-header.weekend { color: var(--accent); opacity: 0.6; }
+
+/* ─── Numéro de semaine ─── */
+.week-num {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'Handlee', cursive;
+  color: var(--accent);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid rgba(0,0,0,0.08);
+  padding-right: 4px;
+}
+
+/* ─── Case d'un jour ─── */
+.day-cell {
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 8px;
+  padding: 4px 5px;
+  position: relative;
+  min-height: 0;
+  background: white;
+}
+
+/* Case vide (hors mois) */
+.day-cell.empty {
+  background: transparent;
+  border-color: transparent;
+}
+
+/* Week-end : fond pastel */
+.day-cell.weekend {
+  background: var(--pastel);
+  border-color: rgba(0,0,0,0.06);
+}
+
+/* Jour férié : fond accent, texte blanc */
+.day-cell.ferie {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.day-cell.ferie .day-num,
+.day-cell.ferie .day-name,
+.day-cell.ferie .ferie-label { color: white; }
+
+/* Vacances : bordure accent + italique */
+.day-cell.vacance {
+  border-color: var(--accent);
+}
+
+.day-cell.vacance .day-num,
+.day-cell.vacance .day-name { font-style: italic; }
+
+/* Numéro du jour */
+.day-num {
+  font-family: 'Handlee', cursive;
+  font-size: 14px;
+  color: var(--accent);
+  line-height: 1;
+}
+
+/* Nom abrégé du jour (affiché seulement si place) */
+.day-name {
+  font-size: 8px;
+  color: #bbb;
+  margin-top: 1px;
+}
+
+/* Label jour férié */
+.ferie-label {
+  font-size: 7px;
+  color: var(--accent);
+  margin-top: 2px;
+  line-height: 1.2;
+  opacity: 0.85;
+}
+
+/* ─── Impression ─── */
+@media print {
+  body { background: white; padding: 0; }
+  .controls { display: none; }
+  .page { margin: 0; }
+  @page { size: A4 landscape; margin: 0; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="controls">
+  <button onclick="window.print()">🖨️ Imprimer</button>
+  <span class="info" id="controlInfo"></span>
+</div>
+
+<div class="page">
+  <div class="month-header">
+    <div class="month-title" id="monthTitle"></div>
+
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+
+<script>
+/* ════════════════════════════════
+   PALETTES PAR MOIS (0 = janvier)
+════════════════════════════════ */
+const THEMES = [
+  { accent: "#7FB8E0", pastel: "#EBF5FF" }, // Janvier  — bleu hivernal
+  { accent: "#89A8D5", pastel: "#E6EEFF" }, // Février  — bleu doux
+  { accent: "#7DC4A0", pastel: "#EDFAF3" }, // Mars     — vert tendre
+  { accent: "#5FAF82", pastel: "#E6F7EE" }, // Avril    — vert printemps
+  { accent: "#A8D5BA", pastel: "#EEF9F1" }, // Mai      — vert menthe
+  { accent: "#E07FAF", pastel: "#FFF0F6" }, // Juin     — rose pêche
+  { accent: "#F4A7C3", pastel: "#FFF4F8" }, // Juillet  — rose vif
+  { accent: "#D9A8D0", pastel: "#FCEEFF" }, // Août     — rose corail
+  { accent: "#B8A1D9", pastel: "#F3ECFF" }, // Septembre— violet doux
+  { accent: "#9B7FCC", pastel: "#EDE5FF" }, // Octobre  — violet moyen
+  { accent: "#5B9BD5", pastel: "#E6F2FF" }, // Novembre — bleu profond
+  { accent: "#89C4C4", pastel: "#E8F9F9" }, // Décembre — bleu-violet
+];
+
+const MONTHS_FR = [
+  "Janvier","Février","Mars","Avril","Mai","Juin",
+  "Juillet","Août","Septembre","Octobre","Novembre","Décembre"
+];
+
+const DAYS_SHORT = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+
+
+/* ════════════════════════════════
+   LECTURE DES PARAMÈTRES URL
+════════════════════════════════ */
+const params = new URLSearchParams(window.location.search);
+const moisParam = params.get("mois") || (() => {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;
+})();
+const zone = params.get("zone") || "A";
+
+const [yearStr, monthStr] = moisParam.split("-");
+const year  = parseInt(yearStr);
+const month = parseInt(monthStr) - 1; // 0-based
+
+/* ─── Application du thème du mois ─── */
+const theme = THEMES[month];
+document.documentElement.style.setProperty("--accent", theme.accent);
+document.documentElement.style.setProperty("--pastel", theme.pastel);
+document.documentElement.style.setProperty("--border", `1.5px solid ${theme.accent}`);
+
+/* ─── Titre ─── */
+document.getElementById("monthTitle").textContent = `${MONTHS_FR[month]} ${year}`;
+document.getElementById("controlInfo").textContent = `Zone ${zone !== "none" ? zone : "—"} · ${MONTHS_FR[month]} ${year}`;
+
+
+/* ════════════════════════════════
+   UTILITAIRES DATES
+════════════════════════════════ */
+function getISOWeek(date) {
+  const d = new Date(date);
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() + 3 - (d.getDay()+6)%7);
+  const w1 = new Date(d.getFullYear(), 0, 4);
+  return 1 + Math.round(((d-w1)/86400000 - 3 + (w1.getDay()+6)%7)/7);
+}
+
+function dateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+
+/* ════════════════════════════════
+   JOURS FÉRIÉS (algorithme local)
+════════════════════════════════ */
+function easterSunday(y) {
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4;
+  const f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3);
+  const h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4;
+  const l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451);
+  const mo=Math.floor((h+l-7*m+114)/31)-1;
+  const dy=((h+l-7*m+114)%31)+1;
+  return new Date(y,mo,dy);
+}
+
+/** Retourne une Map dateKey → libellé pour tous les jours fériés de l'année y */
+function getHolidays(y) {
+  const e   = easterSunday(y);
+  const add = (dt,n) => { const d=new Date(dt); d.setDate(d.getDate()+n); return d; };
+  const k   = d => dateKey(d);
+  const map = new Map();
+  map.set(`${y}-01-01`,   "Jour de l'An");
+  map.set(k(add(e,1)),    "Lundi de Pâques");
+  map.set(`${y}-05-01`,   "Fête du Travail");
+  map.set(`${y}-05-08`,   "Victoire 1945");
+  map.set(k(add(e,39)),   "Ascension");
+  map.set(k(add(e,50)),   "Lundi de Pentecôte");
+  map.set(`${y}-07-14`,   "Fête nationale");
+  map.set(`${y}-08-15`,   "Assomption");
+  map.set(`${y}-11-01`,   "Toussaint");
+  map.set(`${y}-11-11`,   "Armistice");
+  map.set(`${y}-12-25`,   "Noël");
+  return map;
+}
+
+// Fusionne les deux années (cas où le mois de janvier affiche des jours de déc.)
+const holidayMap = new Map([...getHolidays(year), ...getHolidays(year+1)]);
+
+
+/* ════════════════════════════════
+   VACANCES SCOLAIRES — API
+════════════════════════════════ */
+async function fetchVacances(z) {
+  if (z === "none") return [];
+  const zLabel = encodeURIComponent(`Zone ${z}`);
+  const url = `https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-calendrier-scolaire/records`
+            + `?where=zones%3D${zLabel}%20and%20population%3D%22%C3%89l%C3%A8ves%22`
+            + `&select=start_date%2Cend_date&limit=100&timezone=Europe%2FParis`;
+  try {
+    const res  = await fetch(url);
+    const json = await res.json();
+    return (json.results || []).map(r => [
+      r.start_date.substring(0,10),
+      r.end_date.substring(0,10)
+    ]);
+  } catch(e) {
+    console.warn("API vacances inaccessible", e);
+    return [];
+  }
+}
+
+function isVacance(dk, ranges) {
+  return ranges.some(([s,e]) => dk >= s && dk <= e);
+}
+
+
+/* ════════════════════════════════
+   CONSTRUCTION DE LA GRILLE
+════════════════════════════════ */
+async function buildGrid() {
+  const vacRanges = await fetchVacances(zone);
+  const grid      = document.getElementById("grid");
+  grid.innerHTML  = "";
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay  = new Date(year, month+1, 0).getDate();
+  const startDow = (firstDay.getDay()+6) % 7; // 0=lundi
+
+  /* ── En-têtes colonnes ── */
+  // Colonne semaine (vide)
+  const blankH = document.createElement("div");
+  grid.appendChild(blankH);
+
+  DAYS_SHORT.forEach((d, i) => {
+    const h = document.createElement("div");
+    h.className = "col-header" + (i >= 5 ? " weekend" : "");
+    h.textContent = d;
+    grid.appendChild(h);
+  });
+
+  /* ── Lignes (semaines) ── */
+  // Calcul du nombre de lignes nécessaires
+  const totalCells = startDow + lastDay;
+  const nbRows     = Math.ceil(totalCells / 7);
+
+  // Ajuste la hauteur des lignes dynamiquement
+  // en-têtes + nbRows lignes
+  grid.style.gridTemplateRows = `auto repeat(${nbRows}, 1fr)`;
+
+  let dayNum = 1;
+
+  for (let row = 0; row < nbRows; row++) {
+    /* Numéro de semaine */
+    const firstDayOfRow = new Date(year, month, dayNum < 1 ? 1 : dayNum);
+    // Trouver quel jour de cette ligne correspond au début réel
+    const rowStart = row * 7 - startDow + 1;
+    const refDate  = new Date(year, month, Math.max(1, rowStart));
+    const wn       = document.createElement("div");
+    wn.className   = "week-num";
+    wn.textContent = getISOWeek(refDate);
+    grid.appendChild(wn);
+
+    /* 7 cases */
+    for (let col = 0; col < 7; col++) {
+      const cellDay = row * 7 + col - startDow + 1;
+      const cell    = document.createElement("div");
+
+      if (cellDay < 1 || cellDay > lastDay) {
+        cell.className = "day-cell empty";
+      } else {
+        const date   = new Date(year, month, cellDay);
+        const dk     = dateKey(date);
+        const isWE   = col >= 5;
+        const isFer  = holidayMap.has(dk);
+        const isVac  = !isFer && isVacance(dk, vacRanges);
+
+        cell.className = "day-cell"
+          + (isFer  ? " ferie"   : "")
+          + (isVac  ? " vacance" : "")
+          + (!isFer && isWE ? " weekend" : "");
+
+        // Numéro du jour
+        const num = document.createElement("div");
+        num.className   = "day-num";
+        num.textContent = cellDay;
+        cell.appendChild(num);
+
+        // Label férié
+        if (isFer) {
+          const lbl = document.createElement("div");
+          lbl.className   = "ferie-label";
+          lbl.textContent = holidayMap.get(dk);
+          cell.appendChild(lbl);
+        }
+      }
+
+      grid.appendChild(cell);
+      dayNum = Math.max(dayNum, cellDay + 1);
+    }
+  }
+}
+
+buildGrid();
+</script>
+</body>
+</html>
