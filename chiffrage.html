@@ -409,7 +409,7 @@
     <div class="rappel hidden" id="rappel-normal">
       <div class="rappel-title">Rappel calcul</div>
       <p><strong>Gestion de projet (20%)</strong> : 1 kick-off, 30 min de coproj/semaine, 1 copil/mois</p>
-      <p><strong>Spec (30%)</strong> : X atelier de 2h (0.5j incluant DSF) + 0,5 j validation, ateliers sup en option</p>
+      <p><strong>Spec (30%)</strong> : X atelier de 2h + 1 validation, 0.5 j/ateliers sup en option</p>
       <p><strong>Recette (30%)</strong> : présentation Key Users incluse</p>
       <p><strong>MEP</strong> : 0,5j par env hors prod (0 = direct en prod)</p>
       <p><strong>Doc (10%)</strong> : DEX, DAT, passation support</p>
@@ -550,7 +550,7 @@
 
       return [
         { label: 'Gestion de projet',          desc: '1 kick-off, 30 min de coproj/semaine, 1 copil/mois, point interne',     val: roundUp(p * 0.20), option: false },
-        { label: 'Spécification et atelier',desc: Math.floor(((p * 0.30)-0.5)/0.5)+' ateliers + 1 atelier de validation - ateliers supplémentaires en option', val: roundUp(p * 0.30), option: false },
+        { label: 'Spécification et atelier',desc: Math.floor(((p * 0.30)-0.5)/0.5)+' ateliers + 1 atelier de validation inclus - 0.5j/atelier supplémentaires en option', val: roundUp(p * 0.30), option: false },
         { label: 'Paramétrage',             desc: 'installation, développement, configuration',        val: p,                 option: false },
         { label: 'Recette et ajustement',   desc: 'présentation Key Users 0.5j incluse',                           val: roundUp(p * 0.30), option: false },
         { label: 'Mise en production',      desc: nbE > 0 ? nbE + ' environnement' + (nbE > 1 ? 's' : '')  : '1 environnement - non incluse', val: mep, option: false, zero: nbE === 0 },
