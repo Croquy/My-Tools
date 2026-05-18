@@ -553,7 +553,7 @@
         { label: 'Spécification et atelier',desc: Math.floor(((p * 0.30)-0.5)/0.5)+' ateliers + 1 atelier de validation - ateliers supplémentaires en option', val: roundUp(p * 0.30), option: false },
         { label: 'Paramétrage',             desc: 'installation, développement, configuration',        val: p,                 option: false },
         { label: 'Recette et ajustement',   desc: 'présentation Key Users 0.5j incluse',                           val: roundUp(p * 0.30), option: false },
-        { label: 'Mise en production',      desc: nbE > 0 ? nbE + ' environnement' + (nbE > 1 ? 's' : '') + ' × 0,5 j' : '1 environnement - non incluse', val: mep, option: false, zero: nbE === 0 },
+        { label: 'Mise en production',      desc: nbE > 0 ? nbE + ' environnement' + (nbE > 1 ? 's' : '')  : '1 environnement - non incluse', val: mep, option: false, zero: nbE === 0 },
         { label: 'Documentation',           desc: 'DEX, DAT, passation support',                              val: roundUp(p * 0.10), option: false },
         { label: 'VSR',                     desc: 'accompagnement et correction post-livraison',               val: vsr,               option: false },
         { label: 'Connecteur' + (nbC > 1 ? 's' : ''), desc: nbC > 0 ? nbC + ' × 0,5 j' : 'non inclus',      val: nbC * 0.5,         option: false, zero: nbC === 0 },
