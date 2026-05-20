@@ -1,0 +1,45 @@
+# TODO - My-Tools
+# Global
+## TODO
+## Test
+## 20/05
+- Centraliser le mot de passe admin dans `settings/admin` 
+
+# Quiz
+## TODO
+- Afficher score et date sur les quiz rejouables si déjà faits (comme pour les autres)
+- partie admin, supprimer le bandeau de titre , rajoute un retour a l'accueil de quiz quand on clique sur quiz zone qui deconect l'admin 
+- génération de quiz vocabulaire : rajouter dans le nom du quiz  niveau et utilisateur si définie
+- corriger dans les générations de quiz pour que dans les selection qu'il ne puisse pas y avoir 2 fois le meme résultat proposé
+- verifier que la correction sur la tolérence des articles n'a pas retirer la tolérence de casse 
+## Test
+## 20/05
+- Checkbox `Masquer` + 3 cases ajoutées dans `quiz_coeli/index.html` et filtrage implémenté label `Masquer` + 3 cases courtes (`déjà faits`, `autres`, `rejouables`)
+- Renommer quiz dans l'admin ajouté
+- `generateAcceptedAnswers()` ajouté dans `quiz_coeli/vocab-module.js`
+
+# Comportement
+## TODO
+- reprendre le meme bouton admin que quiz 
+- dans l'impression mensuel rajouter un rond devant les objectifs comme celui apres "comportement : "
+- retirer le sous-titre "suivi des enfant et agrandire le titre comportement
+- retour a l'acceuil sur le Titre "Comportement"
+- supprimer le bouton vue mensuelle ( redondant avec le client sur l'enfant sur l'acceuil) 
+- déplacer le bouton magasin a coté du nombre de perle de l'enfant 
+- mettre la selection de l'enfant dans la barre principal en haut centré 
+- dans l'historique, afficher les date au format francais
+## Test
+## 20/05
+- Déplacer l'ajout de perles bonus du magasin vers l'admin (sur la ligne enfant)
+
+
+## Tâches techniques
+
+- Ajouter commentaires JSDoc pour chaque fonction modifiée/créée (documenter l'intention et les paramètres)
+  - Tests : revue visuelle des fichiers modifiés (`quiz_coeli/vocab-module.js`, `quiz_coeli/quiz-app.js`, `comportement.html`)
+- verifier la redondance de style entre comportement compte index et quiz , Attention Agenda et agenda-mois doivent rester autonome 
+
+
+Ajouts récents effectués par l'agent :
+
+

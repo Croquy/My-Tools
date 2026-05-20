@@ -1,5 +1,6 @@
 /*
-  Firebase helper pour QuizZone.
+  Firebase helper pour QuizZone et autres outils.
+  Déplace le service ici pour partager entre modules.
   Complète firebaseConfig avec les valeurs de ton projet Firebase.
   Ce fichier peut être réutilisé dans d'autres projets statiques.
 */
@@ -16,6 +17,8 @@ const firebaseConfig = {
 const FirestoreService = {
   db: null,
   initialized: false,
+  adminPassword: null,
+  isAdminLoggedIn: false,
 
   init(config) {
     if (this.initialized) return;
@@ -25,6 +28,48 @@ const FirestoreService = {
     firebase.initializeApp(config);
     this.db = firebase.firestore();
     this.initialized = true;
+  },
+
+  // Charge le mot de passe admin depuis Firestore
+  async loadAdminPassword() {
+    try {
+      const doc = await this.getDoc('settings', 'admin');
+      this.adminPassword = doc && doc.admin_pwd ? doc.admin_pwd : 'admin';
+      return this.adminPassword;
+    } catch (e) {
+      console.warn('Erreur chargement mot de passe admin:', e);
+      this.adminPassword = 'admin';
+      return this.adminPassword;
+    }
+  },
+
+  // Vérifie le mot de passe admin
+  checkAdminPassword(pwd) {
+    if (!this.adminPassword) return false;
+    const isValid = pwd === this.adminPassword;
+    if (isValid) {
+      this.isAdminLoggedIn = true;
+      localStorage.setItem('admin_session', Date.now().toString());
+    }
+    return isValid;
+  },
+
+  // Se déconnecte de l'accès admin
+  adminLogout() {
+    this.isAdminLoggedIn = false;
+    localStorage.removeItem('admin_session');
+  },
+
+  // Sauvegarde le mot de passe admin dans Firestore
+  async saveAdminPassword(newPassword) {
+    try {
+      await this.setDoc('settings', 'admin', { admin_pwd: newPassword });
+      this.adminPassword = newPassword;
+      return true;
+    } catch (e) {
+      console.warn('Erreur sauvegarde mot de passe admin:', e);
+      throw e;
+    }
   },
 
   async getDoc(collection, id) {

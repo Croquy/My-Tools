@@ -24,9 +24,11 @@
         <div class="user-select-wrap">
           <label for="user-select">👤 Qui es-tu ?</label>
           <select id="user-select"><option value="">-- Sélectionne ton prénom --</option></select>
-          <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;font-size:14px;">
-            <label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="hide-done-quizzes" checked> Masquer les quiz déjà faits</label>
-            <label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="hide-others-quizzes" checked> Masquer les quiz des autres</label>
+          <div style="display:flex;flex-direction:row;gap:12px;margin-top:12px;font-size:14px;align-items:center;">
+            <div style="font-weight:700;color:var(--text-dim);">Masquer :</div>
+            <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="hide-done-quizzes" checked> Déjà faits</label>
+            <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="hide-others-quizzes" checked> Autres</label>
+            <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="hide-replayable-quizzes"> Rejouables</label>
           </div>
           <div id="quiz-selection-count" style="margin-top:10px;font-size:13px;color:var(--muted);"></div>
         </div>
@@ -195,7 +197,7 @@ Pour : [PRÉNOM ou "tout le monde"]</span></div><div class="modal-btns"><button 
 
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="firebase-service.js" defer></script>
+  <script src="../tools/firebase-service.js" defer></script>
   <script src="vocab-module.js" defer></script>
   <script src="results-module.js" defer></script>
   <script src="quiz-app.js" defer></script>

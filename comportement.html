@@ -173,7 +173,7 @@
     </div>
     <div class="header-center"></div>
     <div class="header-right">
-      <a href="index.html" style="color:var(--text-dim);font-size:13px;text-decoration:none;font-weight:600">← Accueil</a>
+      <button id="btn-admin-access" class="btn-icon" onclick="askAdminPwd()" title="Admin">⚙️</button>
     </div>
   </div>
 
@@ -181,7 +181,7 @@
     <button class="nav-tab active" onclick="showView('accueil')">🏠 Accueil</button>
     <button class="nav-tab" onclick="showView('mensuel')">📅 Vue mensuelle</button>
     <button class="nav-tab" onclick="showView('magasin')">🛍 Magasin</button>
-    <button class="nav-tab" onclick="askAdminPwd()">⚙️ Admin</button>
+    
   </div>
 
   <!-- ACCUEIL -->
@@ -235,14 +235,7 @@
       <select class="styled-select" id="shop-child-select" onchange="renderShop()"></select>
       <span id="shop-pearl-badge" style="background:var(--cyan-light);border:1px solid rgba(139,233,253,.3);border-radius:20px;padding:5px 14px;font-size:14px;color:var(--cyan);font-weight:700">🔮 0 perle</span>
     </div>
-    <div class="panel-section">
-      <div class="section-title">🔮 Ajouter des perles bonus</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <input class="field field-round" type="number" id="bonus-qty" min="1" value="1" style="max-width:80px">
-        <input class="field field-round" id="bonus-reason" placeholder="Raison (ex: aide à la maison)" style="flex:1;min-width:150px">
-        <button class="btn" onclick="addBonus()">+ Perles</button>
-      </div>
-    </div>
+    <!-- Ajout de perles déplacé dans Admin (clic sur le compteur de perles d'un enfant) -->
     <div class="panel-section">
       <div class="section-title">🛍 Magasin</div>
       <div class="shop-grid" id="shop-grid"></div>
@@ -315,16 +308,34 @@
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="tools/firebase-service.js"></script>
 <script>
 // ── Data ──────────────────────────────────────────────────────
+// Firebase SDK et service seront chargés avant ce script si souhaité
 const LS={
   get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}},
   set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))
 };
 const getData=()=>LS.get('comportement_data')||{children:[],shopItems:[]};
-const saveData=d=>LS.set('comportement_data',d);
+
+async function saveData(d){
+  LS.set('comportement_data',d);
+  if(window.FirestoreService && FirestoreService.initialized){
+    try{ await FirestoreService.setDoc('comportement','global',d); }catch(e){console.warn('Erreur sauvegarde global Firebase:',e);} 
+  }
+}
+
 const getMonthData=(cid,y,m)=>LS.get(`comp_m_${cid}_${y}_${m}`)||{objectives:['','',''],weeks:{},betises:[]};
-const saveMonthData=(cid,y,m,md)=>LS.set(`comp_m_${cid}_${y}_${m}`,md);
+
+async function saveMonthData(cid,y,m,md){
+  LS.set(`comp_m_${cid}_${y}_${m}`,md);
+  if(window.FirestoreService && FirestoreService.initialized){
+    const id = `comp_m_${cid}_${y}_${m}`;
+    try{ await FirestoreService.setDoc('comportement_months', id, md); }catch(e){console.warn('Erreur sauvegarde month Firebase:',e);} 
+  }
+}
 const getChild=id=>getData().children.find(c=>c.id===id);
 
 // ── State ─────────────────────────────────────────────────────
@@ -399,7 +410,8 @@ function askAdminPwd(){
   setTimeout(()=>document.getElementById('pwd-input').focus(),100);
 }
 function checkPwd(){
-  if(document.getElementById('pwd-input').value==='admin'){
+  const pwd = document.getElementById('pwd-input').value;
+  if(FirestoreService.checkAdminPassword(pwd)){
     closePwdModal();
     showView('admin');
   } else {
@@ -676,7 +688,7 @@ function buyItem(idx){
   c.pearls-=item.price;
   if(!c.history)c.history=[];
   c.history.unshift({date:fmtISO(new Date()),desc:'Achat : '+item.name,amount:-item.price});
-  saveData(d);renderShop();
+  (async()=>{ await saveData(d); renderShop(); })();
 }
 function addBonus(){
   const childId=document.getElementById('shop-child-select')?.value;
@@ -687,16 +699,17 @@ function addBonus(){
   c.pearls=(c.pearls||0)+qty;
   if(!c.history)c.history=[];
   c.history.unshift({date:fmtISO(new Date()),desc:'Bonus : '+reason,amount:qty});
-  saveData(d);document.getElementById('bonus-reason').value='';renderShop();
+  (async()=>{ await saveData(d); document.getElementById('bonus-reason').value=''; renderShop(); })();
 }
 
 // ── Admin ─────────────────────────────────────────────────────
 function renderAdmin(){
   const d=getData();
+  // Affiche la liste des enfants en Admin. Le compteur de perles est cliquable pour ajouter des perles.
   document.getElementById('admin-children-list').innerHTML=d.children.map((c,i)=>`
     <div class="admin-item">
       <span class="admin-item-name">${c.name}</span>
-      <span class="admin-item-detail">🔮 ${c.pearls||0} perles</span>
+      <span class="admin-item-detail" style="cursor:pointer" onclick="promptAddPearls(${i})">🔮 <span id="child-pearls-${i}">${c.pearls||0}</span> perles</span>
       <button class="btn-reset-sm" onclick="resetChild(${i})">Remise à 0</button>
       <button class="btn-del-sm" onclick="removeChild(${i})">Supprimer</button>
     </div>`).join('')
@@ -715,15 +728,25 @@ function addChild(){
   const d=getData();d.children.push({id:'c'+Date.now(),name,pearls:0,history:[]});
   saveData(d);document.getElementById('new-child-name').value='';renderAdmin();
 }
-function removeChild(i){
+async function removeChild(i){
   if(!confirm('Supprimer cet enfant et toutes ses données ?'))return;
   const d=getData();
   const cid=d.children[i].id;
-  // Remove all month data
+  // Remove all month data locally
   Object.keys(localStorage).filter(k=>k.startsWith(`comp_m_${cid}_`)).forEach(k=>localStorage.removeItem(k));
-  d.children.splice(i,1);saveData(d);renderAdmin();
+  d.children.splice(i,1);
+  await saveData(d);
+  // Remove remote month docs for this child
+  if(window.FirestoreService && FirestoreService.initialized){
+    try{
+      const months = await FirestoreService.getCollection('comportement_months');
+      const toDelete = months.filter(doc=>doc.id && doc.id.startsWith(`comp_m_${cid}_`));
+      await Promise.all(toDelete.map(doc=>FirestoreService.deleteDoc('comportement_months', doc.id)));
+    }catch(e){console.warn('Erreur suppression Firebase removeChild', e)}
+  }
+  renderAdmin();
 }
-function resetChild(i){
+async function resetChild(i){
   if(!confirm('Remettre à zéro les perles, l\'historique et les bêtises de cet enfant ?'))return;
   const d=getData();
   const c=d.children[i];
@@ -731,16 +754,47 @@ function resetChild(i){
   // Clear all month data (betises + weeks) for this child
   Object.keys(localStorage).filter(k=>k.startsWith(`comp_m_${c.id}_`)).forEach(k=>{
     const md=LS.get(k);
-    if(md){md.betises=[];md.weeks={};LS.set(k,md);}
+    if(md){md.betises=[];md.weeks={};LS.set(k,md);} 
   });
-  saveData(d);renderAdmin();
+  await saveData(d);
+  // Update remote month docs for this child (clear weeks & betises)
+  if(window.FirestoreService && FirestoreService.initialized){
+    try{
+      const months = await FirestoreService.getCollection('comportement_months');
+      const childMonths = months.filter(doc=>doc.id && doc.id.startsWith(`comp_m_${c.id}_`));
+      await Promise.all(childMonths.map(doc=>FirestoreService.setDoc('comportement_months', doc.id, {objectives:doc.objectives||['','',''],weeks:{},betises:[]})));
+    }catch(e){console.warn('Erreur resetChild Firebase', e)}
+  }
+  renderAdmin();
 }
 function addShopItem(){
   const name=document.getElementById('new-item-name').value.trim(),price=parseInt(document.getElementById('new-item-price').value)||1;
   if(!name)return;const d=getData();d.shopItems.push({name,price});saveData(d);
   document.getElementById('new-item-name').value='';document.getElementById('new-item-price').value='';renderAdmin();
 }
-function removeShopItem(i){const d=getData();d.shopItems.splice(i,1);saveData(d);renderAdmin();}
+async function addShopItem(){
+  const name=document.getElementById('new-item-name').value.trim(),price=parseInt(document.getElementById('new-item-price').value)||1;
+  if(!name)return;const d=getData();d.shopItems.push({name,price});
+  await saveData(d);
+  document.getElementById('new-item-name').value='';document.getElementById('new-item-price').value='';renderAdmin();
+}
+async function removeShopItem(i){const d=getData();d.shopItems.splice(i,1);await saveData(d);renderAdmin();}
+
+/**
+ * Ouvre une boîte de dialogue pour ajouter des perles à un enfant (Admin)
+ * @param {number} idx Index de l'enfant dans le tableau
+ */
+async function promptAddPearls(idx){
+  const d=getData();const c=d.children[idx];if(!c) return alert('Enfant introuvable');
+  const qtyStr = prompt('Nombre de perles à ajouter (entier positif) :', '1');
+  if(qtyStr===null) return; const qty = parseInt(qtyStr)||0; if(qty<=0) return alert('Quantité invalide');
+  const reason = prompt('Raison (optionnel) :', 'Bonus admin') || 'Bonus admin';
+  c.pearls = (c.pearls||0) + qty;
+  if(!c.history) c.history = [];
+  c.history.unshift({date:fmtISO(new Date()), desc: 'Bonus : ' + reason, amount: qty});
+  await saveData(d);
+  renderAdmin();
+}
 
 // ── Export / Import ───────────────────────────────────────────
 function exportJSON(){
@@ -754,10 +808,42 @@ function importJSON(e){
   r.onload=ev=>{try{const data=JSON.parse(ev.target.result);if(data.global)saveData(data.global);if(data.months)Object.entries(data.months).forEach(([k,v])=>LS.set(k,v));alert('Import réussi !');renderAdmin();}catch{alert('Fichier invalide.');}};
   r.readAsText(e.target.files[0]);
 }
-function clearAll(){Object.keys(localStorage).filter(k=>k.startsWith('comp')).forEach(k=>localStorage.removeItem(k));renderAdmin();}
+async function clearAll(){
+  Object.keys(localStorage).filter(k=>k.startsWith('comp')).forEach(k=>localStorage.removeItem(k));
+  if(window.FirestoreService && FirestoreService.initialized){
+    try{
+      const months = await FirestoreService.getCollection('comportement_months');
+      await Promise.all(months.map(doc=>FirestoreService.deleteDoc('comportement_months', doc.id)));
+      await FirestoreService.deleteDoc('comportement','global');
+    }catch(e){console.warn('Erreur suppression Firebase clearAll', e)}
+  }
+  renderAdmin();
+}
 function printMonth(){window.print();}
 
-renderHome();
+// --- Firebase integration for comportement ---
+async function loadRemoteComportement(){
+  if(!window.FirestoreService) return;
+  try{
+    const globalDoc = await FirestoreService.getDoc('comportement','global');
+    if(globalDoc) LS.set('comportement_data', globalDoc);
+    const months = await FirestoreService.getCollection('comportement_months');
+    months.forEach(doc=>{ if(doc && doc.id) LS.set(doc.id, doc); });
+  }catch(e){ console.warn('Erreur lecture comportement Firebase :', e); }
+}
+
+async function initFirebaseForComportement(){
+  if(!window.FirestoreService){ renderHome(); return; }
+  try{
+    if(window.firebaseConfig) FirestoreService.init(window.firebaseConfig);
+    await FirestoreService.loadAdminPassword();
+    await loadRemoteComportement();
+  }catch(e){ console.warn('Init Firebase comportement:', e); }
+  renderHome();
+}
+
+// Démarre en essayant d'utiliser Firebase si disponible
+initFirebaseForComportement();
 </script>
 </body>
 </html>

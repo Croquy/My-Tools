@@ -82,6 +82,7 @@ async function initFirebaseStorage() {
       return;
     }
     FirestoreService.init(config);
+    await FirestoreService.loadAdminPassword();
     firebaseEnabled = true;
     console.log('✅ Firebase connecté avec succès');
     await loadRemoteData();
@@ -349,6 +350,7 @@ function renderQuizList(user) {
   const results = store.get('results') || [];
   const hideDone = $('hide-done-quizzes')?.checked;
   const hideOthers = $('hide-others-quizzes')?.checked;
+  const hideReplayable = $('hide-replayable-quizzes')?.checked;
 
   const entries = quizzes.map(quiz => {
     const forMe = quizBelongsToUser(quiz, user);
@@ -367,6 +369,7 @@ function renderQuizList(user) {
   let visible = sorted;
   if (hideDone) visible = visible.filter(item => !item.done);
   if (hideOthers) visible = visible.filter(item => item.forMe || item.isTutorial);
+  if (hideReplayable) visible = visible.filter(item => !item.isReplayable);
   
   listEl.innerHTML = '';
   if (!user) { listWrap.style.display = 'none'; $('quiz-selection-count').textContent = ''; return; }
@@ -376,6 +379,7 @@ function renderQuizList(user) {
   const filters = [];
   if (hideDone) filters.push('quiz déjà faits masqués');
   if (hideOthers) filters.push('quiz des autres masqués');
+  if (hideReplayable) filters.push('quiz rejouables masqués');
   if (filters.length > 0) countMsg += ` · ${filters.join(', ')}`;
   $('quiz-selection-count').textContent = countMsg;
 
@@ -674,15 +678,30 @@ function renderAdminQuizList() {
 
   html += filteredQuizzes.map(quiz => {
     const forTag = quiz.for ? `<span style="font-size:11px;background:#e8f4fd;color:#0c5460;border-radius:8px;padding:2px 7px;font-weight:700;margin-left:6px;">👤 ${quiz.for}</span>` : `<span style="font-size:11px;background:#f0f0ff;color:#555;border-radius:8px;padding:2px 7px;font-weight:700;margin-left:6px;">👥 Tout le monde</span>`;
-    return `<div class="user-row"><div style="flex:1"><div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;"><strong>${quiz.title}</strong>${forTag}</div><div style="font-size:12px;color:var(--muted);">${quiz.questions.length} questions · ${quiz.subject || 'Général'}</div></div><button class="btn-danger" data-action="del-quiz" data-id="${quiz.id}">Supprimer</button></div>`;
+    return `<div class="user-row"><div style="flex:1"><div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;"><strong>${quiz.title}</strong>${forTag}</div><div style="font-size:12px;color:var(--muted);">${quiz.questions.length} questions · ${quiz.subject || 'Général'}</div></div><div style="display:flex;gap:8px"><button class="btn-outline" data-action="rename-quiz" data-id="${quiz.id}">Renommer</button><button class="btn-danger" data-action="del-quiz" data-id="${quiz.id}">Supprimer</button></div></div>`;
   }).join('');
 
   wrapper.innerHTML = html;
   wrapper.querySelectorAll('#admin-quiz-filter-for').forEach(el => el.addEventListener('change', renderAdminQuizList));
   wrapper.querySelectorAll('button[data-action]').forEach(button => button.addEventListener('click', () => {
-    if (confirm('Supprimer ce quiz ? Les résultats associés resteront.')) {
-      deleteQuizById(button.dataset.id);
-      renderAdminQuizList();
+    const action = button.dataset.action;
+    if (action === 'del-quiz') {
+      if (confirm('Supprimer ce quiz ? Les résultats associés resteront.')) {
+        deleteQuizById(button.dataset.id);
+        renderAdminQuizList();
+      }
+    } else if (action === 'rename-quiz') {
+      const qid = button.dataset.id;
+      const quizzes = store.get('quizzes') || [];
+      const q = quizzes.find(x => x.id === qid);
+      if (!q) return alert('Quiz introuvable');
+      const newTitle = prompt('Nouveau titre pour le quiz', q.title);
+      if (newTitle && newTitle.trim() !== '') {
+        q.title = newTitle.trim();
+        store.set('quizzes', quizzes);
+        safeFirebaseAction(() => syncQuizToFirebase(q), 'Erreur sauvegarde quiz Firebase');
+        renderAdminQuizList();
+      }
     }
   }));
 }
@@ -742,8 +761,7 @@ function bindEvents() {
   $('btn-login-cancel').addEventListener('click', () => closeModal('modal-login'));
   $('btn-login-confirm').addEventListener('click', () => {
     const inputPwd = $('admin-pwd-input').value.trim();
-    const storedPwd = (store.get('admin_pwd') || '').toString();
-    if (inputPwd && inputPwd === storedPwd) {
+    if (FirestoreService.checkAdminPassword(inputPwd)) {
       state.adminLoggedIn = true;
       closeModal('modal-login');
       renderAdmin();
@@ -787,18 +805,25 @@ function bindEvents() {
   $('btn-import-admin').addEventListener('click', () => $('file-input-admin').click());
   $('file-input-admin').addEventListener('change', event => importQuizFromFile(event.target.files[0]));
   $('btn-paste-admin').addEventListener('click', openPasteModal);
-  $('btn-change-pwd').addEventListener('click', () => {
+  $('btn-change-pwd').addEventListener('click', async () => {
     const pwd = $('new-pwd-input').value;
     const confirmPwd = $('new-pwd-confirm').value;
     const message = $('pwd-msg');
     if (!pwd) { message.textContent = '❌ Mot de passe vide.'; message.style.color = '#e74c3c'; return; }
     if (pwd !== confirmPwd) { message.textContent = '❌ Les mots de passe ne correspondent pas.'; message.style.color = '#e74c3c'; return; }
-    store.set('admin_pwd', pwd);
-    safeFirebaseAction(syncAdminPasswordToFirebase, 'Erreur sauvegarde du mot de passe Firebase');
-    message.textContent = '✅ Mot de passe mis à jour !';
-    message.style.color = '#00b894';
-    $('new-pwd-input').value = '';
-    $('new-pwd-confirm').value = '';
+    try {
+      store.set('admin_pwd', pwd);
+      if (window.FirestoreService && FirestoreService.initialized) {
+        await FirestoreService.saveAdminPassword(pwd);
+      }
+      message.textContent = '✅ Mot de passe mis à jour !';
+      message.style.color = '#00b894';
+      $('new-pwd-input').value = '';
+      $('new-pwd-confirm').value = '';
+    } catch (e) {
+      message.textContent = '❌ Erreur lors de la sauvegarde du mot de passe.';
+      message.style.color = '#e74c3c';
+    }
   });
   $('btn-export-data').addEventListener('click', () => {
     const backup = {
@@ -891,8 +916,10 @@ function bindEvents() {
   // Event listeners for quiz list filters
   const hideDoneCheckbox = $('hide-done-quizzes');
   const hideOthersCheckbox = $('hide-others-quizzes');
+  const hideReplayableCheckbox = $('hide-replayable-quizzes');
   if (hideDoneCheckbox) hideDoneCheckbox.addEventListener('change', () => renderQuizList(state.currentUser));
   if (hideOthersCheckbox) hideOthersCheckbox.addEventListener('change', () => renderQuizList(state.currentUser));
+  if (hideReplayableCheckbox) hideReplayableCheckbox.addEventListener('change', () => renderQuizList(state.currentUser));
 }
 
 function renderAdmin() {

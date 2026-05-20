@@ -205,6 +205,25 @@ function generateOrthographicVariants(word) {
   return [...new Set(variants)].filter(v => v !== word && v.length > 0).slice(0, 3);
 }
 
+/**
+ * Génère une liste de réponses acceptées en tolérant les articles 'a'/'an' en tête
+ * Ex: 'apple' -> ['apple','a apple','an apple'] ; 'an apple' -> ['an apple','apple','a apple']
+ */
+function generateAcceptedAnswers(answer) {
+  const a = (answer || '').toString().trim().toLowerCase();
+  if (!a) return [];
+  const variants = new Set();
+  const withoutArticle = a.replace(/^(a |an )/i, '').trim();
+  variants.add(a);
+  variants.add(withoutArticle);
+  // Add with articles if missing
+  if (!/^a |^an /i.test(a)) {
+    variants.add('a ' + withoutArticle);
+    variants.add('an ' + withoutArticle);
+  }
+  return Array.from(variants).map(v => v.replace(/\s+/g, ' ').trim());
+}
+
 // ============================================================================
 // GÉNÉRATION DE QUIZ
 // ============================================================================
@@ -242,14 +261,15 @@ function generateVocabQuizzes(vocab, pageRange, quizType, levelFilter = '', forF
   const questions = filtered.map((item, idx) => {
     const isWord = quizType === 'word' || (quizType === 'mixed' && idx % 2 === 0);
     if (isWord) {
-      return {
-        id: idx + 1,
-        type: 'word',
-        text: `Traduis en anglais : <strong>${item.fr}</strong>`,
-        options: [],
-        correct: [item.en.toLowerCase(), item.en.toLowerCase().split(' ')[0]],
-        explanation: `La traduction de "${item.fr}" est "${item.en}"`
-      };
+        const accepted = generateAcceptedAnswers(item.en);
+        return {
+          id: idx + 1,
+          type: 'word',
+          text: `Traduis en anglais : <strong>${item.fr}</strong>`,
+          options: [],
+          correct: accepted,
+          explanation: `La traduction de "${item.fr}" est "${item.en}"`
+        };
     }
     const variants = generateOrthographicVariants(item.en);
     const options = [item.en, ...variants.slice(0, 3)];
