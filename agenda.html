@@ -108,6 +108,7 @@ button {
   flex-direction: column;
   gap: 8px;
   height: 100%;
+  border-right: 1px dashed rgba(0,0,0,0.12);
 }
 
 /* ── Haut : calendrier + bloc Semaine ── */
@@ -163,13 +164,14 @@ button {
 .write-lines   { height: calc(100% - 28px); }
 .pensees-lines { height: calc(100% - 35px); }
 
-/* ─── Todo : cases à cocher réparties sur toute la hauteur ─── */
+/* ─── Todo : cases à cocher réparties sur la hauteur ─── */
 .todo-lines {
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* répartition uniforme sur la hauteur */
-  height: calc(100% - 28px);     /* hauteur dispo sous le titre */
+  justify-content: space-between;
+  height: calc(100% - 28px);
   margin-top: 4px;
+  padding-bottom: 12px;
 }
 
 .todo-line {
@@ -225,6 +227,17 @@ button {
   margin-bottom: 4px;
 }
 
+/* Nom du jour férié — entre le nom du jour et la date */
+.day-ferie-lbl {
+  font-size: 10px;
+  font-family: 'Handlee', cursive;
+  color: var(--accent);
+  opacity: 0.65;
+  font-style: italic;
+  flex: 1;
+  text-align: center;
+}
+
 .day-content { flex: 1; }
 
 /* ─── Mini calendrier mensuel ─── */
@@ -245,8 +258,11 @@ button {
   padding: 3px 0;
 }
 
-/* Séparateur visuel avant Samedi */
-.calendar .weekend-sep { border-left: 1px solid rgba(0,0,0,0.12); }
+/* Séparateur entre semaine et week-end : bordure droite sur Vendredi */
+.calendar .weekday-last {
+  border-right: 1.5px solid var(--accent);
+  opacity: 0.9;
+}
 
 /* Cases de la semaine active */
 .active-week { background: var(--pastel); font-weight: bold; }
@@ -447,17 +463,39 @@ function applyWeekTheme(isoWeek) {
 const dayNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Weekend"];
 const daysContainer = document.getElementById("daysContainer");
 
+const dateSpans  = [];
+const ferieSpans = [];
+
 dayNames.forEach(name => {
   const block = document.createElement("div");
   block.className = "block day-block";
-  block.innerHTML = `
-    <div class="day-header">
-      <span>${name}</span>
-      <span class="date"></span>
-    </div>
-    <div class="day-content"></div>
-  `;
+
+  const header   = document.createElement("div");
+  header.className = "day-header";
+
+  const nameEl  = document.createElement("span");
+  nameEl.className = "day-name";
+  nameEl.textContent = name;
+
+  const ferieEl = document.createElement("span");
+  ferieEl.className = "day-ferie-lbl";
+
+  const dateEl  = document.createElement("span");
+  dateEl.className = "date";
+
+  header.appendChild(nameEl);
+  header.appendChild(ferieEl);
+  header.appendChild(dateEl);
+
+  const content = document.createElement("div");
+  content.className = "day-content";
+
+  block.appendChild(header);
+  block.appendChild(content);
   daysContainer.appendChild(block);
+
+  dateSpans.push(dateEl);
+  ferieSpans.push(ferieEl);
 });
 
 
@@ -469,8 +507,8 @@ function updateTodo() {
   const container = document.getElementById("todoLines");
   container.innerHTML = "";
 
-  /* Affiche 10 lignes max (remplies ou vides) */
-  for (let i = 0; i < 10; i++) {
+  /* Affiche 9 lignes max (remplies ou vides) */
+  for (let i = 0; i < 9; i++) {
     const div = document.createElement("div");
     div.className = "todo-line";
     div.innerHTML = `<div class="checkbox"></div><div>${lines[i] || ""}</div>`;
@@ -553,6 +591,29 @@ function getHolidays(year) {
 }
 
 
+/** Retourne une Map dateKey → libellé pour updateWeek */
+function getHolidayMap(year) {
+  const easter = easterSunday(year);
+  const add = (date, days) => {
+    const d = new Date(date); d.setDate(d.getDate() + days); return d;
+  };
+  const key = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const map = new Map();
+  map.set(`${year}-01-01`,    "Jour de l'An");
+  map.set(key(add(easter,1)), "Lundi de Pâques");
+  map.set(`${year}-05-01`,    "Fête du Travail");
+  map.set(`${year}-05-08`,    "Victoire 1945");
+  map.set(key(add(easter,39)),"Ascension");
+  map.set(key(add(easter,50)),"Lundi de Pentecôte");
+  map.set(`${year}-07-14`,    "Fête nationale");
+  map.set(`${year}-08-15`,    "Assomption");
+  map.set(`${year}-11-01`,    "Toussaint");
+  map.set(`${year}-11-11`,    "Armistice");
+  map.set(`${year}-12-25`,    "Noël");
+  return map;
+}
+
+
 /* ════════════════════════════════
    VACANCES SCOLAIRES — API data.education.gouv.fr
    On charge les périodes une seule fois par zone,
@@ -570,12 +631,18 @@ const vacancesCache = {};
 async function fetchVacances(zone) {
   if (vacancesCache[zone]) return vacancesCache[zone]; // déjà en cache
 
-  const zoneLabel = encodeURIComponent(`Zone ${zone}`);
-  const url = `https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-calendrier-scolaire/records`
-            + `?where=zones%3D${zoneLabel}%20and%20population%3D%22%C3%89l%C3%A8ves%22`
-            + `&select=start_date%2Cend_date`
-            + `&limit=100`
-            + `&timezone=Europe%2FParis`;
+  // Fenêtre : 1 an en arrière, 2 ans en avant
+  const from = new Date();
+  from.setFullYear(from.getFullYear() - 1);
+  const fromStr = from.toISOString().substring(0, 10) + "T00:00:00+01:00";
+
+  const params = new URLSearchParams({
+    where:    `zones="Zone ${zone}" and population="Élèves" and end_date>="${fromStr}"`,
+    select:   "start_date,end_date",
+    limit:    50,
+    timezone: "Europe/Paris"
+  });
+  const url = `https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-calendrier-scolaire/records?${params}`;
 
   try {
     const res  = await fetch(url);
@@ -634,9 +701,9 @@ async function generateCalendar(mondayDate) {
   const emptyHeader = document.createElement("div");
   emptyHeader.innerHTML = "&nbsp;";
   cal.appendChild(emptyHeader);
-  ["L","M","M","J","V","S","D"].forEach(d => {
+  ["L","M","M","J","V","S","D"].forEach((d, i) => {
     const h = document.createElement("div");
-    h.className = "dow";
+    h.className = "dow" + (i === 4 ? " weekday-last" : "");
     h.textContent = d;
     cal.appendChild(h);
   });
@@ -663,7 +730,7 @@ async function generateCalendar(mondayDate) {
         div.textContent = day;
 
         if (getISOWeek(current) === activeWeek) div.classList.add("active-week");
-        if (col === 5) div.classList.add("weekend-sep");
+        if (col === 4) div.classList.add("weekday-last"); // trait après vendredi
 
         /* Jour férié → fond accent plein (priorité max) */
         if (holidays.has(dk)) {
@@ -696,18 +763,24 @@ async function updateWeek() {
   // Le calendrier attend l'API si nécessaire
   await generateCalendar(monday);
 
-  /* Dates Lundi → Vendredi */
-  const dateEls = document.querySelectorAll(".date");
+  /* Dates + label férié sur chaque bloc jour */
+  const yr   = monday.getFullYear();
+  const hols = new Map([...getHolidayMap(yr), ...getHolidayMap(yr + 1)]);
+
   for (let i = 0; i < 5; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    dateEls[i].textContent = `${d.getDate()}/${d.getMonth() + 1}`;
+    dateSpans[i].textContent = `${d.getDate()}/${d.getMonth() + 1}`;
+
+    const dk = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    ferieSpans[i].textContent = hols.has(dk) ? hols.get(dk) : "";
   }
 
   /* Week-end */
   const sat = new Date(monday); sat.setDate(monday.getDate() + 5);
   const sun = new Date(monday); sun.setDate(monday.getDate() + 6);
-  dateEls[5].textContent = `${sat.getDate()} - ${sun.getDate()}/${sun.getMonth() + 1}`;
+  dateSpans[5].textContent  = `${sat.getDate()} - ${sun.getDate()}/${sun.getMonth() + 1}`;
+  ferieSpans[5].textContent = "";
 }
 
 document.getElementById("weekPicker").addEventListener("change", updateWeek);
