@@ -443,10 +443,18 @@ const holidayMap = new Map([...getHolidays(year), ...getHolidays(year+1)]);
 ════════════════════════════════ */
 async function fetchVacances(z) {
   if (z === "none") return [];
-  const zLabel = encodeURIComponent(`Zone ${z}`);
-  const url = `https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-calendrier-scolaire/records`
-            + `?where=zones%3D${zLabel}%20and%20population%3D%22%C3%89l%C3%A8ves%22`
-            + `&select=start_date%2Cend_date&limit=100&timezone=Europe%2FParis`;
+  // Fenêtre : 1 an en arrière, 2 ans en avant
+  const from = new Date();
+  from.setFullYear(from.getFullYear() - 1);
+  const fromStr = from.toISOString().substring(0, 10) + "T00:00:00+01:00";
+
+  const params = new URLSearchParams({
+    where:    `zones="Zone ${z}" and population="Élèves" and end_date>="${fromStr}"`,
+    select:   "start_date,end_date",
+    limit:    50,
+    timezone: "Europe/Paris"
+  });
+  const url = `https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-calendrier-scolaire/records?${params}`;
   try {
     const res  = await fetch(url);
     const json = await res.json();
