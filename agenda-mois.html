@@ -283,15 +283,42 @@ body.fmt-b6 .page {
 <body>
 
 <div class="controls">
-  <button onclick="window.print()">🖨️ Imprimer</button>
-  <div style="display:flex;align-items:center;gap:8px;">
-    <label style="font-size:13px;color:#888;">Format :</label>
-    <select id="formatPicker" onchange="applyFormat()" style="padding:8px 12px;border-radius:10px;border:1px solid #ccc;font-family:inherit;font-size:13px;">
-      <option value="A5">A5 — plier (pas de rognage)</option>
-      <option value="B6">B6 — plier + rogner</option>
-    </select>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div>
+      <label>Mois :</label><br>
+      <input type="month" id="moisPicker" style="padding:9px 14px;border-radius:12px;border:1px solid #ccc;font-family:inherit;font-size:14px;">
+    </div>
+    <div>
+      <label>Zone :</label><br>
+      <select id="zonePicker" style="padding:9px 14px;border-radius:12px;border:1px solid #ccc;font-family:inherit;font-size:14px;">
+        <option value="none">— Aucune —</option>
+        <option value="A" selected>Zone A</option>
+        <option value="B">Zone B</option>
+        <option value="C">Zone C</option>
+      </select>
+    </div>
+    <div>
+      <label>Format :</label><br>
+      <select id="formatPicker" onchange="applyFormat()" style="padding:9px 14px;border-radius:12px;border:1px solid #ccc;font-family:inherit;font-size:14px;">
+        <option value="A5">A5</option>
+        <option value="B6">B6 (rogner)</option>
+      </select>
+    </div>
+    <div style="padding-top:22px;display:flex;gap:8px;">
+      <button onclick="window.print()">🖨️ Imprimer</button>
+      <button onclick="ouvrirAgenda()" style="background:#aaa;">📋 Vue hebdo</button>
+    </div>
   </div>
-  <span class="info" id="controlInfo"></span>
+
+  <!-- Titres des blocs -->
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;align-items:center;">
+    <span style="font-size:12px;color:#888;font-weight:600;">Titres des blocs :</span>
+    <input type="text" id="titreB1" placeholder="Films"    oninput="saveTitresMois()" style="width:90px;padding:5px 8px;border-radius:8px;border:1px solid #ccc;font-family:inherit;font-size:12px;">
+    <input type="text" id="titreB2" placeholder="Livres"   oninput="saveTitresMois()" style="width:90px;padding:5px 8px;border-radius:8px;border:1px solid #ccc;font-family:inherit;font-size:12px;">
+    <input type="text" id="titreB3" placeholder="Jeux"     oninput="saveTitresMois()" style="width:90px;padding:5px 8px;border-radius:8px;border:1px solid #ccc;font-family:inherit;font-size:12px;">
+    <input type="text" id="titreB4" placeholder="Médical"  oninput="saveTitresMois()" style="width:90px;padding:5px 8px;border-radius:8px;border:1px solid #ccc;font-family:inherit;font-size:12px;">
+    <input type="text" id="titreB5" placeholder="Dépenses" oninput="saveTitresMois()" style="width:90px;padding:5px 8px;border-radius:8px;border:1px solid #ccc;font-family:inherit;font-size:12px;">
+  </div>
 </div>
 
 <div class="page" id="mainPage">
@@ -314,15 +341,15 @@ body.fmt-b6 .page {
         <!-- Col gauche : Films · Livres · Jeux -->
         <div class="notes-col col-left">
           <div class="bloc">
-            <div class="bloc-title">🎬 Films</div>
+            <div class="bloc-title" id="labelB1">🎬 Films</div>
             <div class="bloc-lines"></div>
           </div>
           <div class="bloc">
-            <div class="bloc-title">📚 Livres</div>
+            <div class="bloc-title" id="labelB2">📚 Livres</div>
             <div class="bloc-lines"></div>
           </div>
           <div class="bloc">
-            <div class="bloc-title">🎮 Jeux</div>
+            <div class="bloc-title" id="labelB3">🎮 Jeux</div>
             <div class="bloc-lines"></div>
           </div>
         </div>
@@ -330,10 +357,10 @@ body.fmt-b6 .page {
         <!-- Col droite : Médical · Dépenses -->
         <div class="notes-col col-right">
           <div class="bloc">
-            <div class="bloc-title">🏥 Médical</div>
+            <div class="bloc-title" id="labelB4">🏥 Médical</div>
           </div>
           <div class="bloc">
-            <div class="bloc-title">💸 Dépenses</div>
+            <div class="bloc-title" id="labelB5">💸 Dépenses</div>
           </div>
         </div>
 
@@ -384,30 +411,45 @@ const MONTHS_FR = [
 const DAYS_SHORT = ["L","M","M","J","V","S","D"];
 
 
-/* ─── Lecture des paramètres URL ─── */
-const params   = new URLSearchParams(window.location.search);
-const moisParam = params.get("mois") || (() => {
+/* ─── Initialisation depuis URL ou date courante ─── */
+const urlParams  = new URLSearchParams(window.location.search);
+const moisParam  = urlParams.get("mois") || (() => {
   const n = new Date();
   return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;
 })();
-const zone = params.get("zone") || "A";
+const zoneParam  = urlParams.get("zone") || "A";
 
-const [yearStr, monthStr] = moisParam.split("-");
-const year  = parseInt(yearStr);
-const month = parseInt(monthStr) - 1; // 0-based
+// Init pickers
+document.getElementById("moisPicker").value  = moisParam;
+document.getElementById("zonePicker").value  = zoneParam;
 
-/* ─── Thème du mois ─── */
-const theme = THEMES[month];
-document.documentElement.style.setProperty("--accent", theme.accent);
-document.documentElement.style.setProperty("--pastel", theme.pastel);
-document.documentElement.style.setProperty("--border", `1.5px solid ${theme.accent}`);
+/* ─── Fonction centrale : lit les pickers et reconstruit ─── */
+function getParams() {
+  const mois = document.getElementById("moisPicker").value || moisParam;
+  const z    = document.getElementById("zonePicker").value;
+  const [y, m] = mois.split("-");
+  return { mois, zone: z, year: parseInt(y), month: parseInt(m) - 1 };
+}
 
-/* ─── Titres ─── */
-const label = `${MONTHS_FR[month]} ${year}`;
-document.getElementById("monthTitle").textContent  = label;
-document.getElementById("notesHeader").textContent = label;
-document.getElementById("controlInfo").textContent =
-  `Zone ${zone !== "none" ? zone : "—"} · ${label}`;
+function applyThemeAndTitles() {
+  const { year, month, zone } = getParams();
+  const theme = THEMES[month];
+  document.documentElement.style.setProperty("--accent", theme.accent);
+  document.documentElement.style.setProperty("--pastel", theme.pastel);
+  document.documentElement.style.setProperty("--border", `1.5px solid ${theme.accent}`);
+  const label = `${MONTHS_FR[month]} ${year}`;
+  document.getElementById("monthTitle").textContent  = label;
+  document.getElementById("notesHeader").textContent = label;
+}
+
+applyThemeAndTitles();
+
+// Relance tout quand on change mois ou zone
+document.getElementById("moisPicker").addEventListener("change", () => {
+  applyThemeAndTitles();
+  buildCalendar();
+});
+document.getElementById("zonePicker").addEventListener("change", buildCalendar);
 
 
 /* ════════════════════════════════
@@ -456,7 +498,7 @@ function getHolidays(y) {
   return map;
 }
 
-const holidayMap = new Map([...getHolidays(year), ...getHolidays(year+1)]);
+// holidayMap is built inside buildCalendar now
 
 
 /* ════════════════════════════════
@@ -498,7 +540,9 @@ function isVacance(dk, ranges) {
    CONSTRUCTION DU CALENDRIER
 ════════════════════════════════ */
 async function buildCalendar() {
-  const vacRanges = await fetchVacances(zone);
+  const { year, month, zone } = getParams();
+  const holidayMap = new Map([...getHolidays(year), ...getHolidays(year+1)]);
+  const vacRanges  = await fetchVacances(zone);
   const grid      = document.getElementById("calGrid");
   grid.innerHTML  = "";
 
@@ -569,6 +613,16 @@ async function buildCalendar() {
   }
 }
 
+/* ─── Navigation vers vue hebdomadaire ─── */
+function ouvrirAgenda() {
+  const { mois, zone } = getParams();
+  // Ouvre agenda.html sur la semaine du 1er du mois
+  const d = new Date(mois + "-01");
+  const yr = d.getFullYear();
+  const wk = String(getISOWeek(d)).padStart(2, "0");
+  window.open(`agenda.html?week=${yr}-W${wk}&zone=${zone}`, "_blank");
+}
+
 /* ════════════════════════════════
    GESTION DU FORMAT A5 / B6
 ════════════════════════════════ */
@@ -620,6 +674,29 @@ function applyFormat() {
 // Init format A5 par défaut
 applyFormat();
 
+/* ════════════════════════════════
+   TITRES DES BLOCS (localStorage)
+════════════════════════════════ */
+const BLOC_DEFAULTS = ["Films","Livres","Jeux","Médical","Dépenses"];
+const BLOC_ICONS    = ["🎬","📚","🎮","🏥","💸"];
+
+function loadTitresMois() {
+  for (let i = 1; i <= 5; i++) {
+    const saved = localStorage.getItem(`mois_titre${i}`) || BLOC_DEFAULTS[i-1];
+    document.getElementById(`titreB${i}`).value = saved;
+    document.getElementById(`labelB${i}`).textContent = BLOC_ICONS[i-1] + " " + saved;
+  }
+}
+
+function saveTitresMois() {
+  for (let i = 1; i <= 5; i++) {
+    const val = document.getElementById(`titreB${i}`).value || BLOC_DEFAULTS[i-1];
+    localStorage.setItem(`mois_titre${i}`, val);
+    document.getElementById(`labelB${i}`).textContent = BLOC_ICONS[i-1] + " " + val;
+  }
+}
+
+loadTitresMois();
 buildCalendar();
 </script>
 </body>
