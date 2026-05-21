@@ -73,6 +73,7 @@ button {
   margin: auto;
   display: flex;
   overflow: hidden;
+  position: relative;
 }
 
 /* ─── Moitié gauche / droite ─── */
@@ -283,6 +284,12 @@ button {
   font-style: italic;
 }
 
+/* ─── Format B6 : scale uniforme, tout se réduit proportionnellement ─── */
+body.fmt-b6 .page {
+  transform-origin: top left;
+  /* scale calculé par JS : 250/297 ≈ 0.842 en largeur, 176/210 ≈ 0.838 en hauteur */
+}
+
 /* ─── Impression ─── */
 @media print {
   body { background: white; padding: 0; }
@@ -313,9 +320,13 @@ button {
         <option value="C">Zone C</option>
       </select>
     </div>
-    <div style="padding-top:22px;display:flex;gap:10px;">
+    <div style="padding-top:22px;display:flex;gap:10px;align-items:center;">
       <button onclick="window.print()">Imprimer la semaine</button>
       <button onclick="ouvrirMois()" style="background:#aaa;">Imprimer le mois</button>
+      <select id="formatPicker" onchange="applyFormat()" style="padding:9px 12px;border-radius:12px;border:1px solid #ccc;font-family:inherit;font-size:13px;">
+        <option value="A5">A5</option>
+        <option value="B6">B6 (rogner)</option>
+      </select>
     </div>
   </div>
 
@@ -327,7 +338,7 @@ button {
 <!-- ════════════════════════════════
      PAGE A4 PAYSAGE
 ════════════════════════════════ -->
-<div class="page">
+<div class="page" id="mainPage">
 
   <!-- ── PAGE GAUCHE ── -->
   <div class="half left-page">
@@ -385,6 +396,12 @@ button {
 
 </div>
 
+
+<!-- Traits de coupe B6 — avant le script pour être trouvés par le JS -->
+<svg id="cropSvg" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;display:none;z-index:999;" xmlns="http://www.w3.org/2000/svg">
+  <line id="cropBottom" stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
+  <line id="cropRight"  stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
+</svg>
 
 <script>
 /* ════════════════════════════════
@@ -798,9 +815,69 @@ function ouvrirMois() {
   window.open(`agenda-mois.html?mois=${mois}&zone=${zone}`, "_blank");
 }
 
+/* ════════════════════════════════
+   GESTION DU FORMAT A5 / B6
+════════════════════════════════ */
+function applyFormat() {
+  const fmt  = document.getElementById("formatPicker").value;
+  const body = document.body;
+  const svg  = document.getElementById("cropSvg");
+  const page = document.getElementById("mainPage");
+
+  if (fmt === "B6") {
+    body.classList.add("fmt-b6");
+
+    // Scale : on réduit la page A4 (297×210mm) au ratio B6×2 (250×176mm)
+    const scaleX = 250 / 297;
+    const scaleY = 176 / 210;
+    const scale  = Math.min(scaleX, scaleY);
+
+    page.style.transform       = `scale(${scale})`;
+    page.style.transformOrigin = "top left";
+
+    // Après le scale, on lit les vraies coordonnées écran via getBoundingClientRect
+    requestAnimationFrame(() => {
+      const rect = page.getBoundingClientRect();
+
+      // Trait bas : à la hauteur réelle du bas de la page scalée
+      const lb = document.getElementById("cropBottom");
+      lb.setAttribute("x1", rect.left - 15);
+      lb.setAttribute("y1", rect.bottom);
+      lb.setAttribute("x2", rect.right + 15);
+      lb.setAttribute("y2", rect.bottom);
+
+      // Trait droit : à la largeur réelle du bord droit de la page scalée
+      const lr = document.getElementById("cropRight");
+      lr.setAttribute("x1", rect.right);
+      lr.setAttribute("y1", rect.top - 15);
+      lr.setAttribute("x2", rect.right);
+      lr.setAttribute("y2", rect.bottom + 15);
+
+      svg.style.display = "block";
+
+      // Compense l'espace laissé par le scale dans le flux
+      page.parentElement.style.paddingBottom =
+        (page.offsetHeight * (1 - scale)) + "px";
+    });
+
+  } else {
+    body.classList.remove("fmt-b6");
+    page.style.transform = "";
+    page.style.transformOrigin = "";
+    page.parentElement.style.paddingBottom = "";
+    svg.style.display = "none";
+  }
+}
+
+// Init format A5 par défaut
+applyFormat();
+
 /* Initialisation sur la semaine courante */
 const now = new Date();
 const currentWeek = `${now.getFullYear()}-W${String(getISOWeek(now)).padStart(2, "0")}`;
 document.getElementById("weekPicker").value = currentWeek;
 updateWeek();
 </script>
+
+</body>
+</html>
