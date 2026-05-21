@@ -262,11 +262,19 @@ body {
 .col-right .bloc { flex: 1; }
 
 
+/* ─── Format B6 : scale uniforme ─── */
+body.fmt-b6 .page {
+  transform-origin: top left;
+}
+
 /* ─── Impression ─── */
 @media print {
   body { background: white; padding: 0; }
   .controls { display: none; }
   .page { margin: 0; }
+
+  /* A5 : centré sur A4 */
+  body.fmt-a5 .page { margin: auto; }
   @page { size: A4 landscape; margin: 0; }
 }
 </style>
@@ -276,10 +284,17 @@ body {
 
 <div class="controls">
   <button onclick="window.print()">🖨️ Imprimer</button>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <label style="font-size:13px;color:#888;">Format :</label>
+    <select id="formatPicker" onchange="applyFormat()" style="padding:8px 12px;border-radius:10px;border:1px solid #ccc;font-family:inherit;font-size:13px;">
+      <option value="A5">A5 — plier (pas de rognage)</option>
+      <option value="B6">B6 — plier + rogner</option>
+    </select>
+  </div>
   <span class="info" id="controlInfo"></span>
 </div>
 
-<div class="page">
+<div class="page" id="mainPage">
 
   <!-- ══ MOITIÉ GAUCHE : CALENDRIER ══ -->
   <div class="half half-left">
@@ -335,6 +350,12 @@ body {
 
 </div>
 
+
+<!-- Traits de coupe B6 — avant le script pour être trouvés par le JS -->
+<svg id="cropSvg" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;display:none;z-index:999;" xmlns="http://www.w3.org/2000/svg">
+  <line id="cropBottom" stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
+  <line id="cropRight"  stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
+</svg>
 
 <script>
 /* ════════════════════════════════
@@ -548,7 +569,61 @@ async function buildCalendar() {
   }
 }
 
+/* ════════════════════════════════
+   GESTION DU FORMAT A5 / B6
+════════════════════════════════ */
+function applyFormat() {
+  const fmt  = document.getElementById("formatPicker").value;
+  const body = document.body;
+  const svg  = document.getElementById("cropSvg");
+  const page = document.getElementById("mainPage");
+
+  if (fmt === "B6") {
+    body.classList.add("fmt-b6");
+
+    const scaleX = 250 / 297;
+    const scaleY = 176 / 210;
+    const scale  = Math.min(scaleX, scaleY);
+
+    page.style.transform       = `scale(${scale})`;
+    page.style.transformOrigin = "top left";
+
+    requestAnimationFrame(() => {
+      const rect = page.getBoundingClientRect();
+
+      const lb = document.getElementById("cropBottom");
+      lb.setAttribute("x1", rect.left - 15);
+      lb.setAttribute("y1", rect.bottom);
+      lb.setAttribute("x2", rect.right + 15);
+      lb.setAttribute("y2", rect.bottom);
+
+      const lr = document.getElementById("cropRight");
+      lr.setAttribute("x1", rect.right);
+      lr.setAttribute("y1", rect.top - 15);
+      lr.setAttribute("x2", rect.right);
+      lr.setAttribute("y2", rect.bottom + 15);
+
+      svg.style.display = "block";
+      page.parentElement.style.paddingBottom =
+        (page.offsetHeight * (1 - scale)) + "px";
+    });
+
+  } else {
+    body.classList.remove("fmt-b6");
+    page.style.transform = "";
+    page.style.transformOrigin = "";
+    page.parentElement.style.paddingBottom = "";
+    svg.style.display = "none";
+  }
+}
+
+// Init format A5 par défaut
+applyFormat();
+
 buildCalendar();
 </script>
+</body>
+</html>
+
 </body>
 </html>
