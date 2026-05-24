@@ -518,8 +518,17 @@ function nextOrFinish() {
   else finishQuiz();
 }
 
+/**
+ * Normalise un mot pour vérification (casse insensible, articles tolérés, espaces)
+ * @param {string} value - Mot à normaliser
+ * @returns {string} - Mot normalisé
+ */
 function normalizeWord(value) {
-  return (value || '').toString().toLowerCase().replace(/\s+/g, '');
+  let normalized = (value || '').toString().toLowerCase().replace(/\s+/g, ' ').trim();
+  // Retirer les articles en début ('a ', 'an ', 'le ', 'la ', 'les ', 'un ', 'une ', 'des ')
+  normalized = normalized.replace(/^(a |an |le |la |les |un |une |des )/i, '').trim();
+  // Retirer les espaces résiduels
+  return normalized.replace(/\s+/g, ' ').trim();
 }
 
 function finishQuiz() {

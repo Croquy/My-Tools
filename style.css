@@ -270,6 +270,10 @@ body::after {
   white-space: nowrap;
 }
 
+/* Petit bouton texte utilisé par plusieurs pages */
+.btn-sm{background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.14);color:var(--text);border-radius:30px;padding:6px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:8px}
+.btn-sm:hover{background:rgba(255,255,255,0.14)}
+
 .btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 25px rgba(255, 121, 198, 0.35);

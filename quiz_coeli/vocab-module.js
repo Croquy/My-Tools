@@ -207,7 +207,10 @@ function generateOrthographicVariants(word) {
 
 /**
  * Génère une liste de réponses acceptées en tolérant les articles 'a'/'an' en tête
+ * Gère aussi la casse et les espaces
  * Ex: 'apple' -> ['apple','a apple','an apple'] ; 'an apple' -> ['an apple','apple','a apple']
+ * @param {string} answer - Réponse de référence
+ * @returns {Array} - Variantes acceptées
  */
 function generateAcceptedAnswers(answer) {
   const a = (answer || '').toString().trim().toLowerCase();
@@ -252,12 +255,14 @@ function generateVocabQuizzes(vocab, pageRange, quizType, levelFilter = '', forF
   if (filtered.length === 0) return null;
   if (filtered.length > 20) filtered = shuffleArray(filtered).slice(0, 20);
   
-  const title = minPage === 1 && maxPage === Infinity
+  let title = minPage === 1 && maxPage === Infinity
     ? '📚 Vocabulaire - Toutes les pages'
     : minPage === maxPage
       ? `📚 Vocabulaire - Page ${minPage}`
       : `📚 Vocabulaire - Page ${minPage}-${maxPage}`;
-  const description = `Apprends le vocabulaire des pages ${minPage === 1 && maxPage === Infinity ? 'toutes' : `${minPage} à ${maxPage}`}`;
+  if (levelFilter) title += ` · ${formatVocabLevel(levelFilter)}`;
+  if (forFilter) title += ` · ${forFilter}`;
+  const description = `Apprends le vocabulaire des pages ${minPage === 1 && maxPage === Infinity ? 'toutes' : `${minPage} à ${maxPage}`}${levelFilter ? ' · ' + formatVocabLevel(levelFilter) : ''}${forFilter ? ' · ' + forFilter : ''}`;
   const questions = filtered.map((item, idx) => {
     const isWord = quizType === 'word' || (quizType === 'mixed' && idx % 2 === 0);
     if (isWord) {
@@ -272,15 +277,29 @@ function generateVocabQuizzes(vocab, pageRange, quizType, levelFilter = '', forF
         };
     }
     const variants = generateOrthographicVariants(item.en);
-    const options = [item.en, ...variants.slice(0, 3)];
+    // Utiliser un Set pour éviter les doublons dans les options
+    const optsSet = new Set();
+    optsSet.add(item.en);
+    variants.slice(0,3).forEach(v => {
+      // Vérifier que la variante n'est pas déjà présente
+      if (v !== item.en) optsSet.add(v);
+    });
+    let options = Array.from(optsSet);
+    // ensure at least 2 options
+    while (options.length < 2) {
+      const fallback = item.en + '-' + Math.random().toString(36).slice(2,5);
+      if (!options.includes(fallback)) options.push(fallback);
+    }
+    // Mélanger les options et trouver l'index de la bonne réponse
     const shuffled = options.map((opt, i) => ({ opt, originalIdx: i }))
       .sort(() => Math.random() - 0.5);
+    const correctIdx = shuffled.findIndex(s => s.opt === item.en);
     return {
       id: idx + 1,
       type: 'single',
       text: `Traduis en anglais : <strong>${item.fr}</strong>`,
       options: shuffled.map(s => s.opt),
-      correct: [shuffled.findIndex(s => s.originalIdx === 0)],
+      correct: [correctIdx >= 0 ? correctIdx : 0],
       explanation: `La traduction de "${item.fr}" est "${item.en}"`
     };
   });

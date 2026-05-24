@@ -1,0 +1,16 @@
+Modifications effectuées (23/05/2026):
+
+- Fichier modifié : quiz_coeli/vocab-module.js
+  - Le titre des quiz générés inclut désormais le niveau et l'utilisateur (si fournis).
+  - Les options QCM sont dédupliquées et mélangées; l'index de la bonne réponse est recalculé correctement.
+
+Comment tester rapidement :
+
+1) Ouvrir `quiz_coeli/index.html` dans un navigateur (serveur local recommandé, ex: `npx http-server` ou `python -m http.server` depuis le dossier `quiz_coeli`).
+2) Sur la page d'administration (bouton Admin) → onglet Vocabulaire :
+   - Utiliser le générateur, choisir un niveau et/ou un utilisateur, puis cliquer sur "🎯 Générer les quiz".
+   - Vérifier que le titre du quiz créé contient le niveau et/ou le prénom si définis.
+   - Lancer le quiz : pour les questions QCM, vérifier qu'il n'y a pas d'options dupliquées et que la bonne réponse est présente.
+3) Alternatives : importer un CSV via l'interface d'import (format attendu indiqué dans l'UI) puis générer.
+
+Prochaine étape : une fois que tu auras testé et validé, dis-moi "validé" et je classerai les tâches complétées dans `todo` avec la date.

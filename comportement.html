@@ -168,20 +168,28 @@
 
   <div class="header no-print">
     <div class="header-info">
-      <div class="title-row"><h1>Comportement</h1></div>
-      <div class="header-date">Suivi des enfants</div>
+      <div class="title-row"><h1 style="cursor:pointer;font-size:32px;margin:0" onclick="showView('accueil')">Comportement</h1></div>
     </div>
-    <div class="header-center"></div>
+    <div class="header-center" id="header-child-select-container">
+      <div id="header-controls" style="display:flex;align-items:center;gap:12px">
+        <!-- le select d'enfant est injecté ici par selectChildInHeader() -->
+        <div id="header-child-wrap"></div>
+        <div id="header-month-controls" style="display:flex;align-items:center;gap:8px">
+          <button class="btn-icon" onclick="changeMonth(-1)">‹</button>
+          <span id="month-label" style="font-family:'Quicksand',sans-serif;font-size:16px;font-weight:700;min-width:140px;text-align:center"></span>
+          <button class="btn-icon" onclick="changeMonth(1)">›</button>
+        </div>
+        <span id="month-pearl-badge" style="background:var(--cyan-light);border:1px solid rgba(139,233,253,.3);border-radius:20px;padding:5px 14px;font-size:14px;color:var(--cyan);font-weight:700">🔮 0 perle</span>
+        <button class="btn-sm" id="btn-shop-toggle" onclick="toggleShopView()">🛍 Magasin</button>
+      </div>
+    </div>
     <div class="header-right">
-      <button id="btn-admin-access" class="btn-icon" onclick="askAdminPwd()" title="Admin">⚙️</button>
+      <button class="btn-sm" id="btn-admin-access" onclick="askAdminPwd()">🔐 Admin</button>
     </div>
   </div>
 
   <div class="nav-tabs no-print">
-    <button class="nav-tab active" onclick="showView('accueil')">🏠 Accueil</button>
-    <button class="nav-tab" onclick="showView('mensuel')">📅 Vue mensuelle</button>
-    <button class="nav-tab" onclick="showView('magasin')">🛍 Magasin</button>
-    
+    <!-- Boutons Accueil et Magasin retirés (accessible ailleurs) -->
   </div>
 
   <!-- ACCUEIL -->
@@ -192,15 +200,8 @@
 
   <!-- MENSUEL -->
   <div class="view" id="view-mensuel">
-    <div class="no-print" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px">
-      <select class="styled-select" id="month-child-select" onchange="renderMonthView()"></select>
-      <div style="display:flex;align-items:center;gap:8px">
-        <button class="btn-icon" onclick="changeMonth(-1)">‹</button>
-        <span id="month-label" style="font-family:'Quicksand',sans-serif;font-size:16px;font-weight:700;min-width:140px;text-align:center"></span>
-        <button class="btn-icon" onclick="changeMonth(1)">›</button>
-      </div>
-      <span id="month-pearl-badge" style="background:var(--cyan-light);border:1px solid rgba(139,233,253,.3);border-radius:20px;padding:5px 14px;font-size:14px;color:var(--cyan);font-weight:700">🔮 0 perle</span>
-    </div>
+    <!-- Header controls moved to the page header -->
+    <div style="height:8px"></div>
 
     <div class="print-only print-month-header">
       <div class="print-title" id="print-title"></div>
@@ -231,11 +232,7 @@
 
   <!-- MAGASIN -->
   <div class="view" id="view-magasin">
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px">
-      <select class="styled-select" id="shop-child-select" onchange="renderShop()"></select>
-      <span id="shop-pearl-badge" style="background:var(--cyan-light);border:1px solid rgba(139,233,253,.3);border-radius:20px;padding:5px 14px;font-size:14px;color:var(--cyan);font-weight:700">🔮 0 perle</span>
-    </div>
-    <!-- Ajout de perles déplacé dans Admin (clic sur le compteur de perles d'un enfant) -->
+    <!-- Compteur de perles retiré, visible dans l'en-tête -->
     <div class="panel-section">
       <div class="section-title">🛍 Magasin</div>
       <div class="shop-grid" id="shop-grid"></div>
@@ -341,11 +338,13 @@ const getChild=id=>getData().children.find(c=>c.id===id);
 // ── State ─────────────────────────────────────────────────────
 let curY=new Date().getFullYear(), curM=new Date().getMonth()+1;
 const MFR=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const MFR_min=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 const colLabel=c=>c==='green'?'Vert':c==='yellow'?'Jaune':c==='red'?'Rouge':'—';
 const pearlsFor=n=>n==='green'?2:n==='yellow'?1:0;
 const esc=s=>(s||'').replace(/"/g,'&quot;');
 const fmtD=d=>d.getDate()+'/'+(d.getMonth()+1);
 const fmtISO=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const fmtFR=d=>{const date=new Date(d);return date.getDate()+' '+MFR_min[date.getMonth()]+' '+date.getFullYear();};
 
 // ── Week calc ─────────────────────────────────────────────────
 function getWeeks(year,month){
@@ -424,31 +423,74 @@ function closePwdModal(){document.getElementById('pwd-modal').classList.remove('
 document.getElementById('pwd-modal').addEventListener('click',e=>{if(e.target===document.getElementById('pwd-modal'))closePwdModal();});
 
 // ── Navigation ────────────────────────────────────────────────
+/**
+ * Sélectionne un enfant et affiche son sélecteur dans l'en-tête
+ * @param {string} childId ID de l'enfant à sélectionner
+ */
+function selectChildInHeader(childId){
+  const container = document.getElementById('header-child-wrap');
+  const d=getData();
+  container.innerHTML=`<select class="styled-select" style="margin:0" onchange="updateHeaderChildSelect()">
+    <option value="">-- Sélectionne un enfant --</option>
+    ${d.children.map(c=>`<option value="${c.id}" ${c.id===childId?'selected':''}>${c.name}</option>`).join('')}
+  </select>`;
+  const sel = container.querySelector('select');
+  if(childId) sel.value = childId;
+  window.currentHeaderChildId = childId;
+}
+/**
+ * Met à jour l'ID de l'enfant courant depuis le sélecteur d'en-tête
+ */
+function updateHeaderChildSelect(){
+  const childId = document.querySelector('#header-child-wrap select')?.value || '';
+  window.currentHeaderChildId = childId;
+  // Mettre à jour la vue active si besoin
+  if(document.getElementById('view-mensuel')?.classList.contains('active')) renderMonthView();
+  if(document.getElementById('view-magasin')?.classList.contains('active')) renderShop();
+}
 function showView(v){
   document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(e=>e.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
-  const map={accueil:'Accueil',mensuel:'mensuelle',magasin:'Magasin',admin:'Admin'};
+  const map={accueil:'Accueil',magasin:'Magasin',admin:'Admin'};
   document.querySelectorAll('.nav-tab').forEach(e=>{if(e.textContent.includes(map[v]))e.classList.add('active');});
-  if(v==='accueil')renderHome();
-  if(v==='mensuel'){populateSelects();renderMonthView();}
-  if(v==='magasin'){populateSelects();renderShop();}
+  if(v==='accueil'){renderHome();}
+  if(v==='magasin'){if(!window.currentHeaderChildId){const d=getData();if(d.children.length)selectChildInHeader(d.children[0].id);} renderShop();}
   if(v==='admin')renderAdmin();
+  // Met à jour l'état du bouton magasin dans l'en-tête
+  updateShopButton();
+}
+
+function toggleShopView(){
+  if(document.getElementById('view-magasin').classList.contains('active')){
+    showView('mensuel'); renderMonthView();
+  } else {
+    showView('magasin'); renderShop();
+  }
+}
+
+function updateShopButton(){
+  const btn = document.getElementById('btn-shop-toggle'); if(!btn) return;
+  if(document.getElementById('view-magasin').classList.contains('active')){
+    btn.textContent = '📋 Objectifs';
+  } else {
+    btn.textContent = '🛍 Magasin';
+  }
 }
 function populateSelects(){
   const d=getData();
-  ['month-child-select','shop-child-select'].forEach(sid=>{
-    const sel=document.getElementById(sid);if(!sel)return;
-    const cur=sel.value;
-    sel.innerHTML='<option value="">— Enfant —</option>';
-    d.children.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;sel.appendChild(o);});
-    if(cur)sel.value=cur;
-    if(!sel.value&&d.children.length)sel.value=d.children[0].id;
-  });
+  // On n'utilise plus de selects internes — on remplit uniquement le sélecteur d'en-tête
+  if(d.children.length){
+    const headId = window.currentHeaderChildId || d.children[0].id;
+    selectChildInHeader(headId);
+  } else {
+    const container = document.getElementById('header-child-wrap'); if(container) container.innerHTML='';
+  }
 }
 
 // ── Home ──────────────────────────────────────────────────────
 function renderHome(){
+  populateSelects();
   const d=getData(),cont=document.getElementById('home-cards'),empty=document.getElementById('home-empty');
   cont.innerHTML='';
   if(!d.children.length){empty.style.display='block';return;}
@@ -461,9 +503,9 @@ function renderHome(){
       if(md.objectives.some(o=>o)){objs=md.objectives;break;}
     }
     const el=document.createElement('div');el.className='child-card';
-    el.onclick=()=>{showView('mensuel');document.getElementById('month-child-select').value=c.id;renderMonthView();};
+    el.onclick=()=>{selectChildInHeader(c.id);showView('mensuel');renderMonthView();};
     el.innerHTML=`<div class="child-card-name">${c.name}</div>
-      <div class="child-card-pearls">🔮 ${c.pearls||0} perle${(c.pearls||0)!==1?'s':''}</div>
+      <div class="child-card-pearls" style="cursor:pointer" onclick="event.stopPropagation();selectChildInHeader('${c.id}');showView('mensuel');renderMonthView();">🔮 ${c.pearls||0} perle${(c.pearls||0)!==1?'s':''}</div>
       <div style="font-size:13px;color:var(--text-dim);line-height:1.7">${objs.map((o,i)=>`<div>· ${o||'Objectif '+(i+1)+' non défini'}</div>`).join('')}</div>`;
     cont.appendChild(el);
   });
@@ -481,12 +523,14 @@ function updatePearlBadge(childId){
 }
 
 function renderMonthView(){
-  const childId=document.getElementById('month-child-select')?.value||'';
+  const childId = window.currentHeaderChildId || document.querySelector('#header-child-wrap select')?.value || '';
+  window.currentHeaderChildId = childId;
   document.getElementById('month-label').textContent=MFR[curM-1]+' '+curY;
   const c=childId?getChild(childId):null;
   const pt=document.getElementById('print-title'),ps=document.getElementById('print-subtitle');
   if(pt)pt.textContent=c?c.name:'';if(ps)ps.textContent=MFR[curM-1]+' '+curY;
   updatePearlBadge(childId);
+  updateShopButton();
 
   if(!childId){
     document.getElementById('weeks-container').innerHTML='<p style="padding:16px;color:var(--text-dim)">Sélectionnez un enfant.</p>';
@@ -531,9 +575,9 @@ function renderMonthView(){
         </div>
         <div class="print-week-right">Comportement :&nbsp;${printCircle(wd.behavior)}</div>
       </div>
-      <!-- Print objectives: juste les noms, sans cercle -->
+      <!-- Print objectives: avec ronds colorés -->
       <div class="print-objs-row">
-        ${[0,1,2].map(n=>`<div class="print-obj-cell"><span class="print-obj-name">${objNames[n]}</span></div>`).join('')}
+        ${[0,1,2].map(n=>`<div class="print-obj-cell"><span class="print-circle" style="margin-right:6px"></span><span class="print-obj-name">${objNames[n]}</span></div>`).join('')}
       </div>
       <!-- Screen objectives row -->
       <div class="objs-row no-print">
@@ -600,7 +644,7 @@ function saveWeekField(childId,y,m,wk,field,val){
 }
 
 function saveObjectives(){
-  const childId=document.getElementById('month-child-select')?.value;if(!childId)return;
+  const childId = window.currentHeaderChildId || document.querySelector('#header-child-wrap select')?.value; if(!childId) return;
   const md=getMonthData(childId,curY,curM);
   md.objectives=['obj1','obj2','obj3'].map(id=>document.getElementById(id).value);
   saveMonthData(childId,curY,curM,md);
@@ -661,10 +705,13 @@ document.getElementById('betise-modal').addEventListener('click',e=>{if(e.target
 
 // ── Shop ──────────────────────────────────────────────────────
 function renderShop(){
-  const childId=document.getElementById('shop-child-select')?.value||'';
+  const childId = window.currentHeaderChildId || document.querySelector('#header-child-wrap select')?.value || '';
+  window.currentHeaderChildId = childId;
   const c=childId?getChild(childId):null;
   const p=c?c.pearls||0:0;
-  document.getElementById('shop-pearl-badge').textContent=`🔮 ${p} perle${p!==1?'s':''}`;
+  // Le compteur de perles est maintenant dans l'en-tête
+  document.getElementById('month-pearl-badge').textContent=`🔮 ${p} perle${p!==1?'s':''}`;
+  updateShopButton();
   const d=getData();
   document.getElementById('shop-grid').innerHTML=d.shopItems.length
     ?d.shopItems.map((item,i)=>`<div class="shop-item">
@@ -677,12 +724,12 @@ function renderShop(){
     ?(c.history).map(e=>`<div class="history-item">
         <span class="history-item-desc">${e.desc}</span>
         <span class="${e.amount>0?'h-plus':'h-minus'}">${e.amount>0?'+':''}${e.amount} 🔮</span>
-        <span class="history-item-date">${e.date}</span>
+        <span class="history-item-date">${fmtFR(e.date)}</span>
       </div>`).join('')
     :'<p style="color:var(--text-dim);font-size:13px">Aucun historique.</p>';
 }
 function buyItem(idx){
-  const childId=document.getElementById('shop-child-select')?.value;if(!childId)return;
+  const childId = window.currentHeaderChildId || document.querySelector('#header-child-wrap select')?.value; if(!childId) return;
   const d=getData(),c=d.children.find(x=>x.id===childId),item=d.shopItems[idx];
   if(!c||!item||(c.pearls||0)<item.price){alert('Pas assez de perles !');return;}
   c.pearls-=item.price;
@@ -691,7 +738,7 @@ function buyItem(idx){
   (async()=>{ await saveData(d); renderShop(); })();
 }
 function addBonus(){
-  const childId=document.getElementById('shop-child-select')?.value;
+  const childId = window.currentHeaderChildId || document.querySelector('#header-child-wrap select')?.value;
   const qty=parseInt(document.getElementById('bonus-qty').value)||1;
   const reason=document.getElementById('bonus-reason').value.trim()||'Bonus';
   if(!childId||qty<1)return;
@@ -840,6 +887,9 @@ async function initFirebaseForComportement(){
     await loadRemoteComportement();
   }catch(e){ console.warn('Init Firebase comportement:', e); }
   renderHome();
+  // Initialiser le mois et mettre à jour l'affichage
+  document.getElementById('month-label').textContent = MFR[curM-1] + ' ' + curY;
+  updateShopButton();
 }
 
 // Démarre en essayant d'utiliser Firebase si disponible
