@@ -30,6 +30,8 @@
 - Bouton "Vue mensuelle" supprimé des onglets
 - Compteur de perles cliquable pour aller vers magasin (sélection enfant)
 - Sélection d'enfant placée dans la barre d'en-tête, centré
+- Style du select d'enfant corrigé pour éviter le texte blanc sur fond blanc
+- Historique d'objectif enregistré au blur et uniquement pour le champ modifié
 - Dates historique affichées en format français (ex: "23 mai 2026")
 
 
