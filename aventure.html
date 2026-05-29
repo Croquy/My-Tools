@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aventure 🗺️</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ══ AVENTURE — styles spécifiques ══ */
+
+    /* ── Navigation aventure ── */
+    .av-nav {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .av-tab {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-mid);
+      font-family: 'Nunito', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 7px 16px;
+      cursor: pointer;
+      border-radius: 30px;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .av-tab:hover:not(.active) { border-color: var(--purple); }
+    .av-tab.active {
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      border-color: transparent;
+      color: white;
+    }
+
+    /* ── Aventure cards ── */
+    .av-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .av-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+    }
+    .av-card:hover { border-color: var(--purple); transform: translateY(-2px); }
+    .av-card-title {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+    }
+    .av-card-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    .av-card-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .av-pill {
+      background: var(--purple-light);
+      border: 1px solid rgba(189,147,249,.3);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 11px;
+      color: var(--purple);
+      font-weight: 600;
+    }
+    .av-pill.cyan {
+      background: var(--cyan-light);
+      border-color: rgba(139,233,253,.3);
+      color: var(--cyan);
+    }
+    .av-card-actions {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      gap: 6px;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+    .av-card:hover .av-card-actions { opacity: 1; }
+
+    /* ── Arbre de donjons ── */
+    .dungeon-tree {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .dungeon-tier {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .dungeon-tier-title {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
+    }
+    .dungeon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+    }
+    .dungeon-node {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .dungeon-node:hover { border-color: var(--purple); background: var(--purple-light); }
+    .dungeon-node.locked {
+      opacity: .55;
+      cursor: default;
+    }
+    .dungeon-node.locked:hover { border-color: var(--border); background: var(--surface); transform: none; }
+    .dungeon-node.empty {
+      border-style: dashed;
+      opacity: .4;
+      cursor: pointer;
+    }
+    .dungeon-node.empty:hover { opacity: .7; border-color: var(--pink); }
+    .dungeon-num {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-dim);
+    }
+    .dungeon-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+      flex: 1;
+    }
+    .dungeon-lock {
+      font-size: 11px;
+      color: var(--pink);
+      margin-top: 4px;
+    }
+    .dungeon-type-badges {
+      display: flex;
+      gap: 3px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .type-badge {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+    .type-badge.combat { background: rgba(255,85,85,.15); color: #ff5555; }
+    .type-badge.enigme { background: var(--cyan-light); color: var(--cyan); }
+    .type-badge.narratif { background: var(--purple-light); color: var(--purple); }
+
+    /* ── Vue détail donjon ── */
+    .donjon-detail {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .donjon-header {
+      background: linear-gradient(135deg, rgba(255,121,198,.08), rgba(189,147,249,.08));
+      border: 1px solid rgba(189,147,249,.25);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .donjon-header-num {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .donjon-header-title {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+    .donjon-header-desc {
+      font-size: 13px;
+      color: var(--text-mid);
+      line-height: 1.7;
+    }
+    .donjon-requires {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .require-pill {
+      background: rgba(255,121,198,.1);
+      border: 1px solid rgba(255,121,198,.3);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 11px;
+      color: var(--pink);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* ── Personnages (PNJ) ── */
+    .pnj-list { display: flex; flex-direction: column; gap: 12px; }
+    .pnj-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .pnj-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .pnj-type-icon { font-size: 18px; }
+    .pnj-name {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      flex: 1;
+    }
+    .pnj-card-body { padding: 12px 16px; }
+    .pnj-desc {
+      font-size: 13px;
+      color: var(--text-mid);
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    .pnj-stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .stat-pill {
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-mid);
+    }
+    .stat-pill.pv { color: #ff5555; border-color: rgba(255,85,85,.3); background: rgba(255,85,85,.08); }
+    .stat-pill.atk { color: var(--pink); border-color: rgba(255,121,198,.3); background: var(--pink-light); }
+    .pnj-loot {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(80,250,123,.06);
+      border: 1px solid rgba(80,250,123,.2);
+      border-radius: 10px;
+      padding: 8px 12px;
+    }
+    .pnj-loot-label {
+      font-size: 10px;
+      color: var(--mint);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      white-space: nowrap;
+    }
+    .pnj-loot-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .pnj-loot-type {
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    /* ── Lanceur de dés ── */
+    .dice-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      padding: 20px 0;
+    }
+    .dice-selector {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .dice-btn {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      color: var(--text);
+      font-family: 'Quicksand', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 14px 22px;
+      cursor: pointer;
+      border-radius: 16px;
+      transition: all .2s;
+      min-width: 80px;
+      text-align: center;
+    }
+    .dice-btn:hover { border-color: var(--purple); background: var(--purple-light); }
+    .dice-btn.selected {
+      background: linear-gradient(135deg, rgba(255,121,198,.2), rgba(189,147,249,.2));
+      border-color: var(--purple);
+      color: var(--purple);
+    }
+    .dice-result-area {
+      width: 160px;
+      height: 160px;
+      background: linear-gradient(135deg, rgba(255,121,198,.08), rgba(189,147,249,.08));
+      border: 2px solid rgba(189,147,249,.3);
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all .2s;
+      user-select: none;
+    }
+    .dice-result-area:hover { border-color: var(--purple); transform: scale(1.03); }
+    .dice-result-area:active { transform: scale(.97); }
+    .dice-result-num {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 64px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      transition: all .15s;
+    }
+    .dice-result-num.rolling {
+      color: var(--purple);
+      animation: diceRoll .4s ease;
+    }
+    .dice-result-label {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+    .dice-history {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 400px;
+    }
+    .dice-hist-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px 12px;
+      font-family: 'Quicksand', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-mid);
+    }
+    @keyframes diceRoll {
+      0% { transform: scale(1.3) rotate(-5deg); opacity:.5; }
+      50% { transform: scale(.9) rotate(3deg); opacity:.8; }
+      100% { transform: scale(1) rotate(0); opacity:1; }
+    }
+
+    /* ── Codex ── */
+    .codex-section { margin-bottom: 24px; }
+    .codex-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .codex-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      transition: all .2s;
+    }
+    .codex-item:hover { border-color: var(--purple); }
+    .codex-item-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .codex-item-name {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      flex: 1;
+    }
+    .loot-type-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .loot-type-badge.quete { background: var(--pink-light); color: var(--pink); border: 1px solid rgba(255,121,198,.3); }
+    .loot-type-badge.equipement { background: var(--purple-light); color: var(--purple); border: 1px solid rgba(189,147,249,.3); }
+    .loot-type-badge.consommable { background: var(--mint-light); color: var(--mint); border: 1px solid rgba(80,250,123,.3); }
+    .codex-item-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    .codex-item-meta {
+      font-size: 11px;
+      color: var(--text-dim);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .codex-meta-pill {
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 2px 8px;
+    }
+
+    /* ── Bestiaire ── */
+    .bestiary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .bestiary-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+    .bestiary-item-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .bestiary-name {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      flex: 1;
+    }
+    .bestiary-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    /* ── Règles ── */
+    .rules-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .rule-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 20px;
+    }
+    .rule-block-title {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--pink);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .rule-block-body {
+      font-size: 13px;
+      color: var(--text-mid);
+      line-height: 1.8;
+    }
+    .rule-block-body ul {
+      padding-left: 16px;
+      margin: 8px 0;
+    }
+    .rule-block-body li { margin-bottom: 4px; }
+    .rule-hl { color: var(--cyan); font-weight: 700; }
+    .rule-hl-pink { color: var(--pink); font-weight: 700; }
+
+    /* ── Mode jeu (épuré) ── */
+    .game-mode-banner {
+      background: linear-gradient(135deg, rgba(80,250,123,.1), rgba(139,233,253,.08));
+      border: 1px solid rgba(80,250,123,.25);
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 12px;
+      color: var(--mint);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    /* ── Édition ── */
+    .edit-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group.full { grid-column: 1 / -1; }
+    textarea.field {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    /* ── Retour ── */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+    .breadcrumb span { cursor: pointer; color: var(--purple); font-weight: 600; }
+    .breadcrumb span:hover { color: var(--pink); }
+    .breadcrumb-sep { color: var(--text-dim); }
+
+    /* ── Combat helper ── */
+    .combat-box {
+      background: rgba(255,85,85,.06);
+      border: 1px solid rgba(255,85,85,.2);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .combat-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #ff5555;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 10px;
+    }
+    .combat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-mid);
+    }
+    .combat-val {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-dim);
+    }
+    .empty-state-icon { font-size: 40px; margin-bottom: 10px; }
+    .empty-state-text { font-size: 14px; margin-bottom: 16px; }
+
+    @media (max-width: 600px) {
+      .dungeon-grid { grid-template-columns: repeat(2, 1fr); }
+      .dice-selector { gap: 8px; }
+      .dice-btn { padding: 10px 14px; font-size: 13px; min-width: 64px; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- ══ HEADER ══ -->
+    <header class="header">
+      <div class="header-left">
+        <div class="title-row">
+          <h1>My Tools</h1>
+          <a href="index.html" style="font-size:11px;color:var(--text-dim);text-decoration:none;font-weight:600;">← Accueil</a>
+        </div>
+        <h1 class="page-title" id="page-title">🗺️ Aventure</h1>
+        <p class="header-subtitle" id="page-subtitle">Jeux de rôle en famille</p>
+      </div>
+      <div class="header-center"></div>
+      <div class="header-right">
+        <div id="header-mode-toggle" style="display:none;">
+          <button class="btn-sm" id="toggle-mode-btn" onclick="toggleMode()">
+            <span id="toggle-mode-icon">✏️</span>
+            <span id="toggle-mode-label">Mode édition</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ══ NAVIGATION ══ -->
+    <nav class="av-nav" id="main-nav">
+      <button class="av-tab active" onclick="showView('aventures')">🗺️ Aventures</button>
+      <button class="av-tab" onclick="showView('des')">🎲 Dés</button>
+      <button class="av-tab" onclick="showView('codex')">📖 Codex</button>
+      <button class="av-tab" onclick="showView('regles')">📜 Règles</button>
+    </nav>
+
+    <!-- ══ VUE : AVENTURES ══ -->
+    <div id="view-aventures" class="view active">
+      <div id="aventures-list">
+        <!-- aventures cards -->
+      </div>
+      <div id="edit-mode-aventure" style="display:none;">
+        <button class="btn" onclick="openAventureForme()">+ Nouvelle aventure</button>
+      </div>
+    </div>
+
+    <!-- ══ VUE : DONJONS D'UNE AVENTURE ══ -->
+    <div id="view-donjons" class="view">
+      <div class="breadcrumb">
+        <span onclick="backToAventures()">🗺️ Aventures</span>
+        <span class="breadcrumb-sep">›</span>
+        <span id="breadcrumb-aventure">—</span>
+      </div>
+      <div id="dungeon-tree-container"></div>
+    </div>
+
+    <!-- ══ VUE : DÉTAIL DONJON ══ -->
+    <div id="view-donjon-detail" class="view">
+      <div class="breadcrumb">
+        <span onclick="backToAventures()">🗺️ Aventures</span>
+        <span class="breadcrumb-sep">›</span>
+        <span id="breadcrumb-aventure2" onclick="backToDonjons()" style="cursor:pointer;"></span>
+        <span class="breadcrumb-sep">›</span>
+        <span id="breadcrumb-donjon">—</span>
+      </div>
+      <div id="donjon-detail-container"></div>
+    </div>
+
+    <!-- ══ VUE : DÉS ══ -->
+    <div id="view-des" class="view">
+      <div class="dice-container">
+        <div class="dice-selector" id="dice-selector">
+          <button class="dice-btn selected" data-sides="6" onclick="selectDice(6)">d6</button>
+          <button class="dice-btn" data-sides="10" onclick="selectDice(10)">d10</button>
+          <button class="dice-btn" data-sides="20" onclick="selectDice(20)">d20</button>
+        </div>
+        <div class="dice-result-area" onclick="rollDice()" title="Cliquer pour lancer">
+          <div class="dice-result-num" id="dice-result">—</div>
+          <div class="dice-result-label" id="dice-label">Clique pour lancer</div>
+        </div>
+        <div style="font-size:12px;color:var(--text-dim);">Historique des jets</div>
+        <div class="dice-history" id="dice-history"></div>
+      </div>
+    </div>
+
+    <!-- ══ VUE : CODEX ══ -->
+    <div id="view-codex" class="view">
+      <div class="av-nav" style="margin-bottom:16px;">
+        <button class="av-tab active" onclick="showCodexTab('loots')" id="ctab-loots">🎁 Loots</button>
+        <button class="av-tab" onclick="showCodexTab('bestiaire')" id="ctab-bestiaire">👾 Bestiaire</button>
+      </div>
+      <div id="codex-loots"></div>
+      <div id="codex-bestiaire" style="display:none;"></div>
+      <div id="edit-mode-codex" style="display:none;margin-top:16px;">
+        <button class="btn" onclick="openLootForme()">+ Nouveau loot</button>
+      </div>
+    </div>
+
+    <!-- ══ VUE : RÈGLES ══ -->
+    <div id="view-regles" class="view">
+      <div class="rules-content" id="rules-content"></div>
+    </div>
+
+  </div>
+
+  <!-- ══ MODALS ══ -->
+
+  <!-- Modal aventure -->
+  <div class="modal-overlay" id="modal-aventure">
+    <div class="modal-card">
+      <div class="modal-title" id="modal-aventure-title">Nouvelle aventure</div>
+      <div class="edit-form">
+        <div class="form-group">
+          <label class="label-sm">Nom de l'aventure *</label>
+          <input type="text" class="field" id="av-nom" placeholder="Ex: Le Royaume des Contes">
+        </div>
+        <div class="form-group">
+          <label class="label-sm">Scénario (description)</label>
+          <textarea class="field" id="av-scenario" rows="4" placeholder="Contexte de l'aventure..."></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn secondary" onclick="closeModal('modal-aventure')">Annuler</button>
+        <button class="btn" onclick="saveAventure()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal donjon -->
+  <div class="modal-overlay" id="modal-donjon">
+    <div class="modal-card" style="max-width:600px;">
+      <div class="modal-title" id="modal-donjon-title">Donjon</div>
+      <div class="edit-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label-sm">Numéro (1-20)</label>
+            <input type="number" class="field" id="dj-num" min="1" max="20" placeholder="1">
+          </div>
+          <div class="form-group">
+            <label class="label-sm">Titre *</label>
+            <input type="text" class="field" id="dj-titre" placeholder="Forêt du Petit Chaperon...">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="label-sm">Description</label>
+          <textarea class="field" id="dj-desc" rows="3" placeholder="Ambiance, détails..."></textarea>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+          <div class="section-title" style="margin-bottom:10px;">👤 Personnage 1</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="label-sm">Nom</label>
+              <input type="text" class="field" id="pnj1-nom" placeholder="Petit Chaperon Rouge">
+            </div>
+            <div class="form-group">
+              <label class="label-sm">Type</label>
+              <select class="field styled-select" id="pnj1-type">
+                <option value="combat">⚔️ Combat</option>
+                <option value="enigme">🧩 Énigme</option>
+                <option value="narratif">📖 Narratif</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:8px;">
+            <label class="label-sm">Description</label>
+            <textarea class="field" id="pnj1-desc" rows="2" placeholder="Comportement, attitude..."></textarea>
+          </div>
+          <div class="form-group" style="margin-top:8px;">
+            <label class="label-sm">Loot (ID dans le codex, ou laisser vide)</label>
+            <input type="text" class="field" id="pnj1-loot" placeholder="fil_narratif ou laisser vide">
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:12px;">
+          <div class="section-title" style="margin-bottom:10px;">👤 Personnage 2</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="label-sm">Nom</label>
+              <input type="text" class="field" id="pnj2-nom" placeholder="Bûcheron fatigué">
+            </div>
+            <div class="form-group">
+              <label class="label-sm">Type</label>
+              <select class="field styled-select" id="pnj2-type">
+                <option value="combat">⚔️ Combat</option>
+                <option value="enigme" selected>🧩 Énigme</option>
+                <option value="narratif">📖 Narratif</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:8px;">
+            <label class="label-sm">Description</label>
+            <textarea class="field" id="pnj2-desc" rows="2"></textarea>
+          </div>
+          <div class="form-group" style="margin-top:8px;">
+            <label class="label-sm">Loot</label>
+            <input type="text" class="field" id="pnj2-loot" placeholder="ID du loot ou vide">
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:12px;">
+          <div class="section-title" style="margin-bottom:10px;">👤 Personnage 3</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="label-sm">Nom</label>
+              <input type="text" class="field" id="pnj3-nom" placeholder="Le Loup Parleur">
+            </div>
+            <div class="form-group">
+              <label class="label-sm">Type</label>
+              <select class="field styled-select" id="pnj3-type">
+                <option value="combat">⚔️ Combat</option>
+                <option value="enigme">🧩 Énigme</option>
+                <option value="narratif" selected>📖 Narratif</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:8px;">
+            <label class="label-sm">Description</label>
+            <textarea class="field" id="pnj3-desc" rows="2"></textarea>
+          </div>
+          <div class="form-group" style="margin-top:8px;">
+            <label class="label-sm">Loot</label>
+            <input type="text" class="field" id="pnj3-loot" placeholder="ID du loot ou vide">
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn secondary" onclick="closeModal('modal-donjon')">Annuler</button>
+        <button class="btn" onclick="saveDonjon()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal loot -->
+  <div class="modal-overlay" id="modal-loot">
+    <div class="modal-card">
+      <div class="modal-title" id="modal-loot-title">Nouveau loot</div>
+      <div class="edit-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label-sm">ID unique *</label>
+            <input type="text" class="field" id="lt-id" placeholder="fil_narratif">
+          </div>
+          <div class="form-group">
+            <label class="label-sm">Nom *</label>
+            <input type="text" class="field" id="lt-nom" placeholder="Fil narratif">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="label-sm">Type</label>
+          <select class="field styled-select" id="lt-type">
+            <option value="quete">🔑 Objet de quête</option>
+            <option value="equipement">⚔️ Équipement</option>
+            <option value="consommable">🧪 Consommable</option>
+          </select>
+        </div>
+        <div class="form-group" id="lt-equip-group" style="display:none;">
+          <label class="label-sm">Sous-catégorie équipement</label>
+          <select class="field styled-select" id="lt-equip-cat">
+            <option value="arme">🗡️ Arme</option>
+            <option value="corps">🛡️ Corps</option>
+            <option value="mains">🧤 Mains</option>
+            <option value="pieds">👢 Pieds</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="label-sm">Bonus (ex: +1 Force, -1 dégât...)</label>
+          <input type="text" class="field" id="lt-bonus" placeholder="Laisser vide si pas de bonus">
+        </div>
+        <div class="form-group">
+          <label class="label-sm">Description</label>
+          <textarea class="field" id="lt-desc" rows="3" placeholder="Description de l'objet..."></textarea>
+        </div>
+        <div class="form-group" id="lt-quete-group" style="display:none;">
+          <label class="label-sm">Loot de quel donjon ? (n°)</label>
+          <input type="text" class="field" id="lt-from" placeholder="Ex: 1">
+          <label class="label-sm" style="margin-top:6px;">Débloque quel(s) donjon(s) ? (n° séparés par virgule)</label>
+          <input type="text" class="field" id="lt-unlock" placeholder="Ex: 12, 16">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn secondary" onclick="closeModal('modal-loot')">Annuler</button>
+        <button class="btn" onclick="saveLoot()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal confirm delete -->
+  <div class="modal-overlay" id="modal-confirm">
+    <div class="modal-card" style="max-width:360px;">
+      <div class="modal-title">Supprimer ?</div>
+      <p style="font-size:13px;color:var(--text-mid);margin-bottom:16px;" id="confirm-msg">Cette action est irréversible.</p>
+      <div class="modal-actions">
+        <button class="btn secondary" onclick="closeModal('modal-confirm')">Annuler</button>
+        <button class="btn btn-danger" onclick="confirmDelete()">Supprimer</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // ══════════════════════════════════════════════════════
+  // STATE
+  // ══════════════════════════════════════════════════════
+  let state = {
+    editMode: false,
+    currentView: 'aventures',
+    currentAventureId: null,
+    currentDonjonNum: null,
+    diceSides: 6,
+    diceHistory: [],
+    deleteCallback: null,
+    editingAventureId: null,
+    editingDonjonNum: null,
+    editingLootId: null,
+    codexTab: 'loots'
+  };
+
+  // ══════════════════════════════════════════════════════
+  // DONNÉES PAR DÉFAUT
+  // ══════════════════════════════════════════════════════
+  const DEFAULT_DATA = {
+    aventures: [
+      {
+        id: 'contes_fees',
+        nom: 'Le Royaume des Contes',
+        scenario: "Plus personne ne peut dormir depuis une semaine. Le FBI vous a envoyé enquêter dans le Royaume des Contes de Fée pour découvrir pourquoi et qui a fait cela.",
+        donjons: [
+          {
+            num: 1,
+            titre: 'Forêt du Petit Chaperon Déformé',
+            desc: "Forêt instable où les contes se mélangent. Les chemins changent dès qu'on cligne des yeux et les histoires anciennes semblent se battre entre elles pour exister. Certains arbres murmurent des versions contradictoires du même conte.",
+            pnj: [
+              {
+                nom: 'Petit Chaperon Rouge',
+                type: 'combat',
+                desc: "Jeune fugitive convaincue que le loup est une invention des adultes, elle attaque avant qu'on lui parle.",
+                loot: 'baton_force'
+              },
+              {
+                nom: 'Bûcheron fatigué',
+                type: 'enigme',
+                desc: "Observateur silencieux qui note tout ce qu'il voit comme si le monde allait être jugé plus tard.",
+                loot: 'loupe_magique'
+              },
+              {
+                nom: 'Le Loup Parleur',
+                type: 'narratif',
+                desc: "Créature lucide qui affirme être le seul à connaître la vraie version de l'histoire.",
+                loot: 'fil_narratif'
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    loots: [
+      { id: 'fil_narratif',       nom: 'Fil narratif',          type: 'quete', desc: "Un fil d'or qui relie les contes entre eux. On sent qu'il mène quelque part d'important.", bonus: '', from: 1, unlock: [12, 16] },
+      { id: 'boussole_mondes',    nom: 'Boussole des mondes',   type: 'quete', desc: "Une boussole qui n'indique pas le nord mais les portails entre les histoires.", bonus: '', from: 2, unlock: [6, 10, 11, 14] },
+      { id: 'cristal_gele',       nom: 'Cristal gelé',          type: 'quete', desc: "Un cristal qui emprisonne un fragment de conte incomplet.", bonus: '', from: 3, unlock: [7, 15] },
+      { id: 'montre_gousset',     nom: 'Montre à gousset',      type: 'quete', desc: "Une montre qui tourne à l'envers. Le temps des contes n'est pas le nôtre.", bonus: '', from: 4, unlock: [8, 13, 19] },
+      { id: 'engrais_magique',    nom: 'Engrais magique',       type: 'quete', desc: "Une poudre qui fait pousser les histoires comme des graines.", bonus: '', from: 5, unlock: [9, 11] },
+      { id: 'cristal_memoire',    nom: 'Cristal mémoire',       type: 'quete', desc: "Contient les souvenirs effacés d'un personnage de conte.", bonus: '', from: 6, unlock: [16, 18] },
+      { id: 'miroir_verites',     nom: 'Miroir des vérités',    type: 'quete', desc: "Un miroir qui ne montre pas le reflet mais la vérité cachée.", bonus: '', from: 7, unlock: [12, 13, 18] },
+      { id: 'masque_illusion',    nom: "Masque d'illusion",     type: 'quete', desc: "Un masque qui permet de prendre l'apparence d'un personnage de conte.", bonus: '', from: 8, unlock: [14, 19] },
+      { id: 'graine_magique',     nom: 'Graine magique',        type: 'quete', desc: "Une graine qui, plantée, fait pousser un donjon entier.", bonus: '', from: 9, unlock: [11, 17] },
+      { id: 'carte_solaire',      nom: 'Carte solaire',         type: 'quete', desc: "Une carte qui se révèle uniquement en pleine lumière.", bonus: '', from: 10, unlock: [15, 17] },
+      { id: 'baton_force',        nom: 'Bâton de force',        type: 'equipement', equipCat: 'arme', desc: "Un bâton noueux taillé dans le bois de la forêt des contes.", bonus: '+1d6 attaque' },
+      { id: 'loupe_magique',      nom: 'Loupe magique',         type: 'equipement', equipCat: 'mains', desc: "Une loupe qui révèle les détails invisibles.", bonus: '+1 Intelligence' },
+      { id: 'cape_rouge',         nom: 'Cape rouge',            type: 'equipement', equipCat: 'corps', desc: "La fameuse cape, plus résistante qu'elle n'y paraît.", bonus: '-1 dégât' },
+      { id: 'bottes_sept_lieues', nom: 'Bottes de sept lieues', type: 'equipement', equipCat: 'pieds', desc: "Des bottes légendaires qui amortissent les coups de pied adverses.", bonus: '-1 dégât' },
+    ]
+  };
+
+  // Arbre de progression
+  const PROGRESSION = {
+    tiers: [
+      { label: 'Niveau 1 — Libres', nums: [1,2,3,4,5], requires: [] },
+      { label: 'Niveau 2 — 1 objet requis', nums: [6,7,8,9,10], requires: [[2],[3],[4],[5],[2]] },
+      { label: 'Niveau 3 — 2 objets requis', nums: [11,12,13,14,15,16,17,18,19], requires: [[2,9],[1,7],[4,7],[2,8],[3,10],[1,6],[10,9],[7,6],[4,8]] },
+      { label: 'Niveau 4 — Boss final', nums: [20], requires: [null] } // null = tout
+    ]
+  };
+
+  // ══════════════════════════════════════════════════════
+  // STORAGE
+  // ══════════════════════════════════════════════════════
+  function loadData() {
+    try {
+      const raw = localStorage.getItem('aventure_data');
+      if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    return JSON.parse(JSON.stringify(DEFAULT_DATA));
+  }
+
+  function saveData(data) {
+    localStorage.setItem('aventure_data', JSON.stringify(data));
+  }
+
+  function getData() { return loadData(); }
+
+  // ══════════════════════════════════════════════════════
+  // NAVIGATION
+  // ══════════════════════════════════════════════════════
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+    document.querySelectorAll('.av-tab').forEach(t => t.classList.remove('active'));
+    const tabs = document.querySelectorAll('.av-tab');
+    tabs.forEach(t => {
+      if (t.textContent.includes(getTabLabel(name))) t.classList.add('active');
+    });
+    state.currentView = name;
+    updateHeaderModeToggle();
+    if (name === 'aventures') renderAventures();
+    if (name === 'codex') renderCodex();
+    if (name === 'regles') renderRegles();
+  }
+
+  function getTabLabel(name) {
+    const m = { aventures: 'Aventures', des: 'Dés', codex: 'Codex', regles: 'Règles' };
+    return m[name] || name;
+  }
+
+  function backToAventures() {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-aventures').classList.add('active');
+    state.currentView = 'aventures';
+    state.currentAventureId = null;
+    updateHeaderModeToggle();
+    renderAventures();
+  }
+
+  function backToDonjons() {
+    showDonjons(state.currentAventureId);
+  }
+
+  function updateHeaderModeToggle() {
+    const show = ['aventures','donjons','donjon-detail','codex'].includes(state.currentView);
+    document.getElementById('header-mode-toggle').style.display = show ? '' : 'none';
+  }
+
+  function toggleMode() {
+    state.editMode = !state.editMode;
+    document.getElementById('toggle-mode-icon').textContent = state.editMode ? '👁️' : '✏️';
+    document.getElementById('toggle-mode-label').textContent = state.editMode ? 'Mode jeu' : 'Mode édition';
+    // Re-render current view
+    if (state.currentView === 'aventures') renderAventures();
+    else if (state.currentView === 'donjons') showDonjons(state.currentAventureId);
+    else if (state.currentView === 'donjon-detail') showDonjonDetail(state.currentAventureId, state.currentDonjonNum);
+    else if (state.currentView === 'codex') renderCodex();
+  }
+
+  // ══════════════════════════════════════════════════════
+  // VUE AVENTURES
+  // ══════════════════════════════════════════════════════
+  function renderAventures() {
+    const data = getData();
+    const container = document.getElementById('aventures-list');
+    const editZone = document.getElementById('edit-mode-aventure');
+    editZone.style.display = state.editMode ? '' : 'none';
+
+    if (data.aventures.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🗺️</div><div class="empty-state-text">Aucune aventure. Active le mode édition pour en créer une !</div></div>`;
+      return;
+    }
+
+    container.innerHTML = `<div class="av-cards">${data.aventures.map(av => {
+      const nbDonjons = av.donjons ? av.donjons.length : 0;
+      return `<div class="av-card" onclick="showDonjons('${av.id}')">
+        ${state.editMode ? `<div class="av-card-actions">
+          <button class="btn-del-sm" onclick="event.stopPropagation();editAventure('${av.id}')">✏️</button>
+          <button class="btn-del-sm" onclick="event.stopPropagation();deleteAventure('${av.id}')">🗑️</button>
+        </div>` : ''}
+        <div class="av-card-title">${av.nom}</div>
+        <div class="av-card-desc">${av.scenario}</div>
+        <div class="av-card-meta">
+          <span class="av-pill">${nbDonjons} / 20 donjons</span>
+          <span class="av-pill cyan">→ Explorer</span>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  // ══════════════════════════════════════════════════════
+  // VUE DONJONS (arbre)
+  // ══════════════════════════════════════════════════════
+  function showDonjons(avId) {
+    state.currentAventureId = avId;
+    state.currentView = 'donjons';
+    const data = getData();
+    const av = data.aventures.find(a => a.id === avId);
+    if (!av) return;
+
+    document.getElementById('breadcrumb-aventure').textContent = av.nom;
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-donjons').classList.add('active');
+    updateHeaderModeToggle();
+
+    const donjons = av.donjons || [];
+    const donjonMap = {};
+    donjons.forEach(d => donjonMap[d.num] = d);
+
+    let html = '<div class="dungeon-tree">';
+
+    PROGRESSION.tiers.forEach((tier, ti) => {
+      html += `<div class="dungeon-tier">
+        <div class="dungeon-tier-title">${tier.label}</div>
+        <div class="dungeon-grid">`;
+
+      tier.nums.forEach((num, ni) => {
+        const d = donjonMap[num];
+        const reqNums = tier.requires[ni];
+        const isLocked = reqNums && reqNums !== null && !state.editMode;
+
+        if (d) {
+          const types = d.pnj ? [...new Set(d.pnj.map(p => p.type))] : [];
+          html += `<div class="dungeon-node${isLocked ? ' locked' : ''}" onclick="${isLocked ? '' : `showDonjonDetail('${avId}', ${num})`}">
+            <div class="dungeon-num">Donjon ${num}</div>
+            <div class="dungeon-name">${d.titre}</div>
+            ${reqNums ? `<div class="dungeon-lock">🔑 ${reqNums.join(' + ')}</div>` : ''}
+            <div class="dungeon-type-badges">
+              ${types.map(t => `<span class="type-badge ${t}">${t}</span>`).join('')}
+            </div>
+          </div>`;
+        } else {
+          html += `<div class="dungeon-node empty" onclick="${state.editMode ? `openDonjonForme('${avId}', ${num})` : ''}">
+            <div class="dungeon-num">Donjon ${num}</div>
+            <div class="dungeon-name" style="color:var(--text-dim);font-style:italic;">${state.editMode ? '+ Ajouter' : 'À venir…'}</div>
+            ${reqNums && reqNums !== null ? `<div class="dungeon-lock">🔑 ${reqNums.join(' + ')}</div>` : ''}
+          </div>`;
+        }
+      });
+
+      html += '</div></div>';
+    });
+
+    html += '</div>';
+    document.getElementById('dungeon-tree-container').innerHTML = html;
+  }
+
+  // ══════════════════════════════════════════════════════
+  // VUE DÉTAIL DONJON
+  // ══════════════════════════════════════════════════════
+  function showDonjonDetail(avId, num) {
+    state.currentAventureId = avId;
+    state.currentDonjonNum = num;
+    state.currentView = 'donjon-detail';
+
+    const data = getData();
+    const av = data.aventures.find(a => a.id === avId);
+    if (!av) return;
+    const donjon = (av.donjons || []).find(d => d.num === num);
+    if (!donjon) return;
+
+    document.getElementById('breadcrumb-aventure2').textContent = av.nom;
+    document.getElementById('breadcrumb-donjon').textContent = `Donjon ${num} — ${donjon.titre}`;
+
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-donjon-detail').classList.add('active');
+    updateHeaderModeToggle();
+
+    // Trouver les prérequis de ce donjon
+    let reqNums = null;
+    PROGRESSION.tiers.forEach(tier => {
+      const idx = tier.nums.indexOf(num);
+      if (idx !== -1 && tier.requires[idx]) reqNums = tier.requires[idx];
+    });
+
+    let html = '<div class="donjon-detail">';
+
+    // Header
+    html += `<div class="donjon-header">
+      <div class="donjon-header-num">Donjon ${num}</div>
+      <div class="donjon-header-title">${donjon.titre}</div>
+      <div class="donjon-header-desc">${donjon.desc || ''}</div>
+      ${reqNums ? `<div class="donjon-requires">
+        <div style="font-size:11px;color:var(--text-dim);font-weight:600;align-self:center;">🔑 Prérequis :</div>
+        ${reqNums.map(r => {
+          const loot = data.loots.find(l => l.from == r);
+          return `<div class="require-pill">🗝️ ${loot ? loot.nom : 'Loot du donjon ' + r}</div>`;
+        }).join('')}
+      </div>` : ''}
+    </div>`;
+
+    // Mode édition
+    if (state.editMode) {
+      html += `<div style="display:flex;gap:8px;">
+        <button class="btn secondary" onclick="openDonjonForme('${avId}', ${num}, true)">✏️ Modifier ce donjon</button>
+        <button class="btn secondary btn-danger" onclick="deleteDonjon('${avId}', ${num})">🗑️ Supprimer</button>
+      </div>`;
+    }
+
+    // Mode jeu banner
+    if (!state.editMode) {
+      html += `<div class="game-mode-banner">🎮 Mode jeu — tu es le maître du donjon !</div>`;
+    }
+
+    // PNJ
+    if (donjon.pnj && donjon.pnj.length > 0) {
+      html += '<div class="pnj-list">';
+      donjon.pnj.forEach(pnj => {
+        const lootObj = pnj.loot ? data.loots.find(l => l.id === pnj.loot) : null;
+        const typeIcons = { combat: '⚔️', enigme: '🧩', narratif: '📖' };
+        const pv = pnj.type === 'combat' ? 5 + num : null;
+
+        html += `<div class="pnj-card">
+          <div class="pnj-card-header">
+            <div class="pnj-type-icon">${typeIcons[pnj.type] || '👤'}</div>
+            <div class="pnj-name">${pnj.nom}</div>
+            <span class="type-badge ${pnj.type}">${pnj.type}</span>
+          </div>
+          <div class="pnj-card-body">
+            <div class="pnj-desc">${pnj.desc || ''}</div>
+            ${pnj.type === 'combat' ? `<div class="combat-box">
+              <div class="combat-title">⚔️ Stats de combat</div>
+              <div class="combat-grid">
+                <div><div class="combat-val">${pv}</div><div style="font-size:11px;color:var(--text-dim);">PV (5 + donjon ${num})</div></div>
+                <div><div class="combat-val">1d6</div><div style="font-size:11px;color:var(--text-dim);">Attaque de base</div></div>
+              </div>
+            </div>` : ''}
+            ${lootObj ? `<div class="pnj-loot">
+              <div class="pnj-loot-label">🎁 Loot</div>
+              <div class="pnj-loot-name">${lootObj.nom}</div>
+              ${lootObj.bonus ? `<div class="pnj-loot-type" style="color:var(--mint);">${lootObj.bonus}</div>` : ''}
+              <div class="pnj-loot-type">${lootObj.type}</div>
+            </div>` : (pnj.loot ? `<div class="pnj-loot"><div class="pnj-loot-label">🎁 Loot</div><div class="pnj-loot-name" style="color:var(--text-dim);">${pnj.loot}</div></div>` : '')}
+          </div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+
+    html += '</div>';
+    document.getElementById('donjon-detail-container').innerHTML = html;
+  }
+
+  // ══════════════════════════════════════════════════════
+  // DÉS
+  // ══════════════════════════════════════════════════════
+  function selectDice(sides) {
+    state.diceSides = sides;
+    document.querySelectorAll('.dice-btn').forEach(b => {
+      b.classList.toggle('selected', parseInt(b.dataset.sides) === sides);
+    });
+    document.getElementById('dice-label').textContent = `d${sides} — clique pour lancer`;
+  }
+
+  function rollDice() {
+    const result = Math.floor(Math.random() * state.diceSides) + 1;
+    const el = document.getElementById('dice-result');
+    el.textContent = result;
+    el.classList.remove('rolling');
+    void el.offsetWidth;
+    el.classList.add('rolling');
+    document.getElementById('dice-label').textContent = `d${state.diceSides}`;
+
+    state.diceHistory.unshift({ sides: state.diceSides, val: result });
+    if (state.diceHistory.length > 10) state.diceHistory.pop();
+    renderDiceHistory();
+  }
+
+  function renderDiceHistory() {
+    const container = document.getElementById('dice-history');
+    container.innerHTML = state.diceHistory.map(h =>
+      `<div class="dice-hist-item" style="color:${h.val === h.sides ? 'var(--mint)' : h.val === 1 ? 'var(--pink)' : 'var(--text-mid)'};">
+        <span style="font-size:10px;opacity:.6;">d${h.sides}</span> ${h.val}
+      </div>`
+    ).join('');
+  }
+
+  // ══════════════════════════════════════════════════════
+  // CODEX
+  // ══════════════════════════════════════════════════════
+  function showCodexTab(tab) {
+    state.codexTab = tab;
+    document.getElementById('codex-loots').style.display = tab === 'loots' ? '' : 'none';
+    document.getElementById('codex-bestiaire').style.display = tab === 'bestiaire' ? '' : 'none';
+    document.getElementById('ctab-loots').classList.toggle('active', tab === 'loots');
+    document.getElementById('ctab-bestiaire').classList.toggle('active', tab === 'bestiaire');
+  }
+
+  function renderCodex() {
+    const data = getData();
+    document.getElementById('edit-mode-codex').style.display = state.editMode ? '' : 'none';
+
+    // Loots par type
+    const byType = { quete: [], equipement: [], consommable: [] };
+    data.loots.forEach(l => { if (byType[l.type]) byType[l.type].push(l); });
+
+    const typeLabels = { quete: '🔑 Objets de quête', equipement: '⚔️ Équipements', consommable: '🧪 Consommables' };
+
+    let lootHtml = '';
+    Object.entries(byType).forEach(([type, items]) => {
+      if (items.length === 0) return;
+      lootHtml += `<div class="codex-section">
+        <div class="section-title">${typeLabels[type]}</div>
+        <div class="codex-grid">
+          ${items.map(l => {
+            const unlocksText = l.unlock && l.unlock.length ? `Débloque : ${l.unlock.map(u => 'D'+u).join(', ')}` : '';
+            const fromText = l.from ? `Loot : Donjon ${l.from}` : '';
+            return `<div class="codex-item">
+              <div class="codex-item-header">
+                <div class="codex-item-name">${l.nom}</div>
+                <span class="loot-type-badge ${l.type}">${l.type}</span>
+                ${state.editMode ? `<button class="btn-del-sm" onclick="editLoot('${l.id}')">✏️</button>
+                <button class="btn-del-sm" onclick="deleteLoot('${l.id}')">🗑️</button>` : ''}
+              </div>
+              ${l.bonus ? `<div style="font-size:12px;color:var(--mint);font-weight:700;margin-bottom:6px;">${l.bonus}</div>` : ''}
+              <div class="codex-item-desc">${l.desc || ''}</div>
+              <div class="codex-item-meta">
+                ${fromText ? `<span class="codex-meta-pill">${fromText}</span>` : ''}
+                ${unlocksText ? `<span class="codex-meta-pill">${unlocksText}</span>` : ''}
+                ${l.equipCat ? `<span class="codex-meta-pill">Slot : ${l.equipCat}</span>` : ''}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    });
+    document.getElementById('codex-loots').innerHTML = lootHtml || '<div class="empty-state"><div class="empty-state-icon">🎁</div><div class="empty-state-text">Aucun loot</div></div>';
+
+    // Bestiaire : tous les PNJ de tous les donjons
+    const pnjMap = {};
+    data.aventures.forEach(av => {
+      (av.donjons || []).forEach(d => {
+        (d.pnj || []).forEach(p => {
+          if (!pnjMap[p.nom]) pnjMap[p.nom] = { ...p, donjons: [] };
+          pnjMap[p.nom].donjons.push(d.num);
+        });
+      });
+    });
+    const pnjList = Object.values(pnjMap);
+    const typeIcons = { combat: '⚔️', enigme: '🧩', narratif: '📖' };
+
+    document.getElementById('codex-bestiaire').innerHTML = pnjList.length === 0
+      ? '<div class="empty-state"><div class="empty-state-icon">👾</div><div class="empty-state-text">Aucun personnage</div></div>'
+      : `<div class="bestiary-grid">${pnjList.map(p => `
+          <div class="bestiary-item">
+            <div class="bestiary-item-header">
+              <span>${typeIcons[p.type] || '👤'}</span>
+              <div class="bestiary-name">${p.nom}</div>
+              <span class="type-badge ${p.type}">${p.type}</span>
+            </div>
+            <div class="bestiary-desc">${p.desc || ''}</div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">Donjon(s) : ${p.donjons.join(', ')}</div>
+          </div>`).join('')}</div>`;
+  }
+
+  // ══════════════════════════════════════════════════════
+  // RÈGLES
+  // ══════════════════════════════════════════════════════
+  function renderRegles() {
+    document.getElementById('rules-content').innerHTML = `
+      <div class="rule-block">
+        <div class="rule-block-title">🎯 Principe du jeu</div>
+        <div class="rule-block-body">
+          Vous êtes des agents du FBI envoyés enquêter dans le Royaume des Contes de Fée. Vous explorez des donjons, rencontrez des personnages et collectez des objets pour avancer.
+          Le MJ (toi) gère l'application, les enfants ont leurs <span class="rule-hl">fiches de personnage</span> en main.
+        </div>
+      </div>
+
+      <div class="rule-block">
+        <div class="rule-block-title">👤 Personnages joueurs</div>
+        <div class="rule-block-body">
+          Chaque joueur a une fiche avec :
+          <ul>
+            <li><span class="rule-hl-pink">Force</span> : utilisée pour les combats (valeur 1–5)</li>
+            <li><span class="rule-hl">Intelligence</span> : utilisée pour les énigmes (valeur 1–5)</li>
+            <li><span class="rule-hl-pink">10 PV</span> : points de vie de départ</li>
+            <li>Inventaire : 1 arme max, 3 pièces d'armure (corps, mains, pieds)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="rule-block">
+        <div class="rule-block-title">⚔️ Combat</div>
+        <div class="rule-block-body">
+          <b style="color:var(--text);">Attaque joueur</b> = 1d6 + Force + 1d6 (si arme équipée)<br>
+          <b style="color:var(--text);">Défense joueur</b> = -1 dégât par pièce d'équipement (corps, mains, pieds)<br><br>
+          <b style="color:var(--text);">PNJ Combat :</b>
+          <ul>
+            <li><span class="rule-hl-pink">PV</span> = 5 + numéro du donjon</li>
+            <li><span class="rule-hl-pink">Attaque</span> = 1d6 par défaut</li>
+          </ul>
+          Les combats sont au tour par tour. Les joueurs piochent leurs <span class="rule-hl">pions (1–6)</span> dans leur pochette pour simuler le dé.
+        </div>
+      </div>
+
+      <div class="rule-block">
+        <div class="rule-block-title">🧩 Énigmes</div>
+        <div class="rule-block-body">
+          Les énigmes sont des devinettes, calculs mentaux ou jeux de logique. Le MJ pose la question, l'enfant répond.
+          En cas de bonne réponse, la rencontre est réussie et le loot est obtenu.
+        </div>
+      </div>
+
+      <div class="rule-block">
+        <div class="rule-block-title">📖 Narratif</div>
+        <div class="rule-block-body">
+          Les personnages narratifs ne se battent pas. Ils donnent des informations, posent des choix ou remettent des objets de quête. C'est le cœur de l'histoire !
+        </div>
+      </div>
+
+      <div class="rule-block">
+        <div class="rule-block-title">🗺️ Progression & Donjons</div>
+        <div class="rule-block-body">
+          <ul>
+            <li><span class="rule-hl">Donjons 1–5</span> : Libres d'accès. Chaque donjon donne un objet de quête.</li>
+            <li><span class="rule-hl">Donjons 6–10</span> : Nécessitent 1 objet de quête spécifique.</li>
+            <li><span class="rule-hl">Donjons 11–19</span> : Nécessitent 2 objets de quête.</li>
+            <li><span class="rule-hl-pink">Donjon 20</span> : Le boss final ! Nécessite tous les objets.</li>
+          </ul>
+          Les enfants choisissent librement l'ordre des 5 premiers donjons, puis l'arbre se débloque selon les loots collectés.
+        </div>
+      </div>
+
+      <div class="rule-block">
+        <div class="rule-block-title">🎁 Loots</div>
+        <div class="rule-block-body">
+          <ul>
+            <li><span class="rule-hl-pink">Objets de quête 🔑</span> : clés pour débloquer d'autres donjons. À noter sur la fiche.</li>
+            <li><span class="rule-hl">Équipements ⚔️</span> : améliorent les stats. Arme (+1d6 attaque), Armure (-1 dégât / pièce).</li>
+            <li><span class="rule-hl">Consommables 🧪</span> : usage unique, effet immédiat.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="rule-block">
+        <div class="rule-block-title">🎲 Dés en voiture</div>
+        <div class="rule-block-body">
+          Remplace les dés par des <span class="rule-hl">pochettes de pions</span> numérotés 1–6.
+          Tu peux aussi utiliser l'onglet <span class="rule-hl">🎲 Dés</span> de l'application pour lancer les dés à ta place en tant que MJ.
+        </div>
+      </div>
+    `;
+  }
+
+  // ══════════════════════════════════════════════════════
+  // CRUD AVENTURE
+  // ══════════════════════════════════════════════════════
+  function openAventureForme(id) {
+    state.editingAventureId = id || null;
+    const data = getData();
+    if (id) {
+      const av = data.aventures.find(a => a.id === id);
+      document.getElementById('av-nom').value = av.nom;
+      document.getElementById('av-scenario').value = av.scenario || '';
+      document.getElementById('modal-aventure-title').textContent = 'Modifier l\'aventure';
+    } else {
+      document.getElementById('av-nom').value = '';
+      document.getElementById('av-scenario').value = '';
+      document.getElementById('modal-aventure-title').textContent = 'Nouvelle aventure';
+    }
+    openModal('modal-aventure');
+  }
+
+  function editAventure(id) { openAventureForme(id); }
+
+  function saveAventure() {
+    const nom = document.getElementById('av-nom').value.trim();
+    if (!nom) return alert('Le nom est requis');
+    const data = getData();
+    if (state.editingAventureId) {
+      const av = data.aventures.find(a => a.id === state.editingAventureId);
+      av.nom = nom;
+      av.scenario = document.getElementById('av-scenario').value;
+    } else {
+      const id = nom.toLowerCase().replace(/[^a-z0-9]/g, '_').slice(0, 32) + '_' + Date.now();
+      data.aventures.push({ id, nom, scenario: document.getElementById('av-scenario').value, donjons: [] });
+    }
+    saveData(data);
+    closeModal('modal-aventure');
+    renderAventures();
+  }
+
+  function deleteAventure(id) {
+    state.deleteCallback = () => {
+      const data = getData();
+      data.aventures = data.aventures.filter(a => a.id !== id);
+      saveData(data);
+      renderAventures();
+    };
+    document.getElementById('confirm-msg').textContent = 'Supprimer cette aventure et tous ses donjons ?';
+    openModal('modal-confirm');
+  }
+
+  // ══════════════════════════════════════════════════════
+  // CRUD DONJON
+  // ══════════════════════════════════════════════════════
+  function openDonjonForme(avId, num, edit) {
+    state.editingDonjonNum = num;
+    const data = getData();
+    const av = data.aventures.find(a => a.id === avId);
+    const existing = edit && av ? (av.donjons || []).find(d => d.num === num) : null;
+
+    document.getElementById('dj-num').value = num || '';
+    document.getElementById('dj-titre').value = existing ? existing.titre : '';
+    document.getElementById('dj-desc').value = existing ? (existing.desc || '') : '';
+
+    for (let i = 1; i <= 3; i++) {
+      const p = existing && existing.pnj && existing.pnj[i-1] ? existing.pnj[i-1] : {};
+      document.getElementById(`pnj${i}-nom`).value = p.nom || '';
+      document.getElementById(`pnj${i}-type`).value = p.type || (i===1?'combat':i===2?'enigme':'narratif');
+      document.getElementById(`pnj${i}-desc`).value = p.desc || '';
+      document.getElementById(`pnj${i}-loot`).value = p.loot || '';
+    }
+
+    document.getElementById('modal-donjon-title').textContent = existing ? `Modifier Donjon ${num}` : `Nouveau Donjon ${num}`;
+    openModal('modal-donjon');
+  }
+
+  function saveDonjon() {
+    const data = getData();
+    const av = data.aventures.find(a => a.id === state.currentAventureId);
+    if (!av) return;
+
+    const num = parseInt(document.getElementById('dj-num').value);
+    if (!num || !document.getElementById('dj-titre').value.trim()) return alert('Numéro et titre requis');
+
+    const donjon = {
+      num,
+      titre: document.getElementById('dj-titre').value.trim(),
+      desc: document.getElementById('dj-desc').value.trim(),
+      pnj: []
+    };
+
+    for (let i = 1; i <= 3; i++) {
+      const nom = document.getElementById(`pnj${i}-nom`).value.trim();
+      if (nom) {
+        donjon.pnj.push({
+          nom,
+          type: document.getElementById(`pnj${i}-type`).value,
+          desc: document.getElementById(`pnj${i}-desc`).value.trim(),
+          loot: document.getElementById(`pnj${i}-loot`).value.trim() || null
+        });
+      }
+    }
+
+    if (!av.donjons) av.donjons = [];
+    const idx = av.donjons.findIndex(d => d.num === num);
+    if (idx !== -1) av.donjons[idx] = donjon;
+    else av.donjons.push(donjon);
+
+    saveData(data);
+    closeModal('modal-donjon');
+    showDonjons(state.currentAventureId);
+  }
+
+  function deleteDonjon(avId, num) {
+    state.deleteCallback = () => {
+      const data = getData();
+      const av = data.aventures.find(a => a.id === avId);
+      if (av) av.donjons = (av.donjons || []).filter(d => d.num !== num);
+      saveData(data);
+      showDonjons(avId);
+    };
+    document.getElementById('confirm-msg').textContent = `Supprimer le donjon ${num} ?`;
+    openModal('modal-confirm');
+  }
+
+  // ══════════════════════════════════════════════════════
+  // CRUD LOOT
+  // ══════════════════════════════════════════════════════
+  function openLootForme(id) {
+    state.editingLootId = id || null;
+    const data = getData();
+    const existing = id ? data.loots.find(l => l.id === id) : null;
+
+    document.getElementById('lt-id').value = existing ? existing.id : '';
+    document.getElementById('lt-id').disabled = !!existing;
+    document.getElementById('lt-nom').value = existing ? existing.nom : '';
+    document.getElementById('lt-type').value = existing ? existing.type : 'quete';
+    document.getElementById('lt-bonus').value = existing ? (existing.bonus || '') : '';
+    document.getElementById('lt-desc').value = existing ? (existing.desc || '') : '';
+    document.getElementById('lt-from').value = existing ? (existing.from || '') : '';
+    document.getElementById('lt-unlock').value = existing && existing.unlock ? existing.unlock.join(', ') : '';
+    document.getElementById('lt-equip-cat').value = existing ? (existing.equipCat || 'arme') : 'arme';
+
+    updateLootTypeFields();
+    document.getElementById('modal-loot-title').textContent = existing ? 'Modifier le loot' : 'Nouveau loot';
+    openModal('modal-loot');
+  }
+
+  function editLoot(id) { openLootForme(id); }
+
+  function updateLootTypeFields() {
+    const type = document.getElementById('lt-type').value;
+    document.getElementById('lt-quete-group').style.display = type === 'quete' ? '' : 'none';
+    document.getElementById('lt-equip-group').style.display = type === 'equipement' ? '' : 'none';
+  }
+  document.getElementById('lt-type').addEventListener('change', updateLootTypeFields);
+
+  function saveLoot() {
+    const id = document.getElementById('lt-id').value.trim();
+    const nom = document.getElementById('lt-nom').value.trim();
+    if (!id || !nom) return alert('ID et nom requis');
+
+    const data = getData();
+    const type = document.getElementById('lt-type').value;
+
+    const loot = {
+      id, nom, type,
+      desc: document.getElementById('lt-desc').value.trim(),
+      bonus: document.getElementById('lt-bonus').value.trim(),
+    };
+
+    if (type === 'quete') {
+      loot.from = parseInt(document.getElementById('lt-from').value) || null;
+      const unlockRaw = document.getElementById('lt-unlock').value;
+      loot.unlock = unlockRaw ? unlockRaw.split(',').map(s => parseInt(s.trim())).filter(Boolean) : [];
+    }
+    if (type === 'equipement') {
+      loot.equipCat = document.getElementById('lt-equip-cat').value;
+    }
+
+    const idx = data.loots.findIndex(l => l.id === id);
+    if (idx !== -1) data.loots[idx] = loot;
+    else data.loots.push(loot);
+
+    saveData(data);
+    closeModal('modal-loot');
+    renderCodex();
+  }
+
+  function deleteLoot(id) {
+    state.deleteCallback = () => {
+      const data = getData();
+      data.loots = data.loots.filter(l => l.id !== id);
+      saveData(data);
+      renderCodex();
+    };
+    document.getElementById('confirm-msg').textContent = `Supprimer ce loot ?`;
+    openModal('modal-confirm');
+  }
+
+  // ══════════════════════════════════════════════════════
+  // MODALS HELPERS
+  // ══════════════════════════════════════════════════════
+  function openModal(id) {
+    document.getElementById(id).classList.add('visible');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('visible');
+  }
+  function confirmDelete() {
+    if (state.deleteCallback) state.deleteCallback();
+    state.deleteCallback = null;
+    closeModal('modal-confirm');
+  }
+
+  // Fermer modal en cliquant outside
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => {
+      if (e.target === m) m.classList.remove('visible');
+    });
+  });
+
+  // ══════════════════════════════════════════════════════
+  // INIT
+  // ══════════════════════════════════════════════════════
+  renderAventures();
+  renderRegles();
+  document.getElementById('dice-label').textContent = 'd6 — clique pour lancer';
+  updateHeaderModeToggle();
+  </script>
+</body>
+</html>
