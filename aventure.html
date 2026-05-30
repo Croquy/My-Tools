@@ -76,16 +76,7 @@
     .stat-val{font-family:'Quicksand',sans-serif;font-size:22px;font-weight:700;color:#ff5555;}
     .stat-label{font-size:10px;color:var(--text-dim);margin-top:2px;}
 
-    /* Loot aléatoire */
-    .loot-random{background:rgba(80,250,123,.05);border:1px solid rgba(80,250,123,.2);border-radius:10px;padding:10px 14px;margin-top:8px;}
-    .loot-random-title{font-size:10px;color:var(--mint);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
-    .loot-random-row{display:flex;align-items:center;gap:10px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px;}
-    .loot-random-row:last-child{border-bottom:none;}
-    .loot-random-player{color:var(--text-dim);min-width:60px;}
-    .loot-random-name{color:var(--text);font-weight:700;flex:1;}
-    .loot-random-bonus{color:var(--mint);font-size:11px;}
-    .btn-reroll{background:transparent;border:1px solid rgba(80,250,123,.3);color:var(--mint);font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;cursor:pointer;border-radius:10px;margin-top:6px;transition:all .15s;}
-    .btn-reroll:hover{background:rgba(80,250,123,.1);}
+
 
     /* Énigme */
     .enigme-box{background:rgba(139,233,253,.05);border:1px solid rgba(139,233,253,.2);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
@@ -127,9 +118,12 @@
     .dice-result-area{width:150px;height:150px;background:linear-gradient(135deg,rgba(255,121,198,.08),rgba(189,147,249,.08));border:2px solid rgba(189,147,249,.3);border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all .2s;user-select:none;}
     .dice-result-area:hover{border-color:var(--purple);transform:scale(1.03);}
     .dice-result-area:active{transform:scale(.97);}
-    .dice-result-num{font-family:'Quicksand',sans-serif;font-size:64px;font-weight:700;color:var(--text);line-height:1;}
-    .dice-result-num.rolling{color:var(--purple);animation:diceRoll .4s ease;}
+    .dice-result-num{font-family:'Quicksand',sans-serif;font-size:64px;font-weight:700;color:var(--text);line-height:1;transition:color .2s;}
+    .dice-result-num.rolling{animation:diceRoll .45s ease;}
+    .dice-result-num.crit-high{color:var(--mint);}
+    .dice-result-num.crit-low{color:var(--pink);}
     .dice-result-label{font-size:12px;color:var(--text-dim);font-weight:600;}
+    @keyframes diceShake{0%{transform:rotate(-8deg) scale(1.3);filter:blur(3px);opacity:.3;}25%{transform:rotate(6deg) scale(1.15);filter:blur(1px);opacity:.7;}50%{transform:rotate(-4deg) scale(1.08);filter:blur(0);opacity:1;}75%{transform:rotate(2deg) scale(1.03);}100%{transform:rotate(0) scale(1);}}
     .dice-cumul-wrap{width:100%;max-width:320px;}
     .dice-cumul-table{width:100%;border-collapse:collapse;}
     .dice-cumul-table td{padding:7px 12px;font-size:13px;border-bottom:1px solid var(--border);}
@@ -138,7 +132,7 @@
     .dice-cumul-table .tr-total td{background:rgba(189,147,249,.1);border-top:2px solid rgba(189,147,249,.4);border-bottom:none;}
     .dice-cumul-table .tr-total .td-die{color:var(--purple);font-size:13px;}
     .dice-cumul-table .tr-total .td-val{color:var(--purple);font-size:22px;}
-    @keyframes diceRoll{0%{transform:scale(1.3) rotate(-5deg);opacity:.5;}50%{transform:scale(.9) rotate(3deg);opacity:.8;}100%{transform:scale(1) rotate(0deg);opacity:1;}}
+
 
     /* Codex */
     .codex-section{margin-bottom:24px;}
@@ -188,6 +182,19 @@
     .empty-state{text-align:center;padding:40px 20px;color:var(--text-dim);}
     .empty-state-icon{font-size:40px;margin-bottom:10px;}
 
+    /* Piochage */
+    .piochage-box{display:flex;align-items:center;gap:10px;border-radius:10px;padding:10px 14px;margin-top:8px;font-size:13px;font-weight:700;}
+    .combat-piochage{background:rgba(255,85,85,.06);border:1px solid rgba(255,85,85,.2);color:#ff7777;}
+    .enigme-piochage{background:rgba(139,233,253,.06);border:1px solid rgba(139,233,253,.2);color:var(--cyan);}
+    .piochage-icon{font-size:18px;}
+    /* Après chapitre */
+    .chapitre-apres{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);}
+    .chapitre-apres-label{font-size:10px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;text-align:center;}
+    /* Vérité spoil */
+    .verite-spoil-btn{margin-top:8px;background:rgba(189,147,249,.08);border:1px solid rgba(189,147,249,.3);color:var(--purple);}
+    .verite-spoil-btn:hover{background:rgba(189,147,249,.18);}
+    .verite-spoil-answer{background:rgba(189,147,249,.08);border:1px solid rgba(189,147,249,.25);border-radius:8px;padding:10px 14px;margin-top:8px;font-size:13px;color:var(--purple);font-style:italic;font-weight:600;display:none;}
+    .verite-spoil-answer.visible{display:block;}
     @media(max-width:600px){
       .dungeon-grid{grid-template-columns:repeat(2,1fr);}
       .form-row{grid-template-columns:1fr;}
@@ -203,8 +210,7 @@
   <header class="header">
     <div class="header-left">
       <div class="title-row">
-        <h1>My Tools</h1>
-        <a href="index.html" style="font-size:11px;color:var(--text-dim);text-decoration:none;font-weight:600;">← Accueil</a>
+        <a href="index.html" style="text-decoration:none;"><h1>My Tools</h1></a>
       </div>
       <h1 class="page-title">🗺️ Aventure</h1>
       <p class="header-subtitle">Jeux de rôle en famille</p>
@@ -317,9 +323,9 @@
 
 <!-- Donjon -->
 <div class="modal-overlay" id="modal-dj">
-  <div class="modal-card" style="max-width:640px;width:95%;">
+  <div class="modal-card" style="max-width:640px;width:95%;max-height:90vh;overflow-y:auto;">
     <div class="modal-title" id="modal-dj-title">Donjon</div>
-    <div class="edit-form" style="max-height:70vh;overflow-y:auto;padding-right:4px;">
+    <div class="edit-form" style="">
 
       <div class="form-row">
         <div class="form-group"><label class="label-sm">Numéro (1–20)</label><input type="number" class="field" id="dj-num" min="1" max="20"></div>
@@ -330,30 +336,28 @@
       <!-- Ch1 combat -->
       <div class="chapter-edit-block">
         <div class="chapter-edit-title combat">⚔️ Chapitre 1 — Combat</div>
-        <div class="form-row">
-          <div class="form-group"><label class="label-sm">Nom du PNJ</label><input type="text" class="field" id="dj-c1-nom" placeholder="Petit Chaperon Rouge"></div>
-        </div>
-        <div class="form-group"><label class="label-sm">Narration (avant le PNJ)</label><textarea class="field" id="dj-c1-narration" rows="3" placeholder="Ils aperçoivent une silhouette..."></textarea></div>
-        <div class="form-group"><label class="label-sm">Description du PNJ</label><textarea class="field" id="dj-c1-desc" rows="3" placeholder="Comportement, dialogues..."></textarea></div>
+        <div class="form-group"><label class="label-sm">Nom du PNJ</label><input type="text" class="field" id="dj-c1-nom" placeholder="Petit Chaperon Rouge"></div>
+        <div class="form-group"><label class="label-sm">Narration &amp; PNJ</label><textarea class="field" id="dj-c1-narration" rows="5" placeholder="Description de la scène et du personnage, dialogues..."></textarea></div>
+        <div class="form-group"><label class="label-sm">Après le combat</label><textarea class="field" id="dj-c1-apres" rows="3" placeholder="Ce qui se passe après la victoire..."></textarea></div>
       </div>
 
       <!-- Ch2 énigme -->
       <div class="chapter-edit-block">
         <div class="chapter-edit-title enigme">🧩 Chapitre 2 — Énigme</div>
         <div class="form-group"><label class="label-sm">Nom du PNJ</label><input type="text" class="field" id="dj-c2-nom" placeholder="Bûcheron fatigué"></div>
-        <div class="form-group"><label class="label-sm">Narration (avant le PNJ)</label><textarea class="field" id="dj-c2-narration" rows="3"></textarea></div>
-        <div class="form-group"><label class="label-sm">Description du PNJ</label><textarea class="field" id="dj-c2-desc" rows="3"></textarea></div>
+        <div class="form-group"><label class="label-sm">Narration &amp; PNJ</label><textarea class="field" id="dj-c2-narration" rows="5" placeholder="Description de la scène et du personnage..."></textarea></div>
         <div class="form-group"><label class="label-sm">Texte de l'énigme</label><textarea class="field" id="dj-c2-enigme" rows="3" placeholder="Question posée aux joueurs..."></textarea></div>
         <div class="form-group"><label class="label-sm">Réponse (spoil)</label><input type="text" class="field" id="dj-c2-reponse" placeholder="La réponse..."></div>
+        <div class="form-group"><label class="label-sm">Après l'énigme</label><textarea class="field" id="dj-c2-apres" rows="3" placeholder="Ce qui se passe après la résolution..."></textarea></div>
       </div>
 
       <!-- Ch3 narratif -->
       <div class="chapter-edit-block">
         <div class="chapter-edit-title narratif">📖 Chapitre 3 — Narratif</div>
         <div class="form-group"><label class="label-sm">Nom du PNJ</label><input type="text" class="field" id="dj-c3-nom" placeholder="Le Loup Parleur"></div>
-        <div class="form-group"><label class="label-sm">Narration (avant le PNJ)</label><textarea class="field" id="dj-c3-narration" rows="3"></textarea></div>
-        <div class="form-group"><label class="label-sm">Description du PNJ</label><textarea class="field" id="dj-c3-desc" rows="3"></textarea></div>
-        <div class="form-group"><label class="label-sm">🔒 Vérité à découvrir (MJ seulement)</label><textarea class="field" id="dj-c3-verite" rows="2" placeholder="Ce que les joueurs doivent deviner..."></textarea></div>
+        <div class="form-group"><label class="label-sm">Narration &amp; PNJ</label><textarea class="field" id="dj-c3-narration" rows="5" placeholder="Description de la scène et du personnage..."></textarea></div>
+        <div class="form-group"><label class="label-sm">🔒 Vérité à découvrir (spoil MJ)</label><textarea class="field" id="dj-c3-verite" rows="2" placeholder="Ce que les joueurs doivent deviner..."></textarea></div>
+        <div class="form-group"><label class="label-sm">Après la découverte</label><textarea class="field" id="dj-c3-apres" rows="3" placeholder="Ce qui se passe après la révélation..."></textarea></div>
       </div>
 
       <div class="form-group"><label class="label-sm">Fin du donjon</label><textarea class="field" id="dj-fin" rows="3" placeholder="Les aventuriers repartent..."></textarea></div>
@@ -455,21 +459,21 @@ function buildDefault(){
         intro:"Les aventuriers franchissent une vieille porte de bois couverte de ronces et arrivent dans une forêt étrange. L'air semble lourd, presque malade. Les arbres changent discrètement de place dès qu'on détourne les yeux et certains troncs portent des affiches déchirées racontant différentes versions du Petit Chaperon Rouge.\n\nAu loin, une vieille femme hurle avant que le silence ne retombe brutalement. Plus les aventuriers avancent, plus la forêt semble se déformer autour d'eux.",
         c1:{
           nom:'Petit Chaperon Rouge',
-          narration:"Après plusieurs heures à errer entre les chemins mouvants, ils aperçoivent finalement une silhouette rouge courir entre les arbres.",
-          desc:"En s'approchant, les aventuriers découvrent une jeune fille vêtue d'une cape rouge déchirée. Ses vêtements sont couverts de griffures, mais aucune ne semble provenir d'un animal. Elle se retourne brusquement et pointe une vieille hache rouillée dans leur direction.\n\nElle parle rapidement, avec une peur presque incontrôlable :\n\n« Vous aussi vous travaillez pour eux ? Vous voulez me ramener dans l'histoire ? Je refuse de mourir encore ! »\n\nSans attendre davantage, elle attaque les aventuriers."
+          narration:"Après plusieurs heures à errer entre les chemins mouvants, ils aperçoivent finalement une silhouette rouge courir entre les arbres.\n\nEn s'approchant, les aventuriers découvrent une jeune fille vêtue d'une cape rouge déchirée. Ses vêtements sont couverts de griffures, mais aucune ne semble provenir d'un animal. Elle se retourne brusquement et pointe une vieille hache rouillée dans leur direction.\n\n« Vous aussi vous travaillez pour eux ? Vous voulez me ramener dans l'histoire ? Je refuse de mourir encore ! »\n\nSans attendre davantage, elle attaque les aventuriers.",
+          apres:""
         },
         c2:{
           nom:'Bûcheron fatigué',
-          narration:"Après ce combat, les aventuriers restent troublés par les paroles de la jeune fille. La forêt paraît encore plus silencieuse qu'avant, comme si elle observait leurs réactions. En avançant, ils découvrent une clairière parfaitement immobile où un vieux bûcheron abat inlassablement le même arbre. À chaque coup de hache, le tronc repousse lentement sous leurs yeux.",
-          desc:"Le bûcheron semble épuisé, comme s'il n'avait pas dormi depuis des années. Il regarde les aventuriers avec lassitude avant de reprendre son travail.\n\nIl leur explique que la forêt est déboussolée, comme si les règles des contes avaient disparu.\n\n« Les histoires possèdent des règles. Quand les règles meurent… les royaumes se transforment. »\n\nSelon lui, les personnages oublient peu à peu qui ils sont réellement et les contes commencent à se mélanger entre eux.\n\nLe bûcheron accepte d'aider les aventuriers, mais uniquement s'ils prouvent qu'ils comprennent encore comment fonctionnent les histoires. Il pose alors son épreuve.",
+          narration:"Après ce combat, les aventuriers restent troublés par les paroles de la jeune fille. La forêt paraît encore plus silencieuse qu'avant, comme si elle observait leurs réactions. En avançant, ils découvrent une clairière parfaitement immobile où un vieux bûcheron abat inlassablement le même arbre. À chaque coup de hache, le tronc repousse lentement sous leurs yeux.\n\nLe bûcheron semble épuisé, comme s'il n'avait pas dormi depuis des années. Il regarde les aventuriers avec lassitude avant de reprendre son travail.\n\nIl leur explique que la forêt est déboussolée, comme si les règles des contes avaient disparu.\n\n« Les histoires possèdent des règles. Quand les règles meurent… les royaumes se transforment. »\n\nLe bûcheron accepte d'aider les aventuriers, mais uniquement s'ils prouvent qu'ils comprennent encore comment fonctionnent les histoires. Il pose alors son épreuve.",
           enigme:"Dans une histoire, il y a toujours un héros, un méchant et une leçon. Le Petit Chaperon Rouge a peur du loup. Mais dans cette forêt, de qui le loup a-t-il peur ?",
-          reponse:"De lui-même — il a peur de son propre rôle dans l'histoire, d'être condamné à être le méchant pour toujours."
+          reponse:"De lui-même — il a peur de son propre rôle dans l'histoire, d'être condamné à être le méchant pour toujours.",
+          apres:""
         },
         c3:{
           nom:'Le Loup Parleur',
-          narration:"Après avoir résolu l'épreuve du bûcheron, les aventuriers poursuivent leur route. Les arbres deviennent immenses et les murmures de la forêt se changent peu à peu en voix humaines. Finalement, ils découvrent une vieille maison de grand-mère suspendue dans les branches d'un arbre gigantesque.",
-          desc:"La porte s'ouvre toute seule. À l'intérieur, un grand loup noir habillé comme un noble boit calmement du thé dans une petite tasse fragile. Il ne semble pas agressif, mais son regard est particulièrement intelligent. Lui aussi paraît extrêmement fatigué.\n\n« Je vous attendais depuis longtemps. Asseyez-vous. »\n\nLe loup révèle alors une vérité inquiétante : les personnages des contes savent désormais qu'ils vivent dans des histoires. Certains deviennent fous, d'autres cherchent à changer leur destin, et certains veulent détruire complètement les récits.\n\nMais modifier une histoire a toujours des conséquences.\n\n« Nous existons uniquement tant que les humains rêvent. Mais les humains ont cessé de rêver… et quand ils cessent de rêver, nous mourons. »\n\nAvant leur départ, il leur confie le Fil Narratif.",
-          verite:"Il n'a peut-être jamais été le véritable monstre de cette histoire."
+          narration:"Après avoir résolu l'épreuve du bûcheron, les aventuriers poursuivent leur route. Les arbres deviennent immenses et les murmures de la forêt se changent peu à peu en voix humaines. Finalement, ils découvrent une vieille maison de grand-mère suspendue dans les branches d'un arbre gigantesque.\n\nLa porte s'ouvre toute seule. À l'intérieur, un grand loup noir habillé comme un noble boit calmement du thé dans une petite tasse fragile. Il ne semble pas agressif, mais son regard est particulièrement intelligent. Lui aussi paraît extrêmement fatigué.\n\n« Je vous attendais depuis longtemps. Asseyez-vous. »\n\nLe loup révèle alors une vérité inquiétante : les personnages des contes savent désormais qu'ils vivent dans des histoires. Certains deviennent fous, d'autres cherchent à changer leur destin, et certains veulent détruire complètement les récits.\n\n« Nous existons uniquement tant que les humains rêvent. Mais les humains ont cessé de rêver… et quand ils cessent de rêver, nous mourons. »",
+          verite:"Il n'a peut-être jamais été le véritable monstre de cette histoire.",
+          apres:"Avant leur départ, le loup leur confie le Fil Narratif, un étrange fil lumineux capable de guider les voyageurs entre les histoires.\n\n« Grâce à ceci, vous pourrez traverser d'autres contes et peut-être tous nous sauver. Partez vite maintenant… nous comptons sur vous. »"
         },
         fin:"Maintenant qu'ils possèdent ces nouvelles informations, les aventuriers retournent vers la porte magique et quittent la forêt afin de poursuivre leur enquête dans les autres royaumes des contes."
       }]
@@ -536,6 +540,14 @@ function buildDefaultLoots(){
     {id:'livre_secret',nom:'Livre secret',cat:'consommable',subcat:'indice',bonus:'Aide sur une énigme',desc:"Contient les réponses à toutes les questions."},
     {id:'fil_ariane',nom:"Fil d'Ariane",cat:'consommable',subcat:'indice',bonus:'Aide sur une énigme',desc:"Guide vers la sortie du labyrinthe."},
     {id:'carte_labyrinthe',nom:'Carte du labyrinthe',cat:'consommable',subcat:'indice',bonus:'Aide sur une énigme',desc:"Révèle la structure cachée de toute énigme."},
+    {id:'elixir_titan',nom:'Élixir de titan',cat:'consommable',subcat:'force',bonus:'+2 à un jet',desc:"Transforme brièvement celui qui le boit en titan."},
+    {id:'biscuit_magique',nom:'Biscuit magique',cat:'consommable',subcat:'force',bonus:'+2 à un jet',desc:"Une bouchée suffit à décupler les forces."},
+    {id:'herbe_vigueur',nom:'Herbe de vigueur',cat:'consommable',subcat:'force',bonus:'+2 à un jet',desc:"Herbe rare qui réveille les muscles endormis."},
+    {id:'poudre_colere',nom:'Poudre de colère',cat:'consommable',subcat:'force',bonus:'+2 à un jet',desc:"À inhaler — déclenche une fureur temporaire."},
+    {id:'plume_chance',nom:'Plume de chance',cat:'consommable',subcat:'chance',bonus:'Relance un dé',desc:"Souffler dessus avant un jet porte bonheur."},
+    {id:'trefle_quatre',nom:'Trèfle à quatre feuilles',cat:'consommable',subcat:'chance',bonus:'Relance un dé',desc:"Impossible à trouver, impossible de rater."},
+    {id:'potion_arc_en_ciel',nom:'Potion arc-en-ciel',cat:'consommable',subcat:'chance',bonus:'Relance un dé',desc:"Change la couleur du destin en une seconde."},
+    {id:'des_truques',nom:'Dés truqués',cat:'consommable',subcat:'chance',bonus:'Relance un dé',desc:"Un seul usage — après ça, ils redeviennent normaux."},
   ];
 }
 
@@ -669,8 +681,6 @@ function showDonjons(avId){
 // ═══════════════════════════════════════════
 // VUE DÉTAIL DONJON
 // ═══════════════════════════════════════════
-function rand(arr){return arr[Math.floor(Math.random()*arr.length)];}
-
 function showDonjon(avId,num){
   S.avId=avId; S.djNum=num; S.view='donjon';
   const data=getData();
@@ -690,15 +700,6 @@ function showDonjon(avId,num){
 
   // Loot quête de ce donjon
   const lootQ=data.loots.find(l=>l.cat==='quete'&&l.from===num);
-
-  // Loots aléatoires combat (1 équipement par joueur = arme ou armure)
-  const equipPool=data.loots.filter(l=>l.cat==='arme'||l.cat==='armure');
-  const combatLoots=[1,2,3,4].map(()=>rand(equipPool)).filter(Boolean);
-
-  // Loots aléatoires énigme (2 consommables ou objets)
-  const enigmePool=data.loots.filter(l=>l.cat==='consommable'||l.cat==='objet');
-  const e1=rand(enigmePool);
-  const e2=rand(enigmePool.filter(l=>!e1||l.id!==e1.id))||e1;
 
   const fragment=FRAGMENTS[num]||null;
   const c1=dj.c1||{};
@@ -735,20 +736,15 @@ function showDonjon(avId,num){
     <div class="chapter-body combat">
       ${c1.narration?`<div class="chapter-narration">${c1.narration}</div>`:''}
       ${c1.nom?`<div class="chapter-pnj-name">${c1.nom}</div>`:''}
-      ${c1.desc?`<div class="chapter-pnj-desc">${c1.desc}</div>`:''}
       <div class="combat-stats">
         <div class="stat-box"><div class="stat-val">${5+num}</div><div class="stat-label">PV (5 + D${num})</div></div>
         <div class="stat-box"><div class="stat-val">1d6</div><div class="stat-label">Attaque</div></div>
       </div>
-      <div class="loot-random">
-        <div class="loot-random-title">🎁 Loot — 1 équipement par joueur</div>
-        ${combatLoots.map((l,i)=>`<div class="loot-random-row">
-          <span class="loot-random-player">Joueur ${i+1}</span>
-          <span class="loot-random-name">${l.nom}</span>
-          <span class="loot-random-bonus">${l.bonus}</span>
-        </div>`).join('')}
-        <button class="btn-reroll" onclick="showDonjon('${avId}',${num})">↺ Relancer</button>
+      <div class="piochage-box combat-piochage">
+        <span class="piochage-icon">🎒</span>
+        <span class="piochage-text">Piocher un équipement dans l'enveloppe</span>
       </div>
+      ${c1.apres?`<div class="chapitre-apres"><div class="chapitre-apres-label">— Après le combat —</div><div class="chapter-narration">${c1.apres}</div></div>`:''} 
     </div>
   </div>`;
 
@@ -762,21 +758,17 @@ function showDonjon(avId,num){
     <div class="chapter-body enigme">
       ${c2.narration?`<div class="chapter-narration">${c2.narration}</div>`:''}
       ${c2.nom?`<div class="chapter-pnj-name">${c2.nom}</div>`:''}
-      ${c2.desc?`<div class="chapter-pnj-desc">${c2.desc}</div>`:''}
       ${c2.enigme?`<div class="enigme-box">
         <div class="enigme-label">🧩 Énigme</div>
         <div class="enigme-text">${c2.enigme}</div>
         ${c2.reponse?`<button class="spoil-btn" onclick="toggleSpoil(this)">👁️ Voir la réponse</button>
         <div class="spoil-answer">${c2.reponse}</div>`:''}
       </div>`:''}
-      <div class="loot-random">
-        <div class="loot-random-title">🎁 Loot — 2 consommables / objets</div>
-        ${[e1,e2].filter(Boolean).map(l=>`<div class="loot-random-row">
-          <span class="loot-random-name">${l.nom}</span>
-          <span class="loot-random-bonus">${l.bonus}</span>
-        </div>`).join('')}
-        <button class="btn-reroll" onclick="showDonjon('${avId}',${num})">↺ Relancer</button>
+      <div class="piochage-box enigme-piochage">
+        <span class="piochage-icon">🎒</span>
+        <span class="piochage-text">Piocher un consommable dans l'enveloppe</span>
       </div>
+      ${c2.apres?`<div class="chapitre-apres"><div class="chapitre-apres-label">— Après l'énigme —</div><div class="chapter-narration">${c2.apres}</div></div>`:''} 
     </div>
   </div>`;
 
@@ -790,11 +782,12 @@ function showDonjon(avId,num){
     <div class="chapter-body narratif">
       ${c3.narration?`<div class="chapter-narration">${c3.narration}</div>`:''}
       ${c3.nom?`<div class="chapter-pnj-name">${c3.nom}</div>`:''}
-      ${c3.desc?`<div class="chapter-pnj-desc">${c3.desc}</div>`:''}
       ${c3.verite?`<div class="verite-box">
         <div class="verite-label">🔒 Vérité à découvrir <span>MJ seulement</span></div>
-        <div class="verite-text">${c3.verite}</div>
+        <button class="spoil-btn verite-spoil-btn" onclick="toggleSpoil(this)">👁️ Révéler la vérité</button>
+        <div class="spoil-answer verite-spoil-answer">${c3.verite}</div>
       </div>`:''}
+      ${c3.apres?`<div class="chapitre-apres"><div class="chapitre-apres-label">— Après la découverte —</div><div class="chapter-narration">${c3.apres}</div></div>`:''} 
       ${fragment?`<div class="fragment-box">
         <div class="fragment-label">🧩 Fragment de phrase</div>
         <div class="fragment-text">"${fragment}"</div>
@@ -837,9 +830,15 @@ function selectDice(s){
 function rollDice(){
   const v=Math.floor(Math.random()*S.diceSides)+1;
   const el=document.getElementById('dice-num');
+  el.classList.remove('rolling','crit-high','crit-low');
+  void el.offsetWidth;
   el.textContent=v;
-  el.classList.remove('rolling');void el.offsetWidth;el.classList.add('rolling');
-  document.getElementById('dice-lbl').textContent=`d${S.diceSides}`;
+  el.classList.add('rolling');
+  if(v===S.diceSides) el.classList.add('crit-high');
+  else if(v===1) el.classList.add('crit-low');
+  el.style.animation='diceShake .45s ease forwards';
+  setTimeout(()=>{el.style.animation='';},460);
+  document.getElementById('dice-lbl').textContent=v===S.diceSides?`🌟 Critique max ! (d${S.diceSides})`:v===1?`💀 Échec critique (d${S.diceSides})`:`d${S.diceSides}`;
   S.diceRolls.push({s:S.diceSides,v});
   renderCumul();
 }
@@ -982,16 +981,16 @@ function openDjModal(num){
   f('dj-intro').value=dj?(dj.intro||''):'';
   f('dj-c1-nom').value=dj&&dj.c1?(dj.c1.nom||''):'';
   f('dj-c1-narration').value=dj&&dj.c1?(dj.c1.narration||''):'';
-  f('dj-c1-desc').value=dj&&dj.c1?(dj.c1.desc||''):'';
+  f('dj-c1-apres').value=dj&&dj.c1?(dj.c1.apres||''):'';
   f('dj-c2-nom').value=dj&&dj.c2?(dj.c2.nom||''):'';
   f('dj-c2-narration').value=dj&&dj.c2?(dj.c2.narration||''):'';
-  f('dj-c2-desc').value=dj&&dj.c2?(dj.c2.desc||''):'';
   f('dj-c2-enigme').value=dj&&dj.c2?(dj.c2.enigme||''):'';
   f('dj-c2-reponse').value=dj&&dj.c2?(dj.c2.reponse||''):'';
+  f('dj-c2-apres').value=dj&&dj.c2?(dj.c2.apres||''):'';
   f('dj-c3-nom').value=dj&&dj.c3?(dj.c3.nom||''):'';
   f('dj-c3-narration').value=dj&&dj.c3?(dj.c3.narration||''):'';
-  f('dj-c3-desc').value=dj&&dj.c3?(dj.c3.desc||''):'';
   f('dj-c3-verite').value=dj&&dj.c3?(dj.c3.verite||''):'';
+  f('dj-c3-apres').value=dj&&dj.c3?(dj.c3.apres||''):'';
   f('dj-fin').value=dj?(dj.fin||''):'';
   document.getElementById('modal-dj-title').textContent=dj?`Modifier Donjon ${num}`:`Nouveau Donjon${num?' '+num:''}`;
   openModal('modal-dj');
@@ -1005,9 +1004,9 @@ function saveDj(){
   const dj={
     num,titre,
     intro:f('dj-intro'),
-    c1:{nom:f('dj-c1-nom'),narration:f('dj-c1-narration'),desc:f('dj-c1-desc')},
-    c2:{nom:f('dj-c2-nom'),narration:f('dj-c2-narration'),desc:f('dj-c2-desc'),enigme:f('dj-c2-enigme'),reponse:f('dj-c2-reponse')},
-    c3:{nom:f('dj-c3-nom'),narration:f('dj-c3-narration'),desc:f('dj-c3-desc'),verite:f('dj-c3-verite')},
+    c1:{nom:f('dj-c1-nom'),narration:f('dj-c1-narration'),apres:f('dj-c1-apres')},
+    c2:{nom:f('dj-c2-nom'),narration:f('dj-c2-narration'),enigme:f('dj-c2-enigme'),reponse:f('dj-c2-reponse'),apres:f('dj-c2-apres')},
+    c3:{nom:f('dj-c3-nom'),narration:f('dj-c3-narration'),verite:f('dj-c3-verite'),apres:f('dj-c3-apres')},
     fin:f('dj-fin')
   };
   const data=getData();
