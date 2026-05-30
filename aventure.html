@@ -142,6 +142,7 @@
     .codex-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;transition:all .2s;}
     .codex-item:hover{border-color:var(--purple);}
     .codex-item-header{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+    .codex-item-icon{font-size:16px;flex-shrink:0;}
     .codex-item-name{font-family:'Quicksand',sans-serif;font-size:13px;font-weight:700;color:var(--text);flex:1;}
     .loot-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;}
     .loot-badge.quete{background:var(--pink-light);color:var(--pink);border:1px solid rgba(255,121,198,.3);}
@@ -339,6 +340,7 @@
         <div class="form-group"><label class="label-sm">Nom du PNJ</label><input type="text" class="field" id="dj-c1-nom" placeholder="Petit Chaperon Rouge"></div>
         <div class="form-group"><label class="label-sm">Narration &amp; PNJ</label><textarea class="field" id="dj-c1-narration" rows="5" placeholder="Description de la scène et du personnage, dialogues..."></textarea></div>
         <div class="form-group"><label class="label-sm">Après le combat</label><textarea class="field" id="dj-c1-apres" rows="3" placeholder="Ce qui se passe après la victoire..."></textarea></div>
+        <div class="form-group" style="max-width:200px;"><label class="label-sm">🎒 Équipements à piocher</label><input type="number" class="field" id="dj-c1-piochage" min="0" max="8" value="1"></div>
       </div>
 
       <!-- Ch2 énigme -->
@@ -349,6 +351,7 @@
         <div class="form-group"><label class="label-sm">Texte de l'énigme</label><textarea class="field" id="dj-c2-enigme" rows="3" placeholder="Question posée aux joueurs..."></textarea></div>
         <div class="form-group"><label class="label-sm">Réponse (spoil)</label><input type="text" class="field" id="dj-c2-reponse" placeholder="La réponse..."></div>
         <div class="form-group"><label class="label-sm">Après l'énigme</label><textarea class="field" id="dj-c2-apres" rows="3" placeholder="Ce qui se passe après la résolution..."></textarea></div>
+        <div class="form-group" style="max-width:200px;"><label class="label-sm">🎒 Consommables à piocher</label><input type="number" class="field" id="dj-c2-piochage" min="0" max="8" value="1"></div>
       </div>
 
       <!-- Ch3 narratif -->
@@ -742,7 +745,7 @@ function showDonjon(avId,num){
       </div>
       <div class="piochage-box combat-piochage">
         <span class="piochage-icon">🎒</span>
-        <span class="piochage-text">Piocher un équipement dans l'enveloppe</span>
+        <span class="piochage-text">Piocher ${c1.piochage||1} équipement${(c1.piochage||1)>1?'s':''} dans l'enveloppe</span>
       </div>
       ${c1.apres?`<div class="chapitre-apres"><div class="chapitre-apres-label">— Après le combat —</div><div class="chapter-narration">${c1.apres}</div></div>`:''} 
     </div>
@@ -766,7 +769,7 @@ function showDonjon(avId,num){
       </div>`:''}
       <div class="piochage-box enigme-piochage">
         <span class="piochage-icon">🎒</span>
-        <span class="piochage-text">Piocher un consommable dans l'enveloppe</span>
+        <span class="piochage-text">Piocher ${c2.piochage||1} consommable${(c2.piochage||1)>1?'s':''} dans l'enveloppe</span>
       </div>
       ${c2.apres?`<div class="chapitre-apres"><div class="chapitre-apres-label">— Après l'énigme —</div><div class="chapter-narration">${c2.apres}</div></div>`:''} 
     </div>
@@ -856,7 +859,11 @@ function renderCumul(){
   w.style.display='';
   const total=S.diceRolls.reduce((s,r)=>s+r.v,0);
   document.getElementById('dice-cumul-table').innerHTML=
-    S.diceRolls.map(r=>`<tr><td class="td-die">d${r.s}</td><td class="td-val">${r.v}</td></tr>`).join('')+
+    S.diceRolls.map(r=>{
+      const isCritH=r.v===r.s, isCritL=r.v===1;
+      const col=isCritH?'var(--mint)':isCritL?'var(--pink)':'';
+      return `<tr><td class="td-die">d${r.s}</td><td class="td-val" style="color:${col};">${isCritH?'🌟 ':isCritL?'💀 ':''}${r.v}</td></tr>`;
+    }).join('')+
     `<tr class="tr-total"><td class="td-die">Total</td><td class="td-val">${total}</td></tr>`;
 }
 
@@ -896,14 +903,15 @@ function renderCodex(){
   document.getElementById('codex-content').innerHTML=html||'<div class="empty-state"><div class="empty-state-icon">🎁</div><p>Aucun loot</p></div>';
 }
 
+const LOOT_ICONS={quete:'🔑',arme:'⚔️',armure:'🛡️',objet:'🎒',consommable:'🧪'};
 function lootCard(l){
   const meta=[];
   if(l.from) meta.push(`Loot : D${l.from}`);
   if(l.unlock&&l.unlock.length) meta.push(`Débloque : D${l.unlock.join(', D')}`);
   return `<div class="codex-item">
     <div class="codex-item-header">
+      <span class="codex-item-icon">${LOOT_ICONS[l.cat]||'📦'}</span>
       <div class="codex-item-name">${l.nom}</div>
-      <span class="loot-badge ${l.cat}">${l.cat}</span>
       ${S.edit?`<button class="btn-del-sm" onclick="openLootModal('${l.id}')">✏️</button>
       <button class="btn-del-sm" onclick="askDel('loot','${l.id}')">🗑️</button>`:''}
     </div>
@@ -982,11 +990,13 @@ function openDjModal(num){
   f('dj-c1-nom').value=dj&&dj.c1?(dj.c1.nom||''):'';
   f('dj-c1-narration').value=dj&&dj.c1?(dj.c1.narration||''):'';
   f('dj-c1-apres').value=dj&&dj.c1?(dj.c1.apres||''):'';
+  document.getElementById('dj-c1-piochage').value=dj&&dj.c1&&dj.c1.piochage!==undefined?dj.c1.piochage:1;
   f('dj-c2-nom').value=dj&&dj.c2?(dj.c2.nom||''):'';
   f('dj-c2-narration').value=dj&&dj.c2?(dj.c2.narration||''):'';
   f('dj-c2-enigme').value=dj&&dj.c2?(dj.c2.enigme||''):'';
   f('dj-c2-reponse').value=dj&&dj.c2?(dj.c2.reponse||''):'';
   f('dj-c2-apres').value=dj&&dj.c2?(dj.c2.apres||''):'';
+  document.getElementById('dj-c2-piochage').value=dj&&dj.c2&&dj.c2.piochage!==undefined?dj.c2.piochage:1;
   f('dj-c3-nom').value=dj&&dj.c3?(dj.c3.nom||''):'';
   f('dj-c3-narration').value=dj&&dj.c3?(dj.c3.narration||''):'';
   f('dj-c3-verite').value=dj&&dj.c3?(dj.c3.verite||''):'';
@@ -1004,8 +1014,8 @@ function saveDj(){
   const dj={
     num,titre,
     intro:f('dj-intro'),
-    c1:{nom:f('dj-c1-nom'),narration:f('dj-c1-narration'),apres:f('dj-c1-apres')},
-    c2:{nom:f('dj-c2-nom'),narration:f('dj-c2-narration'),enigme:f('dj-c2-enigme'),reponse:f('dj-c2-reponse'),apres:f('dj-c2-apres')},
+    c1:{nom:f('dj-c1-nom'),narration:f('dj-c1-narration'),apres:f('dj-c1-apres'),piochage:parseInt(document.getElementById('dj-c1-piochage').value)||1},
+    c2:{nom:f('dj-c2-nom'),narration:f('dj-c2-narration'),enigme:f('dj-c2-enigme'),reponse:f('dj-c2-reponse'),apres:f('dj-c2-apres'),piochage:parseInt(document.getElementById('dj-c2-piochage').value)||1},
     c3:{nom:f('dj-c3-nom'),narration:f('dj-c3-narration'),verite:f('dj-c3-verite'),apres:f('dj-c3-apres')},
     fin:f('dj-fin')
   };
