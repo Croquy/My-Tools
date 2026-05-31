@@ -251,6 +251,13 @@
       <span id="bc-av" onclick="backToAventures()">—</span>
     </div>
     <div id="av-scenario-zone"></div>
+    <div id="export-import-zone" style="display:none;margin-bottom:16px;gap:10px;flex-wrap:wrap;">
+      <button class="btn secondary" onclick="exportAventure()">⬇️ Exporter l'aventure (JSON)</button>
+      <label class="btn secondary" style="cursor:pointer;">
+        ⬆️ Importer une aventure (JSON)
+        <input type="file" accept=".json" style="display:none;" onchange="importAventureFile(this)">
+      </label>
+    </div>
     <div id="dungeon-tree"></div>
     <div id="btn-add-donjon" style="display:none;margin-top:12px;gap:10px;flex-wrap:wrap;">
       <button class="btn" onclick="openDjModal(null)">+ Nouveau donjon</button>
@@ -332,6 +339,10 @@
       <div class="form-row">
         <div class="form-group"><label class="label-sm">Numéro (1–20)</label><input type="number" class="field" id="dj-num" min="1" max="20"></div>
         <div class="form-group"><label class="label-sm">Titre *</label><input type="text" class="field" id="dj-titre"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="label-sm">📖 Conte d'origine</label><input type="text" class="field" id="dj-conte" placeholder="Le Petit Chaperon Rouge"></div>
+        <div class="form-group"><label class="label-sm">💡 Thème travaillé</label><input type="text" class="field" id="dj-theme" placeholder="La méchanceté"></div>
       </div>
       <div class="form-group"><label class="label-sm">Intro (mise en scène)</label><textarea class="field" id="dj-intro" rows="4" placeholder="Les aventuriers arrivent dans..."></textarea></div>
 
@@ -487,6 +498,8 @@ function buildDefault(){
       donjons:[{
         num:1,
         titre:'Forêt du Petit Chaperon Déformé',
+        conte:'Le Petit Chaperon Rouge',
+        theme:'La méchanceté',
         intro:"Les aventuriers franchissent une vieille porte de bois couverte de ronces et arrivent dans une forêt étrange. L'air semble lourd, presque malade. Les arbres changent discrètement de place dès qu'on détourne les yeux et certains troncs portent des affiches déchirées racontant différentes versions du Petit Chaperon Rouge.\n\nAu loin, une vieille femme hurle avant que le silence ne retombe brutalement. Plus les aventuriers avancent, plus la forêt semble se déformer autour d'eux.",
         c1:{
           nom:'Petit Chaperon Rouge',
@@ -676,6 +689,7 @@ function showDonjons(avId){
   document.getElementById('view-donjons').classList.add('active');
   updateModeBtn();
   document.getElementById('btn-add-donjon').style.display=S.edit?'flex':'none';
+  document.getElementById('export-import-zone').style.display=S.edit?'flex':'none';
 
   document.getElementById('av-scenario-zone').innerHTML=av.scenario
     ?`<div class="scenario-block"><div class="scenario-label">📜 Scénario</div>${av.scenario}</div>`:'';
@@ -692,6 +706,7 @@ function showDonjons(avId){
         html+=`<div class="dungeon-node${locked?' locked':''}" onclick="${locked?'':` showDonjon('${avId}',${num})`}">
           <div class="dungeon-num">Donjon ${num}</div>
           <div class="dungeon-name">${d.titre}</div>
+          ${d.conte?`<div style="font-size:10px;color:var(--purple);font-style:italic;">${d.conte}</div>`:''}
           ${req?`<div class="dungeon-lock">🔑 ${req.join(' + ')}</div>`:''}
           ${S.edit?`<button class="btn-del-sm" style="font-size:10px;padding:2px 6px;margin-top:4px;" onclick="event.stopPropagation();openDjModal(${num})">✏️</button>`:''}
         </div>`;
@@ -741,8 +756,9 @@ function showDonjon(avId,num){
 
   // Header
   html+=`<div class="dj-header">
-    <div class="dj-num">Donjon ${num}</div>
+    <div class="dj-num">Donjon ${num}${dj.conte?' · '+dj.conte:''}</div>
     <div class="dj-title">${dj.titre}</div>
+    ${dj.theme?`<div style="font-size:12px;color:var(--purple);font-weight:700;margin-bottom:8px;">💡 ${dj.theme}</div>`:''}
     ${dj.intro?`<div class="dj-intro">${dj.intro}</div>`:''}
     ${reqNums?`<div class="dj-requires">
       <div style="font-size:11px;color:var(--text-dim);font-weight:600;">🔑 Prérequis :</div>
@@ -1014,6 +1030,8 @@ function openDjModal(num){
   f('dj-num').value=num||'';
   f('dj-num').disabled=!!dj;
   f('dj-titre').value=dj?dj.titre:'';
+  f('dj-conte').value=dj?(dj.conte||''):'';
+  f('dj-theme').value=dj?(dj.theme||''):'';
   f('dj-intro').value=dj?(dj.intro||''):'';
   f('dj-c1-nom').value=dj&&dj.c1?(dj.c1.nom||''):'';
   f('dj-c1-narration').value=dj&&dj.c1?(dj.c1.narration||''):'';
@@ -1041,6 +1059,8 @@ function saveDj(){
   const f=id=>document.getElementById(id).value;
   const dj={
     num,titre,
+    conte:f('dj-conte'),
+    theme:f('dj-theme'),
     intro:f('dj-intro'),
     c1:{nom:f('dj-c1-nom'),narration:f('dj-c1-narration'),apres:f('dj-c1-apres'),piochage:parseInt(document.getElementById('dj-c1-piochage').value)||1},
     c2:{nom:f('dj-c2-nom'),narration:f('dj-c2-narration'),enigme:f('dj-c2-enigme'),reponse:f('dj-c2-reponse'),apres:f('dj-c2-apres'),piochage:parseInt(document.getElementById('dj-c2-piochage').value)||1},
@@ -1132,7 +1152,52 @@ function closeModal(id){document.getElementById(id).classList.remove('visible');
 document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('visible');}));
 
 // ═══════════════════════════════════════════
-// IMPORT JSON
+// EXPORT / IMPORT GLOBAL AVENTURE
+// ═══════════════════════════════════════════
+function exportAventure(){
+  const data=getData();
+  const av=data.aventures.find(a=>a.id===S.avId);
+  if(!av){alert('Aventure introuvable.');return;}
+  const json=JSON.stringify(av,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const safeName=av.nom.replace(/[^a-z0-9]/gi,'_').toLowerCase();
+  a.href=url;
+  a.download=`aventure_${safeName}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importAventureFile(input){
+  const file=input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const av=JSON.parse(e.target.result);
+      if(!av.nom||!av.id) throw new Error('"nom" et "id" requis');
+      const data=getData();
+      const idx=data.aventures.findIndex(a=>a.id===av.id);
+      if(idx!==-1){
+        if(!confirm(`L'aventure "${av.nom}" existe déjà. Écraser ?`)) return;
+        data.aventures[idx]=av;
+      } else {
+        data.aventures.push(av);
+      }
+      saveData(data);
+      alert(`✅ Aventure "${av.nom}" importée avec ${(av.donjons||[]).length} donjon(s).`);
+      showDonjons(av.id);
+    } catch(err){
+      alert('❌ JSON invalide : '+err.message);
+    }
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
+// ═══════════════════════════════════════════
+// IMPORT JSON DONJONS
 // ═══════════════════════════════════════════
 function openImportModal(){
   document.getElementById('import-json-input').value='';
@@ -1175,6 +1240,8 @@ function importDonjons(){
     const clean={
       num,
       titre:dj.titre||'',
+      conte:dj.conte||'',
+      theme:dj.theme||'',
       intro:dj.intro||'',
       c1:{nom:(dj.c1&&dj.c1.nom)||'',narration:(dj.c1&&dj.c1.narration)||'',apres:(dj.c1&&dj.c1.apres)||'',piochage:(dj.c1&&dj.c1.piochage)||1},
       c2:{nom:(dj.c2&&dj.c2.nom)||'',narration:(dj.c2&&dj.c2.narration)||'',enigme:(dj.c2&&dj.c2.enigme)||'',reponse:(dj.c2&&dj.c2.reponse)||'',apres:(dj.c2&&dj.c2.apres)||'',piochage:(dj.c2&&dj.c2.piochage)||1},
