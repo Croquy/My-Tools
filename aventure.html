@@ -252,8 +252,9 @@
     </div>
     <div id="av-scenario-zone"></div>
     <div id="dungeon-tree"></div>
-    <div id="btn-add-donjon" style="display:none;margin-top:12px;">
+    <div id="btn-add-donjon" style="display:none;margin-top:12px;gap:10px;flex-wrap:wrap;">
       <button class="btn" onclick="openDjModal(null)">+ Nouveau donjon</button>
+      <button class="btn secondary" onclick="openImportModal()">⬆️ Importer JSON</button>
     </div>
   </div>
 
@@ -407,6 +408,33 @@
     <div class="modal-actions">
       <button class="btn secondary" onclick="closeModal('modal-loot')">Annuler</button>
       <button class="btn" onclick="saveLoot()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import JSON -->
+<div class="modal-overlay" id="modal-import">
+  <div class="modal-card" style="max-width:560px;width:95%;">
+    <div class="modal-title">⬆️ Importer des donjons (JSON)</div>
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;line-height:1.6;">
+      Colle un objet <code style="color:var(--cyan);">{...}</code> ou un tableau <code style="color:var(--cyan);">[{...}, {...}]</code> de donjons.<br>
+      Les donjons existants avec le même numéro seront <strong style="color:var(--pink);">écrasés</strong>.
+    </p>
+    <textarea id="import-json-input" class="field" style="min-height:200px;font-family:monospace;font-size:12px;resize:vertical;" placeholder='[
+  {
+    "num": 2,
+    "titre": "Titre du donjon",
+    "intro": "...",
+    "c1": { "nom": "PNJ Combat", "narration": "...", "apres": "", "piochage": 1 },
+    "c2": { "nom": "PNJ Énigme", "narration": "...", "enigme": "...", "reponse": "...", "apres": "", "piochage": 1 },
+    "c3": { "nom": "PNJ Narratif", "narration": "...", "verite": "...", "apres": "" },
+    "fin": "..."
+  }
+]'></textarea>
+    <div id="import-feedback" style="font-size:12px;margin-top:8px;min-height:18px;"></div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeModal('modal-import')">Annuler</button>
+      <button class="btn" onclick="importDonjons()">Importer</button>
     </div>
   </div>
 </div>
@@ -647,7 +675,7 @@ function showDonjons(avId){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-donjons').classList.add('active');
   updateModeBtn();
-  document.getElementById('btn-add-donjon').style.display=S.edit?'':'none';
+  document.getElementById('btn-add-donjon').style.display=S.edit?'flex':'none';
 
   document.getElementById('av-scenario-zone').innerHTML=av.scenario
     ?`<div class="scenario-block"><div class="scenario-label">📜 Scénario</div>${av.scenario}</div>`:'';
@@ -1102,6 +1130,74 @@ function confirmDel(){if(S.delCb)S.delCb();S.delCb=null;closeModal('modal-confir
 function openModal(id){document.getElementById(id).classList.add('visible');}
 function closeModal(id){document.getElementById(id).classList.remove('visible');}
 document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('visible');}));
+
+// ═══════════════════════════════════════════
+// IMPORT JSON
+// ═══════════════════════════════════════════
+function openImportModal(){
+  document.getElementById('import-json-input').value='';
+  document.getElementById('import-feedback').textContent='';
+  openModal('modal-import');
+}
+
+function importDonjons(){
+  const raw=document.getElementById('import-json-input').value.trim();
+  const fb=document.getElementById('import-feedback');
+  if(!raw){fb.textContent='❌ Rien à importer.';fb.style.color='var(--pink)';return;}
+
+  let donjons;
+  try{
+    const parsed=JSON.parse(raw);
+    donjons=Array.isArray(parsed)?parsed:[parsed];
+  } catch(e){
+    fb.textContent='❌ JSON invalide : '+e.message;
+    fb.style.color='var(--pink)';
+    return;
+  }
+
+  // Validation basique
+  const invalid=donjons.filter(d=>!d.num||!d.titre);
+  if(invalid.length){
+    fb.textContent=`❌ ${invalid.length} donjon(s) sans "num" ou "titre".`;
+    fb.style.color='var(--pink)';
+    return;
+  }
+
+  const data=getData();
+  const av=data.aventures.find(a=>a.id===S.avId);
+  if(!av){fb.textContent='❌ Aventure introuvable.';fb.style.color='var(--pink)';return;}
+  if(!av.donjons) av.donjons=[];
+
+  let added=0, replaced=0;
+  donjons.forEach(dj=>{
+    const num=parseInt(dj.num);
+    const idx=av.donjons.findIndex(d=>d.num===num);
+    const clean={
+      num,
+      titre:dj.titre||'',
+      intro:dj.intro||'',
+      c1:{nom:(dj.c1&&dj.c1.nom)||'',narration:(dj.c1&&dj.c1.narration)||'',apres:(dj.c1&&dj.c1.apres)||'',piochage:(dj.c1&&dj.c1.piochage)||1},
+      c2:{nom:(dj.c2&&dj.c2.nom)||'',narration:(dj.c2&&dj.c2.narration)||'',enigme:(dj.c2&&dj.c2.enigme)||'',reponse:(dj.c2&&dj.c2.reponse)||'',apres:(dj.c2&&dj.c2.apres)||'',piochage:(dj.c2&&dj.c2.piochage)||1},
+      c3:{nom:(dj.c3&&dj.c3.nom)||'',narration:(dj.c3&&dj.c3.narration)||'',verite:(dj.c3&&dj.c3.verite)||'',apres:(dj.c3&&dj.c3.apres)||''},
+      fin:dj.fin||''
+    };
+    if(idx!==-1){av.donjons[idx]=clean;replaced++;}
+    else{av.donjons.push(clean);added++;}
+  });
+
+  // Trier par numéro
+  av.donjons.sort((a,b)=>a.num-b.num);
+  saveData(data);
+
+  const msg=`✅ Import réussi — ${added} ajouté(s), ${replaced} écrasé(s).`;
+  fb.textContent=msg;
+  fb.style.color='var(--mint)';
+
+  setTimeout(()=>{
+    closeModal('modal-import');
+    showDonjons(S.avId);
+  },1200);
+}
 
 // ═══════════════════════════════════════════
 // INIT
