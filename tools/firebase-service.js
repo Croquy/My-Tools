@@ -117,6 +117,64 @@ const FirestoreService = {
       console.warn('Erreur batchSet:', error);
       throw error;
     }
+  },
+
+  // ═══════════════════════════════════════
+  // AVENTURE - Gestion des données
+  // ═══════════════════════════════════════
+  async getAventureData() {
+    try {
+      const doc = await this.getDoc('aventure', 'data');
+      return doc || null;
+    } catch (error) {
+      console.warn('Erreur getAventureData:', error);
+      return null;
+    }
+  },
+
+  async saveAventureData(data) {
+    try {
+      await this.setDoc('aventure', 'data', {
+        aventures: data.aventures || [],
+        loots: data.loots || [],
+        rules: data.rules || [],
+        lastUpdated: new Date().toISOString()
+      });
+      return true;
+    } catch (error) {
+      console.warn('Erreur saveAventureData:', error);
+      throw error;
+    }
+  },
+
+  async saveAventure(aventureData) {
+    try {
+      await this.setDoc('aventure', `av_${aventureData.id}`, aventureData);
+      return true;
+    } catch (error) {
+      console.warn('Erreur saveAventure:', error);
+      throw error;
+    }
+  },
+
+  async getAventure(id) {
+    try {
+      const doc = await this.getDoc('aventure', `av_${id}`);
+      return doc || null;
+    } catch (error) {
+      console.warn('Erreur getAventure:', error);
+      return null;
+    }
+  },
+
+  async deleteAventure(id) {
+    try {
+      await this.deleteDoc('aventure', `av_${id}`);
+      return true;
+    } catch (error) {
+      console.warn('Erreur deleteAventure:', error);
+      throw error;
+    }
   }
 };
 

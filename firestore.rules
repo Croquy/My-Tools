@@ -32,6 +32,11 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Aventure (jeu de rôle)
+    match /aventure/{doc} {
+      allow read, write: if true;
+    }
+
     // Par défaut : refuser
     match /{document=**} {
       allow read: if false;

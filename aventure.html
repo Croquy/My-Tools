@@ -203,6 +203,10 @@
       .combat-stats{flex-wrap:wrap;}
     }
   </style>
+  <!-- Firebase & Service -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
+  <script src="tools/firebase-service.js"></script>
 </head>
 <body>
 <div class="page">
@@ -621,11 +625,98 @@ function buildDefaultRules(){
 }
 
 // ═══════════════════════════════════════════
-// STORAGE
+// STORAGE - Firebase + localStorage fallback
 // ═══════════════════════════════════════════
-function loadData(){try{const r=localStorage.getItem('av2');if(r)return JSON.parse(r);}catch(e){}return buildDefault();}
-function saveData(d){localStorage.setItem('av2',JSON.stringify(d));}
-function getData(){return loadData();}
+let aventureDataCache = null;
+let aventureDataInitialized = false;
+
+async function initFirebase() {
+  if (window.FirestoreService && !window.FirestoreService.initialized) {
+    try {
+      window.FirestoreService.init(window.firebaseConfig);
+      console.log('✅ Firebase initialisé pour Aventure');
+    } catch (e) {
+      console.warn('⚠️ Firebase non disponible:', e.message);
+    }
+  }
+}
+
+async function loadDataFromFirebase() {
+  try {
+    if (!window.FirestoreService || !window.FirestoreService.initialized) {
+      console.warn('Firebase non initialisé, utilisant localStorage');
+      return null;
+    }
+    
+    const data = await window.FirestoreService.getAventureData();
+    if (data) {
+      aventureDataCache = data;
+      aventureDataInitialized = true;
+      console.log('✅ Données Aventure chargées de Firebase');
+      return data;
+    }
+  } catch (e) {
+    console.warn('Erreur chargement Firebase:', e);
+  }
+  return null;
+}
+
+async function saveDataToFirebase(data) {
+  try {
+    if (!window.FirestoreService || !window.FirestoreService.initialized) {
+      console.warn('Firebase non initialisé, utilisant localStorage uniquement');
+      return false;
+    }
+    
+    await window.FirestoreService.saveAventureData(data);
+    aventureDataCache = data;
+    console.log('✅ Données Aventure sauvegardées sur Firebase');
+    return true;
+  } catch (e) {
+    console.warn('Erreur sauvegarde Firebase:', e);
+    return false;
+  }
+}
+
+function loadData() {
+  try {
+    // Tenter de charger depuis le cache Firebase
+    if (aventureDataCache) {
+      return aventureDataCache;
+    }
+    
+    // Sinon, charger depuis localStorage
+    const local = localStorage.getItem('av2');
+    if (local) {
+      aventureDataCache = JSON.parse(local);
+      return aventureDataCache;
+    }
+  } catch (e) {
+    console.warn('Erreur chargement données:', e);
+  }
+  
+  // Par défaut, retourner les données par défaut
+  return buildDefault();
+}
+
+function saveData(d) {
+  try {
+    // Toujours sauvegarder en localStorage comme backup
+    localStorage.setItem('av2', JSON.stringify(d));
+    aventureDataCache = d;
+    
+    // Tenter de sauvegarder sur Firebase en arrière-plan
+    if (window.FirestoreService && window.FirestoreService.initialized) {
+      saveDataToFirebase(d).catch(e => console.warn('Erreur sync Firebase:', e));
+    }
+  } catch (e) {
+    console.warn('Erreur sauvegarde données:', e);
+  }
+}
+
+function getData() {
+  return loadData();
+}
 
 // ═══════════════════════════════════════════
 // NAVIGATION
@@ -1434,8 +1525,21 @@ function printCartes(){
 // ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
-renderAventures();
-updateModeBtn();
+(async () => {
+  // Initialiser Firebase et charger les données
+  await initFirebase();
+  const fbData = await loadDataFromFirebase();
+  
+  // Si on a des données de Firebase, les charger en cache
+  if (fbData) {
+    aventureDataCache = fbData;
+  }
+  
+  // Afficher l'interface
+  renderAventures();
+  updateModeBtn();
+  console.log('🎮 Aventure app prête (Firebase enabled)');
+})();
 </script>
 </body>
 </html>
