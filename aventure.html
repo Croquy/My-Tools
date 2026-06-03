@@ -331,10 +331,7 @@
     <div class="edit-form">
       <div class="form-group"><label class="label-sm">Nom *</label><input type="text" class="field" id="av-nom"></div>
       <div class="form-group"><label class="label-sm">Scénario</label><textarea class="field" id="av-scenario" rows="4"></textarea></div>
-      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
-        <div class="section-title" style="margin-bottom:10px;font-size:12px;">🧩 Fragments de phrase (donjons 11–20)</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="fragments-edit-grid"></div>
-      </div>
+
     </div>
     <div class="modal-actions">
       <button class="btn secondary" onclick="closeModal('modal-av')">Annuler</button>
@@ -515,14 +512,9 @@ const S={
 // ═══════════════════════════════════════════
 // CONSTANTES
 // ═══════════════════════════════════════════
-// Les fragments sont stockés dans les données de l'aventure (av.fragments)
-// Valeurs par défaut si non définis
-const DEFAULT_FRAGMENTS={11:'Celui',12:'qui a kidnappé',13:'le Marchand',14:'de Sable',15:'voulait empêcher',16:'les enfants',17:'de dormir',18:"c'est une créature",19:'avec de grandes oreilles',20:'et une trompe'};
-function getFragments(){
-  const data=getData();
-  const av=data.aventures.find(a=>a.id===S.avId);
-  return (av&&av.fragments)||DEFAULT_FRAGMENTS;
-}
+// Fragments : objets de quête dans le codex (fragment_1 à fragment_10 = donjons 11–20)
+// Mapping donjon → index fragment
+const FRAGMENT_MAP={11:1,12:2,13:3,14:4,15:5,16:6,17:7,18:8,19:9,20:10};
 
 const PROGRESSION=[
   {label:'Niveau 1 — Libres',         nums:[1,2,3,4,5],           req:[null,null,null,null,null]},
@@ -540,7 +532,6 @@ function buildDefault(){
       id:'contes_fees',
       nom:'Le Royaume des Contes',
       scenario:"Plus personne ne peut dormir depuis une semaine. Le FBI vous a envoyé enquêter dans le Royaume des Contes de Fée pour découvrir pourquoi et qui a fait cela.",
-      fragments:{11:'Celui',12:'qui a kidnappé',13:'le Marchand',14:'de Sable',15:'voulait empêcher',16:'les enfants',17:'de dormir',18:"c'est une créature",19:'avec de grandes oreilles',20:'et une trompe'},
       donjons:[{
         num:1,
         titre:'Forêt du Petit Chaperon Déformé',
@@ -638,6 +629,17 @@ function buildDefaultLoots(){
     {id:'trefle_quatre',nom:'Trèfle à quatre feuilles',cat:'consommable',subcat:'chance',bonus:'Relance un dé',desc:"Impossible à trouver, impossible de rater."},
     {id:'potion_arc_en_ciel',nom:'Potion arc-en-ciel',cat:'consommable',subcat:'chance',bonus:'Relance un dé',desc:"Change la couleur du destin en une seconde."},
     {id:'des_truques',nom:'Dés truqués',cat:'consommable',subcat:'chance',bonus:'Relance un dé',desc:"Un seul usage — après ça, ils redeviennent normaux."},
+    // Fragments de phrase — loots des donjons 11 à 20
+    {id:'fragment_1', nom:'Fragment 1',  cat:'quete', bonus:'', desc:'Celui',                    from:11, unlock:[]},
+    {id:'fragment_2', nom:'Fragment 2',  cat:'quete', bonus:'', desc:'qui a kidnappé',            from:12, unlock:[]},
+    {id:'fragment_3', nom:'Fragment 3',  cat:'quete', bonus:'', desc:'le Marchand',               from:13, unlock:[]},
+    {id:'fragment_4', nom:'Fragment 4',  cat:'quete', bonus:'', desc:'de Sable',                  from:14, unlock:[]},
+    {id:'fragment_5', nom:'Fragment 5',  cat:'quete', bonus:'', desc:'voulait empêcher',          from:15, unlock:[]},
+    {id:'fragment_6', nom:'Fragment 6',  cat:'quete', bonus:'', desc:'les enfants',               from:16, unlock:[]},
+    {id:'fragment_7', nom:'Fragment 7',  cat:'quete', bonus:'', desc:'de dormir',                 from:17, unlock:[]},
+    {id:'fragment_8', nom:'Fragment 8',  cat:'quete', bonus:'', desc:"c'est une créature",        from:18, unlock:[]},
+    {id:'fragment_9', nom:'Fragment 9',  cat:'quete', bonus:'', desc:'avec de grandes oreilles',  from:19, unlock:[]},
+    {id:'fragment_10',nom:'Fragment 10', cat:'quete', bonus:'', desc:'et une trompe',             from:20, unlock:[]},
   ];
 }
 
@@ -736,20 +738,8 @@ function showDonjons(avId){
   updateModeBtn();
   document.getElementById('edit-toolbar').style.display=S.edit?'flex':'none';
 
-  document.getElementById('av-scenario-zone').innerHTML=(()=>{
-    let out='';
-    if(av.scenario) out+=`<div class="scenario-block"><div class="scenario-label">📜 Scénario</div>${av.scenario}</div>`;
-    // Fragments recap (toujours visible)
-    const frags=av.fragments||DEFAULT_FRAGMENTS;
-    const fragItems=[11,12,13,14,15,16,17,18,19,20]
-      .map(n=>frags[n]?`<span style="background:rgba(139,233,253,.08);border:1px solid rgba(139,233,253,.2);border-radius:8px;padding:3px 8px;font-size:11px;"><span style="color:var(--cyan);font-weight:700;">D${n}</span> ${frags[n]}</span>`:'')
-      .filter(Boolean).join(' ');
-    if(fragItems) out+=`<div style="margin-bottom:12px;padding:10px 14px;background:rgba(139,233,253,.04);border:1px solid rgba(139,233,253,.15);border-radius:12px;">
-      <div style="font-size:10px;color:var(--cyan);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">🧩 Fragments de phrase</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;">${fragItems}</div>
-    </div>`;
-    return out;
-  })();
+  document.getElementById('av-scenario-zone').innerHTML=av.scenario
+    ?`<div class="scenario-block"><div class="scenario-label">📜 Scénario</div>${av.scenario}</div>`:'';
 
   const djMap={};(av.donjons||[]).forEach(d=>djMap[d.num]=d);
   let html='<div class="dungeon-tree">';
@@ -804,7 +794,10 @@ function showDonjon(avId,num){
   // Loot quête de ce donjon
   const lootQ=data.loots.find(l=>l.cat==='quete'&&l.from===num);
 
-  const fragment=getFragments()[num]||null;
+  // Fragment = objet de quête "fragment_X" dont la description contient le mot
+  const fragIdx=FRAGMENT_MAP[num]||null;
+  const fragLoot=fragIdx?data.loots.find(l=>l.id==='fragment_'+fragIdx):null;
+  const fragment=fragLoot?fragLoot.desc:null;
   const c1=dj.c1||{};
   const c2=dj.c2||{};
   const c3=dj.c3||{};
@@ -892,9 +885,12 @@ function showDonjon(avId,num){
         <div class="spoil-answer verite-spoil-answer">${c3.verite}</div>
       </div>`:''}
       ${c3.apres?`<div class="chapitre-apres"><div class="chapitre-apres-label">— Après la découverte —</div><div class="chapter-narration">${c3.apres}</div></div>`:''} 
-      ${fragment?`<div class="fragment-box">
-        <div class="fragment-label">🧩 Fragment de phrase</div>
-        <div class="fragment-text">"${fragment}"</div>
+      ${fragLoot?`<div class="loot-narratif" style="background:linear-gradient(135deg,rgba(139,233,253,.08),rgba(189,147,249,.08));border-color:rgba(139,233,253,.3);">
+        <div class="loot-narratif-label" style="color:var(--cyan);">🧩 Fragment</div>
+        <div style="flex:1;">
+          <div class="loot-narratif-name">${fragLoot.nom}</div>
+          <div style="font-family:'Quicksand',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-top:4px;">"${fragLoot.desc}"</div>
+        </div>
       </div>`:''}
       ${lootQ?`<div class="loot-narratif">
         <div class="loot-narratif-label">🔑 Loot</div>
@@ -1069,14 +1065,6 @@ function openAvModal(id){
   document.getElementById('av-nom').value=av?av.nom:'';
   document.getElementById('av-scenario').value=av?(av.scenario||''):'';
   document.getElementById('modal-av-title').textContent=av?'Modifier':'Nouvelle aventure';
-  // Remplir la grille des fragments
-  const frags=av?(av.fragments||DEFAULT_FRAGMENTS):DEFAULT_FRAGMENTS;
-  const grid=document.getElementById('fragments-edit-grid');
-  grid.innerHTML=[11,12,13,14,15,16,17,18,19,20].map(n=>`
-    <div class="form-group">
-      <label class="label-sm" style="color:var(--cyan);">D${n}</label>
-      <input type="text" class="field" id="frag-${n}" value="${(frags[n]||'').replace(/"/g,'&quot;')}" placeholder="Fragment donjon ${n}">
-    </div>`).join('');
   openModal('modal-av');
 }
 
@@ -1084,19 +1072,12 @@ function saveAv(){
   const nom=document.getElementById('av-nom').value.trim();
   if(!nom) return alert('Nom requis');
   const data=getData();
-  // Lire les fragments
-  const frags={};
-  [11,12,13,14,15,16,17,18,19,20].forEach(n=>{
-    const el=document.getElementById('frag-'+n);
-    if(el) frags[n]=el.value.trim();
-  });
   if(S.editAvId){
     const av=data.aventures.find(a=>a.id===S.editAvId);
     av.nom=nom;
     av.scenario=document.getElementById('av-scenario').value;
-    av.fragments=frags;
   } else {
-    data.aventures.push({id:'av_'+Date.now(),nom,scenario:document.getElementById('av-scenario').value,donjons:[],fragments:frags});
+    data.aventures.push({id:'av_'+Date.now(),nom,scenario:document.getElementById('av-scenario').value,donjons:[]});
   }
   saveData(data);closeModal('modal-av');renderAventures();
 }
