@@ -30,8 +30,8 @@
     .dungeon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
     .dungeon-node{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all .2s;min-height:72px;display:flex;flex-direction:column;gap:3px;}
     .dungeon-node:hover{border-color:var(--purple);background:var(--purple-light);}
-    .dungeon-node.locked{opacity:.45;cursor:default;}
-    .dungeon-node.locked:hover{border-color:var(--border);background:var(--surface);transform:none;}
+    .dungeon-node.locked{opacity:.55;cursor:pointer;}
+    .dungeon-node.locked:hover{border-color:var(--pink);background:rgba(255,121,198,.06);}
     .dungeon-node.empty{border-style:dashed;opacity:.4;}
     .dungeon-node.empty:hover{opacity:.7;border-color:var(--pink);}
     .dungeon-num{font-size:10px;font-weight:700;color:var(--text-dim);font-family:'Quicksand',sans-serif;}
@@ -331,6 +331,10 @@
     <div class="edit-form">
       <div class="form-group"><label class="label-sm">Nom *</label><input type="text" class="field" id="av-nom"></div>
       <div class="form-group"><label class="label-sm">Scénario</label><textarea class="field" id="av-scenario" rows="4"></textarea></div>
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+        <div class="section-title" style="margin-bottom:10px;font-size:12px;">🧩 Fragments de phrase (donjons 11–20)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="fragments-edit-grid"></div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn secondary" onclick="closeModal('modal-av')">Annuler</button>
@@ -466,6 +470,24 @@
   </div>
 </div>
 
+<!-- Prérequis donjon -->
+<div class="modal-overlay" id="modal-prereq">
+  <div class="modal-card" style="max-width:380px;">
+    <div class="modal-title">🔑 Prérequis requis</div>
+    <p style="font-size:13px;color:var(--text-mid);margin-bottom:14px;line-height:1.6;">
+      Pour accéder à ce donjon, les joueurs doivent avoir :
+    </p>
+    <div id="prereq-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+    <p style="font-size:12px;color:var(--text-dim);font-style:italic;margin-bottom:14px;">
+      Les joueurs ont-ils ces objets sur leur fiche ?
+    </p>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeModal('modal-prereq')">Non, annuler</button>
+      <button class="btn" id="prereq-confirm-btn">✅ Oui, on les a !</button>
+    </div>
+  </div>
+</div>
+
 <!-- Confirm -->
 <div class="modal-overlay" id="modal-confirm">
   <div class="modal-card" style="max-width:340px;">
@@ -493,7 +515,14 @@ const S={
 // ═══════════════════════════════════════════
 // CONSTANTES
 // ═══════════════════════════════════════════
-const FRAGMENTS={11:'Celui',12:'qui a kidnappé',13:'le Marchand',14:'de Sable',15:'voulait empêcher',16:'les enfants',17:'de dormir',18:"c'est une créature",19:'avec de grandes oreilles',20:'et une trompe'};
+// Les fragments sont stockés dans les données de l'aventure (av.fragments)
+// Valeurs par défaut si non définis
+const DEFAULT_FRAGMENTS={11:'Celui',12:'qui a kidnappé',13:'le Marchand',14:'de Sable',15:'voulait empêcher',16:'les enfants',17:'de dormir',18:"c'est une créature",19:'avec de grandes oreilles',20:'et une trompe'};
+function getFragments(){
+  const data=getData();
+  const av=data.aventures.find(a=>a.id===S.avId);
+  return (av&&av.fragments)||DEFAULT_FRAGMENTS;
+}
 
 const PROGRESSION=[
   {label:'Niveau 1 — Libres',         nums:[1,2,3,4,5],           req:[null,null,null,null,null]},
@@ -511,6 +540,7 @@ function buildDefault(){
       id:'contes_fees',
       nom:'Le Royaume des Contes',
       scenario:"Plus personne ne peut dormir depuis une semaine. Le FBI vous a envoyé enquêter dans le Royaume des Contes de Fée pour découvrir pourquoi et qui a fait cela.",
+      fragments:{11:'Celui',12:'qui a kidnappé',13:'le Marchand',14:'de Sable',15:'voulait empêcher',16:'les enfants',17:'de dormir',18:"c'est une créature",19:'avec de grandes oreilles',20:'et une trompe'},
       donjons:[{
         num:1,
         titre:'Forêt du Petit Chaperon Déformé',
@@ -625,98 +655,11 @@ function buildDefaultRules(){
 }
 
 // ═══════════════════════════════════════════
-// STORAGE - Firebase + localStorage fallback
+// STORAGE
 // ═══════════════════════════════════════════
-let aventureDataCache = null;
-let aventureDataInitialized = false;
-
-async function initFirebase() {
-  if (window.FirestoreService && !window.FirestoreService.initialized) {
-    try {
-      window.FirestoreService.init(window.firebaseConfig);
-      console.log('✅ Firebase initialisé pour Aventure');
-    } catch (e) {
-      console.warn('⚠️ Firebase non disponible:', e.message);
-    }
-  }
-}
-
-async function loadDataFromFirebase() {
-  try {
-    if (!window.FirestoreService || !window.FirestoreService.initialized) {
-      console.warn('Firebase non initialisé, utilisant localStorage');
-      return null;
-    }
-    
-    const data = await window.FirestoreService.getAventureData();
-    if (data) {
-      aventureDataCache = data;
-      aventureDataInitialized = true;
-      console.log('✅ Données Aventure chargées de Firebase');
-      return data;
-    }
-  } catch (e) {
-    console.warn('Erreur chargement Firebase:', e);
-  }
-  return null;
-}
-
-async function saveDataToFirebase(data) {
-  try {
-    if (!window.FirestoreService || !window.FirestoreService.initialized) {
-      console.warn('Firebase non initialisé, utilisant localStorage uniquement');
-      return false;
-    }
-    
-    await window.FirestoreService.saveAventureData(data);
-    aventureDataCache = data;
-    console.log('✅ Données Aventure sauvegardées sur Firebase');
-    return true;
-  } catch (e) {
-    console.warn('Erreur sauvegarde Firebase:', e);
-    return false;
-  }
-}
-
-function loadData() {
-  try {
-    // Tenter de charger depuis le cache Firebase
-    if (aventureDataCache) {
-      return aventureDataCache;
-    }
-    
-    // Sinon, charger depuis localStorage
-    const local = localStorage.getItem('av2');
-    if (local) {
-      aventureDataCache = JSON.parse(local);
-      return aventureDataCache;
-    }
-  } catch (e) {
-    console.warn('Erreur chargement données:', e);
-  }
-  
-  // Par défaut, retourner les données par défaut
-  return buildDefault();
-}
-
-function saveData(d) {
-  try {
-    // Toujours sauvegarder en localStorage comme backup
-    localStorage.setItem('av2', JSON.stringify(d));
-    aventureDataCache = d;
-    
-    // Tenter de sauvegarder sur Firebase en arrière-plan
-    if (window.FirestoreService && window.FirestoreService.initialized) {
-      saveDataToFirebase(d).catch(e => console.warn('Erreur sync Firebase:', e));
-    }
-  } catch (e) {
-    console.warn('Erreur sauvegarde données:', e);
-  }
-}
-
-function getData() {
-  return loadData();
-}
+function loadData(){try{const r=localStorage.getItem('av2');if(r)return JSON.parse(r);}catch(e){}return buildDefault();}
+function saveData(d){localStorage.setItem('av2',JSON.stringify(d));}
+function getData(){return loadData();}
 
 // ═══════════════════════════════════════════
 // NAVIGATION
@@ -793,8 +736,20 @@ function showDonjons(avId){
   updateModeBtn();
   document.getElementById('edit-toolbar').style.display=S.edit?'flex':'none';
 
-  document.getElementById('av-scenario-zone').innerHTML=av.scenario
-    ?`<div class="scenario-block"><div class="scenario-label">📜 Scénario</div>${av.scenario}</div>`:'';
+  document.getElementById('av-scenario-zone').innerHTML=(()=>{
+    let out='';
+    if(av.scenario) out+=`<div class="scenario-block"><div class="scenario-label">📜 Scénario</div>${av.scenario}</div>`;
+    // Fragments recap (toujours visible)
+    const frags=av.fragments||DEFAULT_FRAGMENTS;
+    const fragItems=[11,12,13,14,15,16,17,18,19,20]
+      .map(n=>frags[n]?`<span style="background:rgba(139,233,253,.08);border:1px solid rgba(139,233,253,.2);border-radius:8px;padding:3px 8px;font-size:11px;"><span style="color:var(--cyan);font-weight:700;">D${n}</span> ${frags[n]}</span>`:'')
+      .filter(Boolean).join(' ');
+    if(fragItems) out+=`<div style="margin-bottom:12px;padding:10px 14px;background:rgba(139,233,253,.04);border:1px solid rgba(139,233,253,.15);border-radius:12px;">
+      <div style="font-size:10px;color:var(--cyan);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">🧩 Fragments de phrase</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">${fragItems}</div>
+    </div>`;
+    return out;
+  })();
 
   const djMap={};(av.donjons||[]).forEach(d=>djMap[d.num]=d);
   let html='<div class="dungeon-tree">';
@@ -805,7 +760,7 @@ function showDonjons(avId){
       const req=tier.req[i];
       const locked=req&&req!==null&&!S.edit;
       if(d){
-        html+=`<div class="dungeon-node${locked?' locked':''}" onclick="${locked?'':` showDonjon('${avId}',${num})`}">
+        html+=`<div class="dungeon-node${locked?' locked':''}" onclick="${locked?`openPrereqModal('${avId}',${num},[${req}])`:` showDonjon('${avId}',${num})`}">
           <div class="dungeon-num">Donjon ${num}</div>
           <div class="dungeon-name">${d.titre}</div>
           ${d.conte?`<div style="font-size:10px;color:var(--purple);font-style:italic;">${d.conte}</div>`:''}
@@ -849,7 +804,7 @@ function showDonjon(avId,num){
   // Loot quête de ce donjon
   const lootQ=data.loots.find(l=>l.cat==='quete'&&l.from===num);
 
-  const fragment=FRAGMENTS[num]||null;
+  const fragment=getFragments()[num]||null;
   const c1=dj.c1||{};
   const c2=dj.c2||{};
   const c3=dj.c3||{};
@@ -1114,6 +1069,14 @@ function openAvModal(id){
   document.getElementById('av-nom').value=av?av.nom:'';
   document.getElementById('av-scenario').value=av?(av.scenario||''):'';
   document.getElementById('modal-av-title').textContent=av?'Modifier':'Nouvelle aventure';
+  // Remplir la grille des fragments
+  const frags=av?(av.fragments||DEFAULT_FRAGMENTS):DEFAULT_FRAGMENTS;
+  const grid=document.getElementById('fragments-edit-grid');
+  grid.innerHTML=[11,12,13,14,15,16,17,18,19,20].map(n=>`
+    <div class="form-group">
+      <label class="label-sm" style="color:var(--cyan);">D${n}</label>
+      <input type="text" class="field" id="frag-${n}" value="${(frags[n]||'').replace(/"/g,'&quot;')}" placeholder="Fragment donjon ${n}">
+    </div>`).join('');
   openModal('modal-av');
 }
 
@@ -1121,11 +1084,19 @@ function saveAv(){
   const nom=document.getElementById('av-nom').value.trim();
   if(!nom) return alert('Nom requis');
   const data=getData();
+  // Lire les fragments
+  const frags={};
+  [11,12,13,14,15,16,17,18,19,20].forEach(n=>{
+    const el=document.getElementById('frag-'+n);
+    if(el) frags[n]=el.value.trim();
+  });
   if(S.editAvId){
     const av=data.aventures.find(a=>a.id===S.editAvId);
-    av.nom=nom;av.scenario=document.getElementById('av-scenario').value;
+    av.nom=nom;
+    av.scenario=document.getElementById('av-scenario').value;
+    av.fragments=frags;
   } else {
-    data.aventures.push({id:'av_'+Date.now(),nom,scenario:document.getElementById('av-scenario').value,donjons:[]});
+    data.aventures.push({id:'av_'+Date.now(),nom,scenario:document.getElementById('av-scenario').value,donjons:[],fragments:frags});
   }
   saveData(data);closeModal('modal-av');renderAventures();
 }
@@ -1255,6 +1226,29 @@ function askDel(type,id){
 }
 
 function confirmDel(){if(S.delCb)S.delCb();S.delCb=null;closeModal('modal-confirm');}
+
+// ═══════════════════════════════════════════
+// PRÉREQUIS DONJON
+// ═══════════════════════════════════════════
+function openPrereqModal(avId, num, reqNums){
+  const data = getData();
+  const list = document.getElementById('prereq-list');
+  list.innerHTML = reqNums.map(r => {
+    const loot = data.loots.find(l => l.cat === 'quete' && l.from === r);
+    return `<div style="display:flex;align-items:center;gap:10px;background:rgba(255,121,198,.06);border:1px solid rgba(255,121,198,.25);border-radius:10px;padding:10px 14px;">
+      <span style="font-size:18px;">🗝️</span>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);">${loot ? loot.nom : 'Objet du donjon ' + r}</div>
+        <div style="font-size:11px;color:var(--text-dim);">Loot du donjon ${r}</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('prereq-confirm-btn').onclick = () => {
+    closeModal('modal-prereq');
+    showDonjon(avId, num);
+  };
+  openModal('modal-prereq');
+}
 
 // ═══════════════════════════════════════════
 // MODALS
@@ -1526,16 +1520,9 @@ function printCartes(){
 // INIT
 // ═══════════════════════════════════════════
 (async () => {
-  // Initialiser Firebase et charger les données
   await initFirebase();
   const fbData = await loadDataFromFirebase();
-  
-  // Si on a des données de Firebase, les charger en cache
-  if (fbData) {
-    aventureDataCache = fbData;
-  }
-  
-  // Afficher l'interface
+  if (fbData) aventureDataCache = fbData;
   renderAventures();
   updateModeBtn();
   console.log('🎮 Aventure app prête (Firebase enabled)');
