@@ -300,7 +300,12 @@
 
   <!-- VUE : CODEX -->
   <div id="view-codex" class="view">
+    <div class="av-nav" style="margin-bottom:16px;">
+      <button class="av-tab active" id="ctab-loots" onclick="showCodexTab('loots')">🎁 Loots</button>
+      <button class="av-tab" id="ctab-cartes" onclick="showCodexTab('cartes')">🃏 Cartes</button>
+    </div>
     <div id="codex-content"></div>
+    <div id="codex-cartes-content" style="display:none;"></div>
     <div id="btn-add-loot" style="display:none;margin-top:16px;">
       <button class="btn" onclick="openLootModal()">+ Nouveau loot</button>
     </div>
@@ -477,7 +482,7 @@ const S={
   edit:false, view:'aventures',
   avId:null, djNum:null,
   diceSides:6, diceRolls:[],
-  delCb:null,
+  delCb:null, codexTab:'loots',
   editAvId:null, editLootId:null
 };
 
@@ -920,9 +925,19 @@ function renderCumul(){
 // ═══════════════════════════════════════════
 // CODEX
 // ═══════════════════════════════════════════
+function showCodexTab(tab){
+  S.codexTab=tab;
+  document.getElementById('codex-content').style.display=tab==='loots'?'':'none';
+  document.getElementById('codex-cartes-content').style.display=tab==='cartes'?'':'none';
+  document.getElementById('ctab-loots').classList.toggle('active',tab==='loots');
+  document.getElementById('ctab-cartes').classList.toggle('active',tab==='cartes');
+  document.getElementById('btn-add-loot').style.display=(S.edit&&tab==='loots')?'block':'none';
+  if(tab==='cartes') renderCartes();
+}
+
 function renderCodex(){
   const data=getData();
-  document.getElementById('btn-add-loot').style.display=S.edit?'block':'none';
+  document.getElementById('btn-add-loot').style.display=(S.edit&&S.codexTab==='loots')?'block':'none';
   const cats=[
     {key:'quete',  label:'🔑 Objets de quête', subs:null},
     {key:'arme',   label:'⚔️ Armes',            subs:null},
@@ -1282,6 +1297,138 @@ function importDonjons(){
     closeModal('modal-import');
     showDonjons(S.avId);
   },1200);
+}
+
+// ═══════════════════════════════════════════
+// CARTES À IMPRIMER
+// ═══════════════════════════════════════════
+const CAT_COLORS={
+  quete:  {border:'#ff79c6', bg:'rgba(255,121,198,.07)', label:'Objet de quête'},
+  arme:   {border:'#ff5555', bg:'rgba(255,85,85,.07)',   label:'Arme'},
+  armure: {border:'#bd93f9', bg:'rgba(189,147,249,.07)', label:'Armure'},
+  objet:  {border:'#8be9fd', bg:'rgba(139,233,253,.07)', label:'Objet'},
+  consommable:{border:'#50fa7b',bg:'rgba(80,250,123,.07)',label:'Consommable'},
+};
+
+function renderCartes(){
+  const data=getData();
+  const container=document.getElementById('codex-cartes-content');
+
+  // Barre d'actions
+  let html=`<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
+    <button class="btn" onclick="printCartes()">🖨️ Imprimer la sélection</button>
+    <button class="btn secondary" onclick="toggleAllCartes(true)">✅ Tout sélectionner</button>
+    <button class="btn secondary" onclick="toggleAllCartes(false)">☐ Tout désélectionner</button>
+    <span id="cartes-count" style="font-size:12px;color:var(--text-dim);"></span>
+  </div>`;
+
+  const cats=[
+    {key:'quete',label:'🔑 Objets de quête'},
+    {key:'arme',label:'⚔️ Armes'},
+    {key:'armure',label:'🛡️ Armures',subs:[{k:'corps',l:'Corps'},{k:'mains',l:'Mains'},{k:'pieds',l:'Pieds'}]},
+    {key:'objet',label:'🎒 Objets'},
+    {key:'consommable',label:'🧪 Consommables',subs:[{k:'force',l:'Force'},{k:'chance',l:'Chance'},{k:'indice',l:'Indice'}]},
+  ];
+
+  cats.forEach(cat=>{
+    const items=data.loots.filter(l=>l.cat===cat.key);
+    if(!items.length) return;
+    html+=`<div class="codex-section">
+      <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>${cat.label}</span>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-sm" style="font-size:11px;" onclick="toggleCatCartes('${cat.key}',true)">✅</button>
+          <button class="btn-sm" style="font-size:11px;" onclick="toggleCatCartes('${cat.key}',false)">☐</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+        ${items.map(l=>`
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:7px 12px;font-size:12px;transition:all .15s;" class="carte-toggle-label" data-id="${l.id}">
+            <input type="checkbox" class="carte-check" data-id="${l.id}" data-cat="${l.cat}" onchange="updateCartesCount()" style="accent-color:var(--purple);width:14px;height:14px;">
+            <span>${LOOT_ICONS[l.cat]||'📦'} ${l.nom}</span>
+          </label>`).join('')}
+      </div>
+    </div>`;
+  });
+
+  container.innerHTML=html;
+  updateCartesCount();
+}
+
+function updateCartesCount(){
+  const checked=document.querySelectorAll('.carte-check:checked').length;
+  const total=document.querySelectorAll('.carte-check').length;
+  document.getElementById('cartes-count').textContent=`${checked} / ${total} sélectionné(s)`;
+}
+
+function toggleAllCartes(val){
+  document.querySelectorAll('.carte-check').forEach(c=>{c.checked=val;});
+  updateCartesCount();
+}
+
+function toggleCatCartes(cat,val){
+  document.querySelectorAll(`.carte-check[data-cat="${cat}"]`).forEach(c=>{c.checked=val;});
+  updateCartesCount();
+}
+
+function printCartes(){
+  const data=getData();
+  const selected=[...document.querySelectorAll('.carte-check:checked')].map(c=>c.dataset.id);
+  if(!selected.length){alert('Sélectionne au moins une carte.');return;}
+  const loots=selected.map(id=>data.loots.find(l=>l.id===id)).filter(Boolean);
+
+  const cardsHtml=loots.map(l=>{
+    const c=CAT_COLORS[l.cat]||{border:'#ccc',bg:'#fff',label:l.cat};
+    return `<div class="print-card" style="border-color:${c.border};background:white;">
+      <div class="print-card-name">${l.nom}</div>
+      <div class="print-card-art"></div>
+      <div class="print-card-footer">
+        <span class="print-card-type" style="color:${c.border};">${c.label}</span>
+        <span class="print-card-bonus">${l.bonus||''}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Cartes</title>
+  <style>
+    @page{size:A4 portrait;margin:1cm;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:white;font-family:'Nunito',sans-serif;}
+    .cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:8px;}
+    .print-card{
+      border:3px solid #ccc;border-radius:12px;padding:10px;
+      width:100%;aspect-ratio:2.5/3.5;
+      display:flex;flex-direction:column;gap:0;
+      page-break-inside:avoid;
+      position:relative;
+      background:white;
+    }
+    .print-card-name{
+      font-family:'Quicksand',sans-serif;font-size:13px;font-weight:700;
+      text-align:center;padding:6px 4px 8px;
+      border-bottom:1px solid rgba(0,0,0,.1);
+      line-height:1.3;
+    }
+    .print-card-art{
+      flex:1;border:1px dashed rgba(0,0,0,.15);
+      border-radius:6px;margin:8px 4px;
+    }
+    .print-card-footer{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:6px 4px 2px;border-top:1px solid rgba(0,0,0,.1);
+      font-size:10px;font-weight:700;gap:4px;
+    }
+    .print-card-type{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+    .print-card-bonus{font-size:10px;color:#333;font-weight:700;text-align:right;}
+    @media print{body{margin:0;}}
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700&family=Nunito:wght@700&display=swap" rel="stylesheet">
+  </head><body>
+  <div class="cards-grid">${cardsHtml}</div>
+  <script>window.onload=()=>window.print();<\/script>
+  </body></html>`);
+  win.document.close();
 }
 
 // ═══════════════════════════════════════════
