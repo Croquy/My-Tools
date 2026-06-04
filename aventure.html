@@ -204,8 +204,8 @@
     }
   </style>
   <!-- Firebase & Service -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <script src="tools/firebase-service.js"></script>
 </head>
 <body>
@@ -509,6 +509,8 @@ const S={
   editAvId:null, editLootId:null
 };
 
+let aventureDataCache = null;
+
 // ═══════════════════════════════════════════
 // CONSTANTES
 // ═══════════════════════════════════════════
@@ -661,6 +663,14 @@ function buildDefaultRules(){
 // ═══════════════════════════════════════════
 function loadData(){try{const r=localStorage.getItem('av2');if(r)return JSON.parse(r);}catch(e){}return buildDefault();}
 function saveData(d){localStorage.setItem('av2',JSON.stringify(d));}
+function saveData(d){
+  try{ localStorage.setItem('av2',JSON.stringify(d)); }catch(e){ console.warn('Erreur stockage local saveData:', e); }
+  if(window.FirestoreService && FirestoreService.initialized){
+    try{
+      FirestoreService.saveAventureData(d).catch(err=>console.warn('Erreur sauvegarde Firebase (async):',err));
+    }catch(e){ console.warn('Erreur déclenchement sauvegarde Firebase:', e); }
+  }
+}
 function getData(){return loadData();}
 
 // ═══════════════════════════════════════════
@@ -1500,6 +1510,24 @@ function printCartes(){
 // ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
+
+async function initFirebase(){
+  if(!window.FirestoreService) return;
+  try{
+    if(window.firebaseConfig) FirestoreService.init(window.firebaseConfig);
+    await FirestoreService.loadAdminPassword();
+  }catch(e){ console.warn('Init Firebase aventure:', e); }
+}
+
+async function loadDataFromFirebase(){
+  if(!window.FirestoreService || !FirestoreService.initialized) return null;
+  try{
+    const doc = await FirestoreService.getAventureData();
+    if(doc) return doc;
+    return null;
+  }catch(e){ console.warn('Erreur lecture Firebase aventure:', e); return null; }
+
+}
 (async () => {
   await initFirebase();
   const fbData = await loadDataFromFirebase();
