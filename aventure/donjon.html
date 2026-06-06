@@ -1,0 +1,35 @@
+<div id="view-donjons" class="view active">
+  <div class="breadcrumb">
+    <span onclick="backToAventures()">🗺️ Aventures</span>
+    <span style="color:var(--text-dim);">›</span>
+    <span id="bc-av">Choisis une aventure</span>
+  </div>
+  <div id="av-scenario-zone"></div>
+  <div id="dungeon-tree"></div>
+  <div id="edit-toolbar" style="display:none;margin-bottom:16px;gap:8px;flex-wrap:wrap;align-items:center;">
+    <button class="btn" onclick="openDjModal(null)">+ Nouveau donjon</button>
+    <button class="btn secondary" onclick="openImportModal()">⬆️ Importer donjons</button>
+    <div style="width:1px;height:28px;background:var(--border);margin:0 4px;"></div>
+    <button class="btn secondary" onclick="exportAventure()">⬇️ Sauvegarder</button>
+    <label class="btn secondary" style="cursor:pointer;margin:0;">
+      ⬆️ Restaurer
+      <input type="file" accept=".json" style="display:none;" onchange="importAventureFile(this)">
+    </label>
+  </div>
+</div>
+
+<div id="view-donjon" class="view">
+  <div class="breadcrumb">
+    <span onclick="backToAventures()">🗺️ Aventures</span>
+    <span style="color:var(--text-dim);">›</span>
+    <span id="bc-av2" onclick="backToDj()">Choisis une aventure</span>
+    <span style="color:var(--text-dim);">›</span>
+    <span id="bc-dj">Choisis un donjon</span>
+  </div>
+  <div id="donjon-detail">
+    <div class="empty-state" style="padding:24px;">
+      <div class="empty-state-icon">🏰</div>
+      <p>Sélectionne un donjon depuis l’écran Aventures pour voir son détail ici.</p>
+    </div>
+  </div>
+</div>
