@@ -1,0 +1,13 @@
+<!-- Vue : codex des loots -->
+<div class="av-nav" style="margin-bottom:16px;">
+  <button class="av-tab active" id="ctab-loots"  onclick="showCodexTab('loots')">🎁 Loots</button>
+  <button class="av-tab"        id="ctab-cartes" onclick="showCodexTab('cartes')">🃏 Cartes</button>
+</div>
+
+<div id="codex-content"></div>
+
+<div id="codex-cartes-content" style="display:none;"></div>
+
+<div id="btn-add-loot" style="display:none;margin-top:16px;">
+  <button class="btn" onclick="openLootModal()">+ Nouveau loot</button>
+</div>

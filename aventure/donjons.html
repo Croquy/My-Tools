@@ -1,0 +1,21 @@
+<!-- Vue : arbre des donjons -->
+<div class="breadcrumb">
+  <span onclick="backToAventures()">🗺️ Aventures</span>
+  <span class="breadcrumb-sep">›</span>
+  <span id="bc-av" onclick="backToAventures()">—</span>
+</div>
+
+<div id="av-scenario-zone"></div>
+
+<div id="edit-toolbar" style="display:none;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
+  <button class="btn" onclick="openDjModal(null)">+ Nouveau donjon</button>
+  <button class="btn secondary" onclick="openImportModal()">⬆️ Importer donjons</button>
+  <div class="toolbar-sep"></div>
+  <button class="btn secondary" onclick="exportAventure()">⬇️ Sauvegarder</button>
+  <label class="btn secondary" style="cursor:pointer;margin:0;">
+    ⬆️ Restaurer
+    <input type="file" accept=".json" style="display:none;" onchange="importAventureFile(this)">
+  </label>
+</div>
+
+<div id="dungeon-tree"></div>

@@ -1,0 +1,22 @@
+<!-- Vue : lanceur de dés -->
+<div class="dice-container">
+
+  <div class="dice-selector">
+    <button class="dice-btn selected" data-sides="6"  onclick="selectDice(6)">d6</button>
+    <button class="dice-btn"          data-sides="10" onclick="selectDice(10)">d10</button>
+    <button class="dice-btn"          data-sides="20" onclick="selectDice(20)">d20</button>
+  </div>
+
+  <div class="dice-result-area" onclick="rollDice()">
+    <div class="dice-result-num" id="dice-num">—</div>
+    <div class="dice-result-label" id="dice-lbl">Clique pour lancer</div>
+  </div>
+
+  <div class="dice-cumul-wrap" id="dice-cumul-wrap" style="display:none;">
+    <table class="dice-cumul-table" id="dice-cumul-table"></table>
+    <div style="text-align:right;margin-top:8px;">
+      <button class="btn-sm" onclick="resetDice()">↺ Reset</button>
+    </div>
+  </div>
+
+</div>

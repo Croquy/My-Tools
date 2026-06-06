@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impression cartes — Aventure</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../aventure.css">
+  <script src="../aventure/app.js"></script>
+</head>
+<body style="background:white;padding:8px;">
+
+  <div class="print-toolbar no-print">
+    <h2 style="font-family:'Quicksand',sans-serif;font-size:16px;margin-bottom:12px;">🃏 Sélection des cartes à imprimer</h2>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+      <button class="btn" onclick="doPrint()">🖨️ Imprimer</button>
+      <button class="btn secondary" onclick="toggleAllCartes(true)">✅ Tout sélectionner</button>
+      <button class="btn secondary" onclick="toggleAllCartes(false)">☐ Tout désélectionner</button>
+      <span id="cartes-count" style="font-size:12px;color:#888;align-self:center;"></span>
+    </div>
+    <div id="cartes-selector"></div>
+  </div>
+
+  <div id="cards-grid" class="cards-grid print-only" style="display:none;"></div>
+
+  <script>
+    // Initialisation après chargement de app.js
+    window.addEventListener('DOMContentLoaded', async () => {
+      await initFirebase();
+      await loadDataFromFirebase();
+      renderPrintSelector();
+    });
+
+    function renderPrintSelector() {
+      const data = getData();
+      const cats = [
+        {key:'quete',       label:'🔑 Objets de quête'},
+        {key:'arme',        label:'⚔️ Armes'},
+        {key:'armure',      label:'🛡️ Armures',      subs:[{k:'corps',l:'Corps'},{k:'mains',l:'Mains'},{k:'pieds',l:'Pieds'}]},
+        {key:'objet',       label:'🎒 Objets'},
+        {key:'consommable', label:'🧪 Consommables', subs:[{k:'force',l:'Force'},{k:'chance',l:'Chance'},{k:'indice',l:'Indice'}]},
+      ];
+      const container = document.getElementById('cartes-selector');
+      container.innerHTML = cats.map(cat => {
+        const items = data.loots.filter(l => l.cat === cat.key);
+        if (!items.length) return '';
+        return `<div class="codex-section">
+          <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;">
+            <span>${cat.label}</span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn-sm" onclick="toggleCatCartes('${cat.key}',true)">✅</button>
+              <button class="btn-sm" onclick="toggleCatCartes('${cat.key}',false)">☐</button>
+            </div>
+          </div>
+          <div class="cartes-check-list">
+            ${items.map(l => `<label class="carte-toggle-label">
+              <input type="checkbox" class="carte-check" data-id="${l.id}" data-cat="${l.cat}" onchange="updateCartesCount()">
+              <span>${LOOT_ICONS[l.cat]||'📦'} ${l.nom}</span>
+            </label>`).join('')}
+          </div>
+        </div>`;
+      }).join('');
+      updateCartesCount();
+    }
+
+    function doPrint() {
+      const data     = getData();
+      const selected = [...document.querySelectorAll('.carte-check:checked')].map(c => c.dataset.id);
+      if (!selected.length) return alert('Sélectionne au moins une carte.');
+      const loots = selected.map(id => data.loots.find(l => l.id === id)).filter(Boolean);
+      const grid  = document.getElementById('cards-grid');
+      grid.innerHTML = loots.map(l => {
+        const c = CAT_COLORS[l.cat] || {border:'#ccc', label: l.cat};
+        return `<div class="print-card" style="border-color:${c.border};">
+          <div class="print-card-name">${l.nom}</div>
+          <div class="print-card-art"></div>
+          <div class="print-card-footer">
+            <span class="print-card-type" style="color:${c.border};">${c.label}</span>
+            <span class="print-card-bonus">${l.bonus || ''}</span>
+          </div>
+        </div>`;
+      }).join('');
+      grid.style.display = 'grid';
+      document.querySelector('.print-toolbar').style.display = 'none';
+      window.print();
+      // Restaurer après impression
+      setTimeout(() => {
+        grid.style.display = 'none';
+        document.querySelector('.print-toolbar').style.display = '';
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
