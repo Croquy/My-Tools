@@ -287,6 +287,32 @@
   </div>
 </div>
 
+<!-- Import loots JSON -->
+<div class="modal-overlay" id="modal-import-loots">
+  <div class="modal-card" style="max-width:520px;width:95%;">
+    <div class="modal-title">⬆️ Importer des loots (JSON)</div>
+    <p class="modal-hint">
+      Colle un tableau <code>[{...}]</code> de loots.<br>
+      Les loots existants avec le même <code>id</code> seront <strong>mis à jour</strong>, les nouveaux seront ajoutés.
+    </p>
+    <textarea id="import-loots-input" class="field" rows="10"
+      style="font-family:monospace;font-size:12px;resize:vertical;"
+      placeholder='[{ "id": "fil_narratif", "nom": "Fil narratif", "cat": "quete", "desc": "...", "bonus": "", "from": 1, "unlock": [12,16] }]'></textarea>
+    <div class="modal-import-or">
+      <span>ou</span>
+      <label class="btn secondary">
+        📁 Charger un fichier .json
+        <input type="file" accept=".json" style="display:none;" onchange="importLootsFile(this)">
+      </label>
+    </div>
+    <div id="import-loots-feedback" class="import-feedback"></div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeModal('modal-import-loots')">Annuler</button>
+      <button class="btn" onclick="importLoots()">Importer</button>
+    </div>
+  </div>
+</div>
+
 <!-- Confirmation suppression -->
 <div class="modal-overlay" id="modal-confirm">
   <div class="modal-card" style="max-width:340px;">

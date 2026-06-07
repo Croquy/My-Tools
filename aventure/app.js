@@ -605,6 +605,8 @@ function showCodexTab(tab) {
   document.getElementById('ctab-cartes')?.classList.toggle('active', tab === 'cartes');
   const btnAdd = document.getElementById('btn-add-loot');
   if (btnAdd) btnAdd.style.display = (S.edit && tab === 'loots') ? 'block' : 'none';
+  const btnExport = document.getElementById('btn-export-loots');
+  if (btnExport) btnExport.style.display = (S.edit && tab === 'loots') ? 'flex' : 'none';
   if (tab === 'cartes') renderCartes();
 }
 
@@ -614,6 +616,8 @@ function renderCodex() {
   const data = getData();
   const btnAdd = document.getElementById('btn-add-loot');
   if (btnAdd) btnAdd.style.display = (S.edit && S.codexTab === 'loots') ? 'block' : 'none';
+  const btnExport = document.getElementById('btn-export-loots');
+  if (btnExport) btnExport.style.display = (S.edit && S.codexTab === 'loots') ? 'flex' : 'none';
 
   const cats = [
     {key:'quete',       label:'🔑 Objets de quête',       subs:null},
@@ -883,6 +887,75 @@ function closeModal(id) { document.getElementById(id)?.classList.remove('visible
 document.addEventListener('click', e => {
   if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('visible');
 });
+
+// ═══════════════════════════════════════════
+// EXPORT / IMPORT LOOTS
+// ═══════════════════════════════════════════
+function exportLoots() {
+  const data = getData();
+  const blob = new Blob([JSON.stringify(data.loots, null, 2)], {type: 'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'loots.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function openImportLootsModal() {
+  document.getElementById('import-loots-input').value = '';
+  document.getElementById('import-loots-feedback').textContent = '';
+  openModal('modal-import-loots');
+}
+
+function importLootsFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('import-loots-input').value = e.target.result;
+    importLoots();
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+function importLoots() {
+  const raw = document.getElementById('import-loots-input').value.trim();
+  const fb  = document.getElementById('import-loots-feedback');
+  if (!raw) { fb.textContent = '❌ Rien à importer.'; fb.style.color = 'var(--pink)'; return; }
+
+  let loots;
+  try {
+    const parsed = JSON.parse(raw);
+    loots = Array.isArray(parsed) ? parsed : [parsed];
+  } catch(e) {
+    fb.textContent = '❌ JSON invalide : ' + e.message;
+    fb.style.color = 'var(--pink)';
+    return;
+  }
+
+  // Validation basique
+  const invalid = loots.filter(l => !l.id || !l.nom || !l.cat);
+  if (invalid.length) {
+    fb.textContent = `❌ ${invalid.length} loot(s) sans "id", "nom" ou "cat".`;
+    fb.style.color = 'var(--pink)';
+    return;
+  }
+
+  const data = getData();
+  let added = 0, replaced = 0;
+  loots.forEach(l => {
+    const idx = data.loots.findIndex(x => x.id === l.id);
+    if (idx !== -1) { data.loots[idx] = l; replaced++; }
+    else            { data.loots.push(l); added++; }
+  });
+
+  saveData(data);
+  fb.textContent = `✅ ${added} ajouté(s), ${replaced} mis à jour.`;
+  fb.style.color = 'var(--mint)';
+  setTimeout(() => { closeModal('modal-import-loots'); renderCodex(); }, 1200);
+}
 
 // ═══════════════════════════════════════════
 // EXPORT / IMPORT
