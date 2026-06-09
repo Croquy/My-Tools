@@ -73,7 +73,7 @@ button {
   margin: auto;
   display: flex;
   overflow: hidden;
-  position: relative;
+  position: relative; /* ← nécessaire pour les traits de coupe en absolute */
 }
 
 /* ─── Moitié gauche / droite ─── */
@@ -131,7 +131,6 @@ button {
 
 .todo-block { width: 35%; }
 
-/* Conteneur des deux thèmes — ils occupent tout l'espace disponible */
 .themes-block {
   width: 65%;
   display: flex;
@@ -139,7 +138,7 @@ button {
   gap: 8px;
 }
 
-.theme-box { flex: 1; } /* Orga et Équipe se partagent l'espace équitablement */
+.theme-box { flex: 1; }
 
 /* ── Bas : Pensées (fond pastel) ── */
 .bottom-section { height: 30%; }
@@ -198,7 +197,7 @@ button {
   font-size: 8px;
   text-align: center;
   opacity: 0.85;
-  padding: 2px 1px; /* minimal pour ne pas gaspiller d'espace */
+  padding: 2px 1px;
   white-space: nowrap;
 }
 
@@ -228,7 +227,6 @@ button {
   margin-bottom: 4px;
 }
 
-/* Nom du jour férié — entre le nom du jour et la date */
 .day-ferie-lbl {
   font-size: 10px;
   font-family: 'Handlee', cursive;
@@ -259,16 +257,13 @@ button {
   padding: 3px 0;
 }
 
-/* Séparateur entre semaine et week-end : bordure droite sur Vendredi */
 .calendar .weekday-last {
   border-right: 1.5px solid var(--accent);
   opacity: 0.9;
 }
 
-/* Cases de la semaine active */
 .active-week { background: var(--pastel); font-weight: bold; }
 
-/* Jour férié : fond accent coloré, texte blanc */
 .calendar .jour-ferie {
   background: var(--accent);
   color: white;
@@ -276,7 +271,6 @@ button {
   border-radius: 4px;
 }
 
-/* Vacances scolaires : texte souligné en accent */
 .calendar .vacance {
   text-decoration: underline;
   text-decoration-color: var(--accent);
@@ -284,10 +278,22 @@ button {
   font-style: italic;
 }
 
-/* ─── Format B6 : scale uniforme, tout se réduit proportionnellement ─── */
+/* ─── Format B6 ─── */
 body.fmt-b6 .page {
   transform-origin: top left;
-  /* scale calculé par JS : 250/297 ≈ 0.842 en largeur, 176/210 ≈ 0.838 en hauteur */
+}
+
+/* ─── Traits de coupe B6 (positionnés dans .page en absolute) ─── */
+#cropSvg {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 999;
+  overflow: visible;
 }
 
 /* ─── Impression ─── */
@@ -383,7 +389,7 @@ body.fmt-b6 .page {
 
     </div>
 
-    <!-- Milieu : Todo + Orga + Équipe (bloc vide supprimé) -->
+    <!-- Milieu : Todo + Orga + Équipe -->
     <div class="middle-section">
 
       <div class="block todo-block">
@@ -400,7 +406,6 @@ body.fmt-b6 .page {
           <div class="block-title small-title" id="labelTitre2">Équipe</div>
           <div class="write-lines"></div>
         </div>
-        <!-- Bloc sans nom supprimé -->
       </div>
 
     </div>
@@ -418,23 +423,21 @@ body.fmt-b6 .page {
   <!-- ── PAGE DROITE : jours de la semaine ── -->
   <div class="half right-page" id="daysContainer"></div>
 
+  <!-- ── Traits de coupe B6 — DANS la page (position absolute) ── -->
+  <svg id="cropSvg" xmlns="http://www.w3.org/2000/svg">
+    <line id="cropBottom" stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
+    <line id="cropRight"  stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
+  </svg>
+
 </div>
 
-
-<!-- Traits de coupe B6 — avant le script pour être trouvés par le JS -->
-<svg id="cropSvg" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;display:none;z-index:999;" xmlns="http://www.w3.org/2000/svg">
-  <line id="cropBottom" stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
-  <line id="cropRight"  stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
-</svg>
 
 <script>
 /* ════════════════════════════════
    THÈME COULEUR PAR SEMAINE
-   52 couleurs interpolées entre les 12 mois
-   (bleus hiver → verts printemps → roses été → violets automne)
 ════════════════════════════════ */
 const WEEK_THEMES = [
-  null, // index 0 non utilisé (semaines 1-52)
+  null,
   { accent: "#7FB7DF", pastel: "#E7EEF3" }, // S01
   { accent: "#81B3DD", pastel: "#E7EDF2" }, // S02
   { accent: "#83B0DB", pastel: "#E7EDF2" }, // S03
@@ -489,7 +492,6 @@ const WEEK_THEMES = [
   { accent: "#89C3C4", pastel: "#E9F0F0" }, // S52
 ];
 
-/* Applique le thème selon le numéro de semaine ISO */
 function applyWeekTheme(isoWeek) {
   const theme = WEEK_THEMES[isoWeek] || WEEK_THEMES[1];
   document.documentElement.style.setProperty('--accent', theme.accent);
@@ -547,8 +549,6 @@ function updateTodo() {
   const lines = document.getElementById("todoInput").value.split("\n");
   const container = document.getElementById("todoLines");
   container.innerHTML = "";
-
-  /* Affiche 9 lignes max (remplies ou vides) */
   for (let i = 0; i < 9; i++) {
     const div = document.createElement("div");
     div.className = "todo-line";
@@ -564,8 +564,6 @@ updateTodo();
 /* ════════════════════════════════
    UTILITAIRES DE DATES ISO
 ════════════════════════════════ */
-
-/** Retourne le numéro de semaine ISO d'une date */
 function getISOWeek(date) {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
@@ -574,7 +572,6 @@ function getISOWeek(date) {
   return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
 }
 
-/** Retourne le lundi d'une semaine ISO (année + n° semaine) */
 function getMondayFromISOWeek(year, weekNum) {
   const simple = new Date(year, 0, 1 + (weekNum - 1) * 7);
   const dow = simple.getDay();
@@ -583,7 +580,6 @@ function getMondayFromISOWeek(year, weekNum) {
   return monday;
 }
 
-/** Clé "YYYY-MM-DD" pour comparer des dates */
 function dateKey(y, m, d) {
   return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 }
@@ -591,11 +587,7 @@ function dateKey(y, m, d) {
 
 /* ════════════════════════════════
    JOURS FÉRIÉS FRANÇAIS
-   (11 jours fixes ou mobiles par an)
-   Couvre 2024, 2025, 2026, 2027
 ════════════════════════════════ */
-
-/** Calcule le dimanche de Pâques (algorithme de Butcher) */
 function easterSunday(year) {
   const a = year % 19, b = Math.floor(year/100), c = year % 100;
   const d = Math.floor(b/4), e = b % 4, f = Math.floor((b+8)/25);
@@ -603,36 +595,32 @@ function easterSunday(year) {
   const i = Math.floor(c/4), k = c % 4;
   const l = (32+2*e+2*i-h-k) % 7;
   const m = Math.floor((a+11*h+22*l)/451);
-  const month = Math.floor((h+l-7*m+114)/31) - 1; // 0-based
+  const month = Math.floor((h+l-7*m+114)/31) - 1;
   const day   = ((h+l-7*m+114) % 31) + 1;
   return new Date(year, month, day);
 }
 
-/** Retourne un Set de clés "YYYY-MM-DD" des jours fériés pour une année */
 function getHolidays(year) {
   const easter = easterSunday(year);
   const add = (date, days) => {
     const d = new Date(date); d.setDate(d.getDate() + days); return d;
   };
   const key = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-
   return new Set([
-    `${year}-01-01`, // Jour de l'An
-    key(add(easter, 1)),  // Lundi de Pâques
-    `${year}-05-01`, // Fête du travail
-    `${year}-05-08`, // Victoire 1945
-    key(add(easter, 39)), // Ascension
-    key(add(easter, 50)), // Lundi de Pentecôte
-    `${year}-07-14`, // Fête nationale
-    `${year}-08-15`, // Assomption
-    `${year}-11-01`, // Toussaint
-    `${year}-11-11`, // Armistice
-    `${year}-12-25`, // Noël
+    `${year}-01-01`,
+    key(add(easter, 1)),
+    `${year}-05-01`,
+    `${year}-05-08`,
+    key(add(easter, 39)),
+    key(add(easter, 50)),
+    `${year}-07-14`,
+    `${year}-08-15`,
+    `${year}-11-01`,
+    `${year}-11-11`,
+    `${year}-12-25`,
   ]);
 }
 
-
-/** Retourne une Map dateKey → libellé pour updateWeek */
 function getHolidayMap(year) {
   const easter = easterSunday(year);
   const add = (date, days) => {
@@ -656,27 +644,15 @@ function getHolidayMap(year) {
 
 
 /* ════════════════════════════════
-   VACANCES SCOLAIRES — API data.education.gouv.fr
-   On charge les périodes une seule fois par zone,
-   puis on les met en cache dans vacancesCache.
+   VACANCES SCOLAIRES — API
 ════════════════════════════════ */
-
-// Cache : { "A": [[start, end], ...], "B": [...], "C": [...] }
 const vacancesCache = {};
 
-/**
- * Charge depuis l'API officielle les périodes de vacances pour une zone.
- * Filtre sur "Élèves" uniquement (pas les enseignants).
- * Retourne un tableau de [startKey, endKey] en "YYYY-MM-DD".
- */
 async function fetchVacances(zone) {
-  if (vacancesCache[zone]) return vacancesCache[zone]; // déjà en cache
-
-  // Fenêtre : 1 an en arrière, 2 ans en avant
+  if (vacancesCache[zone]) return vacancesCache[zone];
   const from = new Date();
   from.setFullYear(from.getFullYear() - 1);
   const fromStr = from.toISOString().substring(0, 10) + "T00:00:00+01:00";
-
   const params = new URLSearchParams({
     where:    `zones="Zone ${zone}" and population="Élèves" and end_date>="${fromStr}"`,
     select:   "start_date,end_date",
@@ -684,11 +660,9 @@ async function fetchVacances(zone) {
     timezone: "Europe/Paris"
   });
   const url = `https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-calendrier-scolaire/records?${params}`;
-
   try {
     const res  = await fetch(url);
     const json = await res.json();
-    // L'API renvoie des dates ISO "2026-02-07T00:00:00+01:00" — on garde juste les 10 premiers chars
     const ranges = (json.results || []).map(r => [
       r.start_date.substring(0, 10),
       r.end_date.substring(0, 10)
@@ -701,7 +675,6 @@ async function fetchVacances(zone) {
   }
 }
 
-/** Retourne true si une date (objet Date) est dans une des plages */
 function isVacance(date, ranges) {
   const key = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
   return ranges.some(([start, end]) => key >= start && key <= end);
@@ -710,7 +683,6 @@ function isVacance(date, ranges) {
 
 /* ════════════════════════════════
    CALENDRIER MENSUEL MINIATURE
-   (async pour attendre les données API)
 ════════════════════════════════ */
 async function generateCalendar(mondayDate) {
   const months = [
@@ -725,10 +697,7 @@ async function generateCalendar(mondayDate) {
   const activeWeek = getISOWeek(mondayDate);
   const zone       = document.getElementById("zonePicker").value;
 
-  // Jours fériés (calcul local, pas d'API nécessaire)
-  const holidays = new Set([...getHolidays(year), ...getHolidays(year + 1)]);
-
-  // Vacances scolaires : chargées depuis l'API, mises en cache
+  const holidays  = new Set([...getHolidays(year), ...getHolidays(year + 1)]);
   const vacRanges = zone !== 'none' ? await fetchVacances(zone) : [];
 
   document.getElementById("calendarTitle").textContent = `${months[month]} ${year}`;
@@ -738,7 +707,6 @@ async function generateCalendar(mondayDate) {
   cal.innerHTML = "";
   cal.style.gridTemplateColumns = "min-content repeat(7, 1fr)";
 
-  /* En-têtes */
   const emptyHeader = document.createElement("div");
   emptyHeader.innerHTML = "&nbsp;";
   cal.appendChild(emptyHeader);
@@ -749,10 +717,8 @@ async function generateCalendar(mondayDate) {
     cal.appendChild(h);
   });
 
-  /* Rendu ligne par ligne (1 ligne = 1 semaine) */
   let day = 1 - startDay;
   while (day <= lastDay.getDate()) {
-    /* Numéro de semaine en début de ligne */
     const refDay  = day < 1 ? 1 : day;
     const refDate = new Date(year, month, refDay);
     const wNum    = document.createElement("div");
@@ -760,7 +726,6 @@ async function generateCalendar(mondayDate) {
     wNum.textContent = getISOWeek(refDate);
     cal.appendChild(wNum);
 
-    /* 7 cases */
     for (let col = 0; col < 7; col++, day++) {
       const div = document.createElement("div");
       if (day < 1 || day > lastDay.getDate()) {
@@ -769,16 +734,11 @@ async function generateCalendar(mondayDate) {
         const current = new Date(year, month, day);
         const dk      = dateKey(year, month, day);
         div.textContent = day;
-
         if (getISOWeek(current) === activeWeek) div.classList.add("active-week");
-        if (col === 4) div.classList.add("weekday-last"); // trait après vendredi
-
-        /* Jour férié → fond accent plein (priorité max) */
+        if (col === 4) div.classList.add("weekday-last");
         if (holidays.has(dk)) {
           div.classList.add("jour-ferie");
-        }
-        /* Vacances scolaires → italique souligné */
-        else if (zone !== 'none' && isVacance(current, vacRanges)) {
+        } else if (zone !== 'none' && isVacance(current, vacRanges)) {
           div.classList.add("vacance");
         }
       }
@@ -798,13 +758,9 @@ async function updateWeek() {
   const [year, weekStr] = val.split("-W");
   const monday = getMondayFromISOWeek(parseInt(year), parseInt(weekStr));
 
-  // Applique le thème de la semaine
   applyWeekTheme(parseInt(weekStr));
-
-  // Le calendrier attend l'API si nécessaire
   await generateCalendar(monday);
 
-  /* Dates + label férié sur chaque bloc jour */
   const yr   = monday.getFullYear();
   const hols = new Map([...getHolidayMap(yr), ...getHolidayMap(yr + 1)]);
 
@@ -812,12 +768,10 @@ async function updateWeek() {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
     dateSpans[i].textContent = `${d.getDate()}/${d.getMonth() + 1}`;
-
     const dk = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
     ferieSpans[i].textContent = hols.has(dk) ? hols.get(dk) : "";
   }
 
-  /* Week-end */
   const sat = new Date(monday); sat.setDate(monday.getDate() + 5);
   const sun = new Date(monday); sun.setDate(monday.getDate() + 6);
   dateSpans[5].textContent  = `${sat.getDate()} - ${sun.getDate()}/${sun.getMonth() + 1}`;
@@ -827,20 +781,21 @@ async function updateWeek() {
 document.getElementById("weekPicker").addEventListener("change", updateWeek);
 document.getElementById("zonePicker").addEventListener("change", updateWeek);
 
-/* ── Ouvre la vue mensuelle dans un nouvel onglet ── */
 function ouvrirMois() {
   const val  = document.getElementById("weekPicker").value;
   const zone = document.getElementById("zonePicker").value;
   if (!val) return;
   const [year, weekStr] = val.split("-W");
   const monday = getMondayFromISOWeek(parseInt(year), parseInt(weekStr));
-  // On transmet l'année et le mois du lundi de la semaine sélectionnée
   const mois = `${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,"0")}`;
   window.open(`agenda-mois.html?mois=${mois}&zone=${zone}`, "_blank");
 }
 
+
 /* ════════════════════════════════
-   GESTION DU FORMAT A5 / B6
+   FORMAT A5 / B6
+   Les traits sont dans .page (position:absolute)
+   → coordonnées relatives à la page, pas à l'écran
 ════════════════════════════════ */
 function applyFormat() {
   const fmt  = document.getElementById("formatPicker").value;
@@ -851,7 +806,6 @@ function applyFormat() {
   if (fmt === "B6") {
     body.classList.add("fmt-b6");
 
-    // Scale : on réduit la page A4 (297×210mm) au ratio B6×2 (250×176mm)
     const scaleX = 250 / 297;
     const scaleY = 176 / 210;
     const scale  = Math.min(scaleX, scaleY);
@@ -859,30 +813,31 @@ function applyFormat() {
     page.style.transform       = `scale(${scale})`;
     page.style.transformOrigin = "top left";
 
-    // Après le scale, on lit les vraies coordonnées écran via getBoundingClientRect
-    requestAnimationFrame(() => {
-      const rect = page.getBoundingClientRect();
+    // Dimensions internes de la page (avant scale, en px)
+    const pw = page.offsetWidth;
+    const ph = page.offsetHeight;
 
-      // Trait bas : à la hauteur réelle du bas de la page scalée
-      const lb = document.getElementById("cropBottom");
-      lb.setAttribute("x1", rect.left - 15);
-      lb.setAttribute("y1", rect.bottom);
-      lb.setAttribute("x2", rect.right + 15);
-      lb.setAttribute("y2", rect.bottom);
+    // Position des traits en coordonnées internes (= ratio B6/A4 × dimension page)
+    const cutW = (250 / 297) * pw;
+    const cutH = (176 / 210) * ph;
 
-      // Trait droit : à la largeur réelle du bord droit de la page scalée
-      const lr = document.getElementById("cropRight");
-      lr.setAttribute("x1", rect.right);
-      lr.setAttribute("y1", rect.top - 15);
-      lr.setAttribute("x2", rect.right);
-      lr.setAttribute("y2", rect.bottom + 15);
+    const lb = document.getElementById("cropBottom");
+    lb.setAttribute("x1", -15);
+    lb.setAttribute("y1", cutH);
+    lb.setAttribute("x2", cutW + 15);
+    lb.setAttribute("y2", cutH);
 
-      svg.style.display = "block";
+    const lr = document.getElementById("cropRight");
+    lr.setAttribute("x1", cutW);
+    lr.setAttribute("y1", -15);
+    lr.setAttribute("x2", cutW);
+    lr.setAttribute("y2", cutH + 15);
 
-      // Compense l'espace laissé par le scale dans le flux
-      page.parentElement.style.paddingBottom =
-        (page.offsetHeight * (1 - scale)) + "px";
-    });
+    svg.style.display = "block";
+
+    // Compense l'espace laissé vide par le scale dans le flux
+    page.parentElement.style.paddingBottom =
+      (page.offsetHeight * (1 - scale)) + "px";
 
   } else {
     body.classList.remove("fmt-b6");
@@ -893,8 +848,8 @@ function applyFormat() {
   }
 }
 
-// Init format A5 par défaut
 applyFormat();
+
 
 /* ════════════════════════════════
    TITRES DES BLOCS (localStorage)

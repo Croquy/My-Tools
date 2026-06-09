@@ -63,6 +63,7 @@ body {
   margin: 0 auto;
   display: flex;
   overflow: hidden;
+  position: relative; /* ← nécessaire pour les traits de coupe en absolute */
 }
 
 /* ─── Chaque moitié = A5 portrait ─── */
@@ -74,7 +75,7 @@ body {
   flex-direction: column;
 }
 
-/* Séparateur central (pointillé, visible plié) */
+/* Séparateur central */
 .half-left {
   border-right: 1px dashed rgba(0,0,0,0.12);
 }
@@ -83,8 +84,6 @@ body {
 /* ════════════════════════════════
    MOITIÉ GAUCHE — CALENDRIER
 ════════════════════════════════ */
-
-/* ─── En-tête mois ─── */
 .month-title {
   font-family: 'Handlee', cursive;
   font-size: 22px;
@@ -95,7 +94,6 @@ body {
   flex-shrink: 0;
 }
 
-/* ─── Grille calendrier ─── */
 .cal-grid {
   flex: 1;
   display: grid;
@@ -125,7 +123,6 @@ body {
   opacity: 0.85;
 }
 
-/* ─── Case d'un jour ─── */
 .day-cell {
   border: 1px solid rgba(0,0,0,0.07);
   border-radius: 5px;
@@ -164,8 +161,6 @@ body {
 }
 
 
-
-
 /* ════════════════════════════════
    MOITIÉ DROITE — NOTES
 ════════════════════════════════ */
@@ -179,7 +174,6 @@ body {
   flex-shrink: 0;
 }
 
-/* Zone principale : 2 colonnes + bloc notes en bas */
 .notes-body {
   flex: 1;
   display: flex;
@@ -188,7 +182,6 @@ body {
   overflow: hidden;
 }
 
-/* Ligne du haut : col gauche (films/livres/jeux) + col droite (médical/dépenses) */
 .notes-cols {
   flex: 1;
   display: flex;
@@ -203,7 +196,6 @@ body {
   gap: 6px;
 }
 
-/* ─── Bloc générique (bordure arrondie) ─── */
 .bloc {
   border: var(--border);
   border-radius: 12px;
@@ -222,7 +214,6 @@ body {
   flex-shrink: 0;
 }
 
-/* Lignes réglées dans les blocs */
 .bloc-lines {
   flex: 1;
   background-image: repeating-linear-gradient(
@@ -233,7 +224,6 @@ body {
   );
 }
 
-/* ─── Bloc Notes (style Pensées) ─── */
 .bloc-notes {
   flex-shrink: 0;
   height: 28%;
@@ -255,16 +245,26 @@ body {
   );
 }
 
-/* Col gauche : 3 blocs égaux */
 .col-left .bloc  { flex: 1; }
-
-/* Col droite : 2 blocs égaux mais plus hauts */
 .col-right .bloc { flex: 1; }
 
 
-/* ─── Format B6 : scale uniforme ─── */
+/* ─── Format B6 ─── */
 body.fmt-b6 .page {
   transform-origin: top left;
+}
+
+/* ─── Traits de coupe B6 (positionnés dans .page en absolute) ─── */
+#cropSvg {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 999;
+  overflow: visible;
 }
 
 /* ─── Impression ─── */
@@ -272,9 +272,6 @@ body.fmt-b6 .page {
   body { background: white; padding: 0; }
   .controls { display: none; }
   .page { margin: 0; }
-
-  /* A5 : centré sur A4 */
-  body.fmt-a5 .page { margin: auto; }
   @page { size: A4 landscape; margin: 0; }
 }
 </style>
@@ -335,7 +332,6 @@ body.fmt-b6 .page {
 
     <div class="notes-body">
 
-      <!-- Ligne du haut : 2 colonnes -->
       <div class="notes-cols">
 
         <!-- Col gauche : Films · Livres · Jeux -->
@@ -375,18 +371,18 @@ body.fmt-b6 .page {
     </div>
   </div>
 
+  <!-- ── Traits de coupe B6 — DANS la page (position absolute) ── -->
+  <svg id="cropSvg" xmlns="http://www.w3.org/2000/svg">
+    <line id="cropBottom" stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
+    <line id="cropRight"  stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
+  </svg>
+
 </div>
 
 
-<!-- Traits de coupe B6 — avant le script pour être trouvés par le JS -->
-<svg id="cropSvg" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;display:none;z-index:999;" xmlns="http://www.w3.org/2000/svg">
-  <line id="cropBottom" stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
-  <line id="cropRight"  stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
-</svg>
-
 <script>
 /* ════════════════════════════════
-   PALETTES PAR MOIS (0 = janvier)
+   PALETTES PAR MOIS
 ════════════════════════════════ */
 const THEMES = [
   { accent: "#7FB8E0", pastel: "#EBF5FF" }, // Janvier
@@ -419,11 +415,9 @@ const moisParam  = urlParams.get("mois") || (() => {
 })();
 const zoneParam  = urlParams.get("zone") || "A";
 
-// Init pickers
 document.getElementById("moisPicker").value  = moisParam;
 document.getElementById("zonePicker").value  = zoneParam;
 
-/* ─── Fonction centrale : lit les pickers et reconstruit ─── */
 function getParams() {
   const mois = document.getElementById("moisPicker").value || moisParam;
   const z    = document.getElementById("zonePicker").value;
@@ -432,7 +426,7 @@ function getParams() {
 }
 
 function applyThemeAndTitles() {
-  const { year, month, zone } = getParams();
+  const { year, month } = getParams();
   const theme = THEMES[month];
   document.documentElement.style.setProperty("--accent", theme.accent);
   document.documentElement.style.setProperty("--pastel", theme.pastel);
@@ -444,7 +438,6 @@ function applyThemeAndTitles() {
 
 applyThemeAndTitles();
 
-// Relance tout quand on change mois ou zone
 document.getElementById("moisPicker").addEventListener("change", () => {
   applyThemeAndTitles();
   buildCalendar();
@@ -498,19 +491,15 @@ function getHolidays(y) {
   return map;
 }
 
-// holidayMap is built inside buildCalendar now
-
 
 /* ════════════════════════════════
    VACANCES SCOLAIRES — API
 ════════════════════════════════ */
 async function fetchVacances(z) {
   if (z === "none") return [];
-  // Fenêtre : 1 an en arrière, 2 ans en avant
   const from = new Date();
   from.setFullYear(from.getFullYear() - 1);
   const fromStr = from.toISOString().substring(0, 10) + "T00:00:00+01:00";
-
   const params = new URLSearchParams({
     where:    `zones="Zone ${z}" and population="Élèves" and end_date>="${fromStr}"`,
     select:   "start_date,end_date",
@@ -548,14 +537,14 @@ async function buildCalendar() {
 
   const firstDay = new Date(year, month, 1);
   const lastDay  = new Date(year, month+1, 0).getDate();
-  const startDow = (firstDay.getDay()+6) % 7; // 0=lundi
+  const startDow = (firstDay.getDay()+6) % 7;
   const nbRows   = Math.ceil((startDow + lastDay) / 7);
 
   grid.style.gridTemplateRows = `auto repeat(${nbRows}, 1fr)`;
 
   /* En-têtes colonnes */
-  grid.appendChild(document.createElement("div")); // vide au-dessus des numéros de semaine
-  DAYS_SHORT.forEach((d, i) => {
+  grid.appendChild(document.createElement("div"));
+  DAYS_SHORT.forEach(d => {
     const h = document.createElement("div");
     h.className   = "cal-col-header";
     h.textContent = d;
@@ -564,7 +553,6 @@ async function buildCalendar() {
 
   /* Lignes semaine */
   for (let row = 0; row < nbRows; row++) {
-    /* Numéro de semaine */
     const rowStart = row * 7 - startDow + 1;
     const refDate  = new Date(year, month, Math.max(1, rowStart));
     const wn       = document.createElement("div");
@@ -572,7 +560,6 @@ async function buildCalendar() {
     wn.textContent = getISOWeek(refDate);
     grid.appendChild(wn);
 
-    /* 7 cases */
     for (let col = 0; col < 7; col++) {
       const cellDay = row * 7 + col - startDow + 1;
       const cell    = document.createElement("div");
@@ -591,21 +578,17 @@ async function buildCalendar() {
           + (isVac            ? " vacance" : "")
           + (!isFer && isWE   ? " weekend" : "");
 
-        /* Numéro du jour */
         const num = document.createElement("div");
         num.className   = "day-num";
         num.textContent = cellDay;
         cell.appendChild(num);
 
-        /* Libellé férié */
         if (isFer) {
           const lbl = document.createElement("div");
           lbl.className   = "ferie-lbl";
           lbl.textContent = holidayMap.get(dk);
           cell.appendChild(lbl);
         }
-
-
       }
 
       grid.appendChild(cell);
@@ -616,15 +599,17 @@ async function buildCalendar() {
 /* ─── Navigation vers vue hebdomadaire ─── */
 function ouvrirAgenda() {
   const { mois, zone } = getParams();
-  // Ouvre agenda.html sur la semaine du 1er du mois
   const d = new Date(mois + "-01");
   const yr = d.getFullYear();
   const wk = String(getISOWeek(d)).padStart(2, "0");
   window.open(`agenda.html?week=${yr}-W${wk}&zone=${zone}`, "_blank");
 }
 
+
 /* ════════════════════════════════
-   GESTION DU FORMAT A5 / B6
+   FORMAT A5 / B6
+   Les traits sont dans .page (position:absolute)
+   → coordonnées relatives à la page, pas à l'écran
 ════════════════════════════════ */
 function applyFormat() {
   const fmt  = document.getElementById("formatPicker").value;
@@ -642,25 +627,30 @@ function applyFormat() {
     page.style.transform       = `scale(${scale})`;
     page.style.transformOrigin = "top left";
 
-    requestAnimationFrame(() => {
-      const rect = page.getBoundingClientRect();
+    // Dimensions internes de la page (avant scale, en px)
+    const pw = page.offsetWidth;
+    const ph = page.offsetHeight;
 
-      const lb = document.getElementById("cropBottom");
-      lb.setAttribute("x1", rect.left - 15);
-      lb.setAttribute("y1", rect.bottom);
-      lb.setAttribute("x2", rect.right + 15);
-      lb.setAttribute("y2", rect.bottom);
+    // Position des traits : ratio B6/A4 × dimension interne
+    const cutW = (250 / 297) * pw;
+    const cutH = (176 / 210) * ph;
 
-      const lr = document.getElementById("cropRight");
-      lr.setAttribute("x1", rect.right);
-      lr.setAttribute("y1", rect.top - 15);
-      lr.setAttribute("x2", rect.right);
-      lr.setAttribute("y2", rect.bottom + 15);
+    const lb = document.getElementById("cropBottom");
+    lb.setAttribute("x1", -15);
+    lb.setAttribute("y1", cutH);
+    lb.setAttribute("x2", cutW + 15);
+    lb.setAttribute("y2", cutH);
 
-      svg.style.display = "block";
-      page.parentElement.style.paddingBottom =
-        (page.offsetHeight * (1 - scale)) + "px";
-    });
+    const lr = document.getElementById("cropRight");
+    lr.setAttribute("x1", cutW);
+    lr.setAttribute("y1", -15);
+    lr.setAttribute("x2", cutW);
+    lr.setAttribute("y2", cutH + 15);
+
+    svg.style.display = "block";
+
+    page.parentElement.style.paddingBottom =
+      (page.offsetHeight * (1 - scale)) + "px";
 
   } else {
     body.classList.remove("fmt-b6");
@@ -671,8 +661,8 @@ function applyFormat() {
   }
 }
 
-// Init format A5 par défaut
 applyFormat();
+
 
 /* ════════════════════════════════
    TITRES DES BLOCS (localStorage)
@@ -699,8 +689,5 @@ function saveTitresMois() {
 loadTitresMois();
 buildCalendar();
 </script>
-</body>
-</html>
-
 </body>
 </html>
