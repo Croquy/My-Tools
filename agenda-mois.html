@@ -254,19 +254,6 @@ body.fmt-b6 .page {
   transform-origin: top left;
 }
 
-/* ─── Traits de coupe B6 (positionnés dans .page en absolute) ─── */
-#cropSvg {
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 999;
-  overflow: visible;
-}
-
 /* ─── Impression ─── */
 @media print {
   body { background: white; padding: 0; }
@@ -371,11 +358,6 @@ body.fmt-b6 .page {
     </div>
   </div>
 
-  <!-- ── Traits de coupe B6 — DANS la page (position absolute) ── -->
-  <svg id="cropSvg" xmlns="http://www.w3.org/2000/svg">
-    <line id="cropBottom" stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
-    <line id="cropRight"  stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
-  </svg>
 
 </div>
 
@@ -608,56 +590,22 @@ function ouvrirAgenda() {
 
 /* ════════════════════════════════
    FORMAT A5 / B6
-   Les traits sont dans .page (position:absolute)
-   → coordonnées relatives à la page, pas à l'écran
 ════════════════════════════════ */
 function applyFormat() {
   const fmt  = document.getElementById("formatPicker").value;
-  const body = document.body;
-  const svg  = document.getElementById("cropSvg");
   const page = document.getElementById("mainPage");
 
   if (fmt === "B6") {
-    body.classList.add("fmt-b6");
-
-    const scaleX = 250 / 297;
-    const scaleY = 176 / 210;
-    const scale  = Math.min(scaleX, scaleY);
-
+    document.body.classList.add("fmt-b6");
+    const scale = Math.min(250 / 297, 176 / 210);
     page.style.transform       = `scale(${scale})`;
     page.style.transformOrigin = "top left";
-
-    // Dimensions internes de la page (avant scale, en px)
-    const pw = page.offsetWidth;
-    const ph = page.offsetHeight;
-
-    // Position des traits : ratio B6/A4 × dimension interne
-    const cutW = (250 / 297) * pw;
-    const cutH = (176 / 210) * ph;
-
-    const lb = document.getElementById("cropBottom");
-    lb.setAttribute("x1", -15);
-    lb.setAttribute("y1", cutH);
-    lb.setAttribute("x2", cutW + 15);
-    lb.setAttribute("y2", cutH);
-
-    const lr = document.getElementById("cropRight");
-    lr.setAttribute("x1", cutW);
-    lr.setAttribute("y1", -15);
-    lr.setAttribute("x2", cutW);
-    lr.setAttribute("y2", cutH + 15);
-
-    svg.style.display = "block";
-
-    page.parentElement.style.paddingBottom =
-      (page.offsetHeight * (1 - scale)) + "px";
-
+    page.parentElement.style.paddingBottom = (page.offsetHeight * (1 - scale)) + "px";
   } else {
-    body.classList.remove("fmt-b6");
-    page.style.transform = "";
+    document.body.classList.remove("fmt-b6");
+    page.style.transform       = "";
     page.style.transformOrigin = "";
     page.parentElement.style.paddingBottom = "";
-    svg.style.display = "none";
   }
 }
 
