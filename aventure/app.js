@@ -135,33 +135,20 @@ function buildDefaultLoots() {
     {id:'carte_tresor',        nom:'Carte au trésor',          cat:'objet', bonus:'Aide narrative', desc:"Indique toujours ce qui est caché à proximité."},
     {id:'boussole_pirate',     nom:'Boussole pirate',          cat:'objet', bonus:'Aide narrative', desc:"Pointe vers ce que l'on désire vraiment."},
     {id:'medaillon_sacre',     nom:'Médaillon sacré',          cat:'objet', bonus:'Aide narrative', desc:"Protège des illusions et des mensonges."},
-    // Consommables — force
-    {id:'pomme_boost',         nom:'Pomme boost',              cat:'consommable', subcat:'force', bonus:'+2 à un jet', desc:"Une bouchée et la force décuple."},
-    {id:'potion_focus',        nom:'Potion focus',             cat:'consommable', subcat:'force', bonus:'+2 à un jet', desc:"Concentre l'esprit et le corps en un instant."},
-    {id:'ressort_reparateur',  nom:'Ressort réparateur',       cat:'consommable', subcat:'force', bonus:'+2 à un jet', desc:"Remonte le mécanisme interne du corps."},
-    {id:'fragment_etoile',     nom:'Fragment étoile',          cat:'consommable', subcat:'force', bonus:'+2 à un jet', desc:"Éclat de météorite qui booste temporairement."},
-    {id:'elixir_titan',        nom:'Élixir de titan',          cat:'consommable', subcat:'force', bonus:'+2 à un jet', desc:"Transforme brièvement celui qui le boit en titan."},
-    {id:'biscuit_magique',     nom:'Biscuit magique',          cat:'consommable', subcat:'force', bonus:'+2 à un jet', desc:"Une bouchée suffit à décupler les forces."},
-    {id:'herbe_vigueur',       nom:'Herbe de vigueur',         cat:'consommable', subcat:'force', bonus:'+2 à un jet', desc:"Herbe rare qui réveille les muscles endormis."},
-    {id:'poudre_colere',       nom:'Poudre de colère',         cat:'consommable', subcat:'force', bonus:'+2 à un jet', desc:"À inhaler — déclenche une fureur temporaire."},
+// Consommables — force
+    {id:'elixir_titan',    nom:'Élixir de titan',          cat:'consommable', subcat:'force', bonus:'+2 à un jet', desc:"Transforme brièvement celui qui le boit en titan."},
+    {id:'potion_focus',    nom:'Potion focus',             cat:'consommable', subcat:'force', bonus:'+2 à un jet', desc:"Concentre l'esprit et le corps en un instant."},
+    {id:'pomme_boost',     nom:'Pomme boost',              cat:'consommable', subcat:'force', bonus:'+2 à un jet', desc:"Une bouchée et la force décuple."},
     // Consommables — chance
-    {id:'bombe_fumee',         nom:'Bombe fumée',              cat:'consommable', subcat:'chance', bonus:'Relance un dé', desc:"Dans la confusion, une seconde chance."},
-    {id:'potion_sommeil',      nom:'Potion sommeil',           cat:'consommable', subcat:'chance', bonus:'Relance un dé', desc:"Endort la malchance le temps d'un jet."},
-    {id:'encre_magique',       nom:'Encre magique',            cat:'consommable', subcat:'chance', bonus:'Relance un dé', desc:"Réécrit le destin d'un seul trait."},
-    {id:'pierre_reconstruction',nom:'Pierre de reconstruction',cat:'consommable', subcat:'chance', bonus:'Relance un dé', desc:"Reconstruit le moment pour en changer l'issue."},
-    {id:'plume_chance',        nom:'Plume de chance',          cat:'consommable', subcat:'chance', bonus:'Relance un dé', desc:"Souffler dessus avant un jet porte bonheur."},
-    {id:'trefle_quatre',       nom:'Trèfle à quatre feuilles', cat:'consommable', subcat:'chance', bonus:'Relance un dé', desc:"Impossible à trouver, impossible de rater."},
-    {id:'potion_arc_en_ciel',  nom:'Potion arc-en-ciel',       cat:'consommable', subcat:'chance', bonus:'Relance un dé', desc:"Change la couleur du destin en une seconde."},
-    {id:'des_truques',         nom:'Dés truqués',              cat:'consommable', subcat:'chance', bonus:'Relance un dé', desc:"Un seul usage — après ça, ils redeviennent normaux."},
+    {id:'des_truques',     nom:'Dés truqués',              cat:'consommable', subcat:'chance', bonus:'Relance un dé', desc:"Un seul usage — après ça, ils redeviennent normaux."},
+    {id:'trefle_quatre',   nom:'Trèfle à quatre feuilles', cat:'consommable', subcat:'chance', bonus:'Relance un dé', desc:"Impossible à trouver, impossible de rater."},
+    {id:'encre_magique',   nom:'Encre magique',            cat:'consommable', subcat:'chance', bonus:'Relance un dé', desc:"Réécrit le destin d'un seul trait."},
+    // Consommables — soin
+    {id:'cookie_enchante', nom:'Cookie enchanté',          cat:'consommable', subcat:'soin', bonus:'Récupère tous ses PV', desc:"Un cookie doré aux pépites de lune — redonne toutes ses forces."},
+    {id:'gateau_arc_en_ciel', nom:'Gâteau arc-en-ciel',   cat:'consommable', subcat:'soin', bonus:'Récupère tous ses PV', desc:"Chaque couche d'une couleur différente, chacune guérit un peu plus."},
     // Consommables — indice
-    {id:'oeil_verite',         nom:'Œil de vérité',            cat:'consommable', subcat:'indice', bonus:'Aide sur une énigme', desc:"Voit à travers les apparences."},
-    {id:'poussiere_verite',    nom:'Poussière de vérité',      cat:'consommable', subcat:'indice', bonus:'Aide sur une énigme', desc:"Saupoudrée, révèle ce qui est caché."},
-    {id:'encens_revelateur',   nom:'Encens révélateur',        cat:'consommable', subcat:'indice', bonus:'Aide sur une énigme', desc:"Ses volutes dessinent la réponse."},
-    {id:'parfum_verite',       nom:'Parfum de vérité',         cat:'consommable', subcat:'indice', bonus:'Aide sur une énigme', desc:"Son odeur rend impossible le mensonge."},
-    {id:'marque_page_magique', nom:'Marque-page magique',      cat:'consommable', subcat:'indice', bonus:'Aide sur une énigme', desc:"Ouvre toujours à la bonne page."},
-    {id:'livre_secret',        nom:'Livre secret',             cat:'consommable', subcat:'indice', bonus:'Aide sur une énigme', desc:"Contient les réponses à toutes les questions."},
-    {id:'fil_ariane',          nom:"Fil d'Ariane",             cat:'consommable', subcat:'indice', bonus:'Aide sur une énigme', desc:"Guide vers la sortie du labyrinthe."},
-    {id:'carte_labyrinthe',    nom:'Carte du labyrinthe',      cat:'consommable', subcat:'indice', bonus:'Aide sur une énigme', desc:"Révèle la structure cachée de toute énigme."},
+    {id:'oeil_verite',     nom:'Œil de vérité',            cat:'consommable', subcat:'indice', bonus:'Aide sur une énigme', desc:"Voit à travers les apparences."},
+    {id:'encens_revelateur', nom:'Encens révélateur',      cat:'consommable', subcat:'indice', bonus:'Aide sur une énigme', desc:"Ses volutes dessinent la réponse."},
   ];
 }
 
@@ -173,7 +160,7 @@ function buildDefaultRules() {
     {id:'enigmes',     titre:'🧩 Énigmes',               corps:"Le MJ lit l'énigme à voix haute. Les joueurs proposent une réponse.\nLe bouton spoil permet au MJ de vérifier discrètement."},
     {id:'narratif',    titre:'📖 Narratif',              corps:"Les PNJ narratifs donnent des informations ou révèlent une vérité.\nLe MJ dialogue jusqu'à ce que les joueurs arrivent à la vérité (visible MJ seulement)."},
     {id:'progression', titre:'🗺️ Progression',          corps:"- D1–5 : Libres. Lootent un objet de quête.\n- D6–10 : 1 objet requis.\n- D11–19 : 2 objets requis. Lootent des fragments de phrase.\n- D20 : Boss final. La phrase révèle le coupable."},
-    {id:'loots',       titre:'🎁 Loots',                 corps:"🔑 Quête : clés pour débloquer des donjons\n⚔️ Armes : +1d6 attaque (1 seule)\n🛡️ Armures : -1 dégât par pièce\n🎒 Objets : aide narrative\n🧪 Consommables : Force (+2), Chance (relance), Indice (aide énigme)"},
+    {id:'loots', titre:'🎁 Loots', corps:"🔑 Quête : clés pour débloquer des donjons\n⚔️ Armes : +1d6 attaque (1 seule)\n🛡️ Armures : -1 dégât par pièce\n🎒 Objets : aide narrative\n🧪 Consommables : Force (+2 jet), Chance (relance dé), Soin (récupère PV), Indice (aide énigme)"},
     {id:'des',         titre:'🎲 Dés en voiture',        corps:"Remplace les dés par des pochettes de pions 1–6.\nOu utilise l'onglet 🎲 Dés de l'application."},
   ];
 }
@@ -221,10 +208,11 @@ async function saveDataToFirebase(data) {
 // ═══════════════════════════════════════════
 function migrateData(data) {
   if (!data || !data.loots) return data;
+  const deleted = data.deletedLoots || [];
   const defaults = buildDefaultLoots();
   let changed = false;
   defaults.forEach(dl => {
-    if (!data.loots.find(l => l.id === dl.id)) {
+    if (!data.loots.find(l => l.id === dl.id) && !deleted.includes(dl.id)) {
       data.loots.push(dl);
       changed = true;
     }
@@ -232,12 +220,9 @@ function migrateData(data) {
   if (changed) {
     data.updatedAt = Date.now();
     localStorage.setItem('av2', JSON.stringify(data));
-    console.log('✅ Migration loots appliquée — upload Firebase requis');
-    // Upload vers Firebase en arrière-plan
     if (window.FirestoreService && window.FirestoreService.initialized) {
-      saveDataToFirebase(data).then(() => {
-        console.log('✅ Migration synchronisée sur Firebase');
-      }).catch(e => console.warn('Erreur sync migration Firebase:', e));
+      saveDataToFirebase(data).then(() => console.log('✅ Migration synchronisée sur Firebase'))
+        .catch(e => console.warn('Erreur sync migration Firebase:', e));
     }
   }
   return data;
@@ -819,7 +804,7 @@ function updateLootFields() {
   sg.style.display = (cat === 'armure' || cat === 'consommable') ? '' : 'none';
   const sel = document.getElementById('lt-subcat');
   if (cat === 'armure')      sel.innerHTML = '<option value="corps">Corps</option><option value="mains">Mains</option><option value="pieds">Pieds</option>';
-  else if (cat === 'consommable') sel.innerHTML = '<option value="force">Force</option><option value="chance">Chance</option><option value="indice">Indice</option>';
+  else if (cat === 'consommable') sel.innerHTML = '<option value="force">Force</option><option value="chance">Chance</option><option value="soin">Soin</option><option value="indice">Indice</option>';
 }
 
 function saveLoot() {
@@ -849,16 +834,20 @@ function askDel(type, id) {
     loot:     'Supprimer ce loot ?'
   };
   document.getElementById('confirm-msg').textContent = msgs[type] || 'Supprimer ?';
-  S.delCb = () => {
-    const data = getData();
-    if      (type === 'aventure') data.aventures = data.aventures.filter(a => a.id !== id);
-    else if (type === 'donjon')   { const av = data.aventures.find(a => a.id === S.avId); if (av) av.donjons = av.donjons.filter(d => d.num !== id); }
-    else if (type === 'loot')     data.loots = data.loots.filter(l => l.id !== id);
-    saveData(data);
-    if      (type === 'aventure') renderAventures();
-    else if (type === 'donjon')   showDonjons(S.avId);
-    else if (type === 'loot')     renderCodex();
-  };
+S.delCb = () => {
+  const data = getData();
+  if      (type === 'aventure') data.aventures = data.aventures.filter(a => a.id !== id);
+  else if (type === 'donjon')   { const av = data.aventures.find(a => a.id === S.avId); if (av) av.donjons = av.donjons.filter(d => d.num !== id); }
+  else if (type === 'loot')     {
+    data.loots = data.loots.filter(l => l.id !== id);
+    data.deletedLoots = data.deletedLoots || [];
+    if (!data.deletedLoots.includes(id)) data.deletedLoots.push(id);
+  }
+  saveData(data);
+  if      (type === 'aventure') renderAventures();
+  else if (type === 'donjon')   showDonjons(S.avId);
+  else if (type === 'loot')     renderCodex();
+};
   openModal('modal-confirm');
 }
 
