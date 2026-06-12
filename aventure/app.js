@@ -624,7 +624,14 @@ function renderCodex() {
     {key:'arme',        label:'⚔️ Armes',                  subs:null},
     {key:'armure',      label:'🛡️ Armures',                subs:[{k:'corps',l:'Corps'},{k:'mains',l:'Mains'},{k:'pieds',l:'Pieds'}]},
     {key:'objet',       label:'🎒 Objets (aide narrative)', subs:null},
-    {key:'consommable', label:'🧪 Consommables',           subs:[{k:'force',l:'Force (+2 jet)'},{k:'chance',l:'Chance (relance)'},{k:'indice',l:'Indice (aide énigme)'}]},
+   // renderCodex()
+{key:'consommable', label:'🧪 Consommables', subs:[
+  {k:'force',  l:'Force (+2 jet)'},
+  {k:'chance', l:'Chance (relance)'},
+  {k:'indice', l:'Indice (aide énigme)'},
+  {k:'soin',   l:'Soin (récupère PV)'}   // ← ajouter
+]}
+
   ];
 
   const container = document.getElementById('codex-content');
@@ -893,7 +900,19 @@ document.addEventListener('click', e => {
 // ═══════════════════════════════════════════
 function exportLoots() {
   const data = getData();
-  const blob = new Blob([JSON.stringify(data.loots, null, 2)], {type: 'application/json'});
+  const ordered = data.loots.map(l => ({
+    id:      l.id,
+    nom:     l.nom,
+    cat:     l.cat,
+    subcat:  l.subcat,
+    bonus:   l.bonus,
+    desc:    l.desc,
+    from:    l.from,
+    unlock:  l.unlock,
+  }));
+  // Nettoyer les clés undefined
+  const clean = ordered.map(l => Object.fromEntries(Object.entries(l).filter(([,v]) => v !== undefined)));
+  const blob = new Blob([JSON.stringify(clean, null, 2)], {type: 'application/json'});
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href     = url;
@@ -1077,7 +1096,12 @@ function renderCartes() {
     {key:'arme',        label:'⚔️ Armes'},
     {key:'armure',      label:'🛡️ Armures',      subs:[{k:'corps',l:'Corps'},{k:'mains',l:'Mains'},{k:'pieds',l:'Pieds'}]},
     {key:'objet',       label:'🎒 Objets'},
-    {key:'consommable', label:'🧪 Consommables', subs:[{k:'force',l:'Force'},{k:'chance',l:'Chance'},{k:'indice',l:'Indice'}]},
+{key:'consommable', label:'🧪 Consommables', subs:[
+  {k:'force',  l:'Force'},
+  {k:'chance', l:'Chance'},
+  {k:'indice', l:'Indice'},
+  {k:'soin',   l:'Soin'}   // ← ajouter
+]}
   ];
 
   const checkboxes = cats.map(cat => {
