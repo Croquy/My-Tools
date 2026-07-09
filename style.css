@@ -22,6 +22,8 @@
   --done-bg: rgba(255, 255, 255, 0.04);
   --daily-bg: rgba(189, 147, 249, 0.18);
   --lunch-bg: rgba(139, 233, 253, 0.10);
+  --yellow: #f1fa8c;
+--yellow-light: rgba(241, 250, 140, 0.15);
 }
 
 * {
@@ -1502,7 +1504,15 @@ body::after {
   box-shadow: 0 8px 24px rgba(139, 233, 253, 0.10);
 }
 .cat-projet .card-arrow { color: var(--cyan); }
-
+/* ── Jeu — menthe/jaune ── */
+.cat-jeu .category-icon { background: var(--yellow-light); }
+.cat-jeu .category-name { background-image: linear-gradient(135deg, var(--mint), var(--yellow)); }
+.cat-jeu .card:hover {
+  border-color: rgba(241, 250, 140, 0.45);
+  background: var(--yellow-light);
+  box-shadow: 0 8px 24px rgba(241, 250, 140, 0.12);
+}
+.cat-jeu .card-arrow { color: var(--yellow); }
 /* ── Responsive index ── */
 @media (max-width: 600px) {
   .cards-grid { grid-template-columns: 1fr 1fr; }
