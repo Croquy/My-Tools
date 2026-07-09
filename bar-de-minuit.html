@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le Bar de Minuit</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Nunito:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap');
+
+:root{
+  --bg: #150f18;
+  --panel: #241a29;
+  --brass: #b08d57;
+  --brass-dim: #6e5b3d;
+  --amber: #e8a33d;
+  --wine: #7a2740;
+  --cream: #f3ead9;
+  --cream-dim: #cbbfa8;
+  --glow: rgba(232,163,61,0.28);
+  --good: #7fb069;
+  --bad: #c24b4b;
+  --xp: #7fa8c9;
+}
+
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(ellipse at 50% 0%, #2a1d2e 0%, transparent 60%),
+    var(--bg);
+  color:var(--cream);
+  font-family:'Nunito', sans-serif;
+  display:flex;
+  justify-content:center;
+  padding:24px 16px 60px;
+}
+
+.app{ width:100%; max-width:720px; }
+
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  border-bottom:1px solid var(--brass-dim);
+  padding-bottom:14px;
+  margin-bottom:16px;
+  gap:12px;
+  flex-wrap:wrap;
+}
+header h1{
+  font-family:'Playfair Display', serif;
+  font-size:1.7rem;
+  margin:0;
+  letter-spacing:0.5px;
+}
+header h1 span{color:var(--amber);}
+.header-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:6px;
+  font-family:'IBM Plex Mono', monospace;
+}
+.header-line{display:flex; align-items:center; gap:12px;}
+.coins{font-size:1.1rem; color:var(--amber); font-weight:600;}
+.xp{font-size:0.85rem; color:var(--xp); font-weight:600;}
+.bank{font-size:0.78rem; color:var(--cream-dim);}
+
+.freeze-banner{
+  display:none;
+  text-align:center;
+  background:rgba(194,75,75,0.15);
+  border:1px solid var(--bad);
+  color:var(--bad);
+  padding:8px;
+  border-radius:8px;
+  margin-bottom:16px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.8rem;
+}
+.freeze-banner.show{ display:block; }
+
+.scene{
+  display:grid;
+  grid-template-columns: 1.1fr 0.9fr 0.45fr;
+  gap:18px;
+  margin-bottom:22px;
+  align-items:start;
+}
+@media (max-width:720px){ .scene{grid-template-columns:1fr;} }
+
+.ticket{
+  background:var(--cream);
+  color:#2b2320;
+  border-radius:3px;
+  padding:18px 18px 16px;
+  transform:rotate(-1deg);
+  box-shadow:0 10px 24px rgba(0,0,0,0.35);
+  position:relative;
+  font-family:'IBM Plex Mono', monospace;
+}
+.ticket::before{
+  content:''; position:absolute; top:-6px; left:20px; width:26px; height:12px;
+  background:var(--brass); border-radius:2px; transform:rotate(6deg); opacity:0.85;
+}
+.eyebrow{ font-size:0.65rem; letter-spacing:1.5px; text-transform:uppercase; color:#8a7c66; margin-bottom:4px; }
+.ticket-head{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+.ticket h2{ font-family:'Playfair Display', serif; font-size:1.3rem; margin:0 0 8px; }
+.price-tag{
+  background:var(--wine); color:var(--cream); font-size:0.72rem;
+  padding:3px 9px; border-radius:20px; white-space:nowrap; flex-shrink:0;
+}
+.shake-flag{
+  display:none; font-size:0.68rem; color:var(--wine); font-weight:700;
+  margin-bottom:6px;
+}
+.shake-flag.show{ display:inline-block; }
+.quote{ font-style:italic; font-size:0.85rem; color:#5a4f42; margin-bottom:12px; line-height:1.35; }
+.recipe-list{ font-size:0.8rem; line-height:1.7; border-top:1px dashed #b7a98d; padding-top:8px; }
+.recipe-list .line{ display:flex; justify-content:space-between; }
+.have-ok{color:var(--good);} .have-bad{color:var(--bad);} .have-neutral{color:#5a4f42;}
+
+.timerbar{ margin-top:12px; height:6px; background:#e2d8c2; border-radius:4px; overflow:hidden; }
+.timerfill{ height:100%; width:100%; background:linear-gradient(90deg, var(--amber), var(--wine)); transition:width 0.1s linear; }
+
+.serve-btn{
+  margin-top:14px; padding:12px 30px;
+  border:none; border-radius:10px;
+  background:linear-gradient(135deg, var(--amber), #c47c2e);
+  color:#231506; font-family:'Nunito', sans-serif; font-weight:800; font-size:0.95rem;
+  cursor:pointer; letter-spacing:0.3px; transition:transform 0.1s, filter 0.15s;
+}
+.serve-btn:hover:not(:disabled){ filter:brightness(1.08); transform:translateY(-1px); }
+.serve-btn:disabled{ opacity:0.35; cursor:not-allowed; transform:none; }
+
+.glass-zone{ display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; }
+.glass-zone::before{
+  content:''; position:absolute; width:220px; height:220px;
+  background:radial-gradient(circle, var(--glow) 0%, transparent 70%);
+  animation:pulse-glow 3.5s ease-in-out infinite; z-index:0;
+  pointer-events:none;
+}
+@keyframes pulse-glow{ 0%,100%{opacity:0.6; transform:scale(1);} 50%{opacity:1; transform:scale(1.08);} }
+
+.glass-wrap{ position:relative; z-index:1; }
+.glass-wrap.shaking{ animation:shake 0.55s ease-in-out; }
+@keyframes shake{
+  0%,100%{transform:rotate(0) translate(0,0);}
+  10%{transform:rotate(-9deg) translate(-5px,-2px);}
+  25%{transform:rotate(8deg) translate(5px,1px);}
+  40%{transform:rotate(-7deg) translate(-4px,2px);}
+  55%{transform:rotate(6deg) translate(4px,-2px);}
+  70%{transform:rotate(-5deg) translate(-3px,1px);}
+  85%{transform:rotate(3deg) translate(2px,0);}
+}
+
+.glass{ position:relative; overflow:hidden; border:2px solid var(--brass); background:rgba(255,255,255,0.03); box-shadow: inset 0 0 20px rgba(0,0,0,0.4); }
+.glass.tumbler{ width:150px; height:130px; clip-path: polygon(10% 0%, 90% 0%, 78% 100%, 22% 100%); }
+.glass.highball{ width:104px; height:196px; clip-path: polygon(16% 0%, 84% 0%, 90% 100%, 10% 100%); }
+.liquid{ position:absolute; bottom:0; left:0; width:100%; height:0%; background:#333; transition:height 0.35s ease, background-color 0.4s ease; }
+.liquid::before{ content:''; position:absolute; top:-3px; left:0; width:100%; height:8px; background:inherit; border-radius:50%; filter:brightness(1.2); animation:bob 2.2s ease-in-out infinite; }
+@keyframes bob{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(2px);} }
+.glass-shine{ position:absolute; top:0; left:12%; width:12%; height:100%; background:linear-gradient(to bottom, rgba(255,255,255,0.28), rgba(255,255,255,0)); pointer-events:none; }
+.bubbles{position:absolute; inset:0; pointer-events:none; overflow:hidden;}
+.bubble{ position:absolute; bottom:0; width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,0.55); animation:rise linear forwards; }
+@keyframes rise{ 0%{transform:translateY(0) scale(1); opacity:0.8;} 100%{transform:translateY(-120px) scale(0.4); opacity:0;} }
+
+.glass-caption{ margin-top:12px; font-size:0.75rem; color:var(--cream-dim); font-family:'IBM Plex Mono', monospace; text-align:center; min-height:18px; }
+
+.garnish-layer{ position:absolute; inset:0; pointer-events:none; z-index:2; }
+.garnish-icon{
+  position:absolute; font-size:22px;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+  animation:garnish-pop 0.4s ease;
+}
+@keyframes garnish-pop{
+  0%{ transform:scale(0) rotate(-20deg); opacity:0; }
+  100%{ transform:scale(1); opacity:1; }
+}
+
+.bonus-col{
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  padding-top:6px;
+}
+.bonus-col-label{
+  font-size:0.68rem; text-transform:uppercase; letter-spacing:1px;
+  color:var(--brass); font-family:'IBM Plex Mono', monospace; margin-bottom:2px;
+}
+.garnish-actions{ display:flex; flex-direction:column; gap:8px; align-items:center; }
+.garnish-btn{
+  width:38px; height:38px;
+  border-radius:50%;
+  border:1px solid var(--brass-dim);
+  background:var(--panel);
+  font-size:18px;
+  cursor:pointer;
+  transition:border-color 0.15s, transform 0.1s;
+}
+.garnish-btn:hover:not(:disabled){ border-color:var(--amber); transform:translateY(-2px); }
+.garnish-btn:disabled{ opacity:0.3; cursor:not-allowed; }
+.action-btn{
+  font-family:'Nunito', sans-serif; font-weight:700; font-size:0.82rem;
+  padding:9px 16px; border-radius:8px; border:1px solid var(--brass-dim);
+  background:var(--panel); color:var(--cream); cursor:pointer;
+  transition:transform 0.1s, border-color 0.15s;
+}
+.action-btn:hover:not(:disabled){ border-color:var(--amber); transform:translateY(-1px); }
+.action-btn:disabled{ opacity:0.35; cursor:not-allowed; }
+.action-btn.ghost{ opacity:0.9; }
+.action-btn.small{ padding:4px 10px; font-size:0.68rem; margin-left:10px; vertical-align:middle; }
+
+section.block{ margin-bottom:24px; }
+section.block h3{
+  font-family:'Playfair Display', serif; font-size:1.05rem; color:var(--brass);
+  margin:0 0 12px; letter-spacing:0.3px; border-bottom:1px solid var(--brass-dim); padding-bottom:6px;
+}
+
+.shelf{ display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr)); gap:10px; }
+.ing-btn{
+  position:relative; display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:10px 8px 8px; border-radius:10px; border:1px solid var(--brass-dim);
+  background:var(--panel); cursor:pointer; color:var(--cream);
+  font-family:'Nunito',sans-serif; transition:border-color 0.15s, transform 0.1s;
+}
+.ing-btn:hover{ transform:translateY(-2px); border-color:var(--amber); }
+.ing-btn .swatch{ width:26px; height:26px; border-radius:50%; border:1px solid rgba(255,255,255,0.25); box-shadow:0 0 8px rgba(0,0,0,0.3); }
+.ing-btn .label{ font-size:0.72rem; text-align:center; line-height:1.2; }
+.ing-btn .sub{ font-size:0.65rem; color:var(--cream-dim); }
+.ing-btn.locked{ opacity:0.55; }
+.ing-btn.full{ opacity:0.4; cursor:not-allowed; }
+.ing-btn.full .sub{ color:var(--bad); }
+.ing-btn.locked .swatch{ filter:grayscale(1) brightness(0.6); }
+.ing-btn.locked .sub{ color:var(--brass); }
+.ing-btn .badge{
+  position:absolute; top:-6px; right:-6px; background:var(--wine); color:var(--cream);
+  font-size:0.65rem; font-family:'IBM Plex Mono',monospace; padding:1px 6px; border-radius:10px;
+}
+.ing-btn.insufficient{ animation:nope 0.35s; }
+@keyframes nope{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-4px);} 75%{transform:translateX(4px);} }
+
+.tabs{ display:flex; gap:8px; margin-bottom:14px; }
+.tab-btn{
+  background:none; border:1px solid var(--brass-dim); color:var(--cream-dim);
+  padding:8px 16px; border-radius:8px 8px 0 0; cursor:pointer;
+  font-family:'Nunito',sans-serif; font-weight:700; font-size:0.8rem;
+}
+.tab-btn.active{ color:var(--amber); border-color:var(--amber); background:var(--panel); }
+
+.upgrades{ display:flex; flex-direction:column; gap:10px; }
+.upgrade-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background:var(--panel); border:1px solid var(--brass-dim); border-radius:10px; padding:10px 14px;
+}
+.upgrade-row .info .name{ font-weight:700; font-size:0.85rem; }
+.upgrade-row .info .desc{ font-size:0.72rem; color:var(--cream-dim); }
+.upgrade-row button{
+  font-family:'IBM Plex Mono', monospace; font-size:0.72rem; padding:8px 12px;
+  border-radius:6px; border:1px solid var(--amber); background:transparent; color:var(--amber);
+  cursor:pointer; white-space:nowrap;
+}
+.upgrade-row button:hover:not(:disabled){ background:rgba(232,163,61,0.12); }
+.upgrade-row button:disabled{ opacity:0.35; cursor:not-allowed; border-color:var(--brass-dim); color:var(--cream-dim); }
+
+.stats{ text-align:center; font-size:0.75rem; color:var(--cream-dim); font-family:'IBM Plex Mono', monospace; margin-bottom:16px; }
+
+.footer-reset{ text-align:center; }
+.reset-btn{
+  background:none; border:1px solid var(--brass-dim); color:var(--cream-dim);
+  font-size:0.72rem; padding:8px 14px; border-radius:6px; cursor:pointer;
+  font-family:'Nunito',sans-serif;
+}
+.reset-btn:hover{ border-color:var(--bad); color:var(--bad); }
+
+.toast{
+  position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--panel); border:1px solid var(--amber); color:var(--cream);
+  padding:10px 18px; border-radius:8px; font-size:0.85rem; opacity:0;
+  transition:opacity 0.25s, transform 0.25s; pointer-events:none; z-index:20;
+}
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+@media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important;} }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>Le Bar de <span>Minuit</span></h1>
+    <div class="header-right">
+      <div class="header-line">
+        <div class="coins">💰 <span id="coinsVal">0</span></div>
+        <div class="xp">⭐ <span id="xpVal">Niv. 0</span></div>
+      </div>
+      <div class="bank">🧊 <span id="bankVal">0s</span> de frigo</div>
+    </div>
+  </header>
+
+  <div class="freeze-banner" id="freezeBanner">⚠️ Panne du frigo — encore <span id="freezeSeconds">0</span>s</div>
+
+  <div class="scene">
+    <div class="ticket">
+      <div class="eyebrow">Commande en cours</div>
+      <div class="ticket-head">
+        <h2 id="orderName">—</h2>
+        <span class="price-tag" id="orderPrice"></span>
+      </div>
+      <span class="shake-flag" id="shakeFlag">🍸 à secouer</span>
+      <div class="quote" id="orderQuote">…</div>
+      <div class="recipe-list" id="recipeList"></div>
+      <div class="timerbar"><div class="timerfill" id="timerFill"></div></div>
+    </div>
+
+    <div class="glass-zone">
+      <div class="glass-wrap" id="glassWrap">
+        <div class="glass tumbler" id="glass">
+          <div class="liquid" id="liquid"></div>
+          <div class="bubbles" id="bubbles"></div>
+          <div class="glass-shine"></div>
+        </div>
+        <div class="garnish-layer" id="garnishLayer"></div>
+      </div>
+      <div class="glass-caption" id="glassCaption"></div>
+      <button class="serve-btn" id="serveBtn">✅ Servir</button>
+    </div>
+
+    <div class="bonus-col">
+      <div class="bonus-col-label">Finitions</div>
+      <button class="action-btn" id="shakeBtn">🍸 Secouer</button>
+      <div class="garnish-actions" id="garnishActions"></div>
+    </div>
+  </div>
+
+  <section class="block">
+    <h3>L'étagère <button class="action-btn ghost small" id="emptyBtn">🗑 Vider</button></h3>
+    <div class="shelf" id="shelf"></div>
+  </section>
+
+  <section class="block">
+    <h3>Progression</h3>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="skills">Compétences</button>
+      <button class="tab-btn" data-tab="recipes">Recettes</button>
+      <button class="tab-btn" data-tab="bonus">Bonus</button>
+    </div>
+    <div id="tabSkills" class="tab-panel"><div class="upgrades" id="upgrades"></div></div>
+    <div id="tabRecipes" class="tab-panel" style="display:none"><div class="upgrades" id="recipeShop"></div></div>
+    <div id="tabBonus" class="tab-panel" style="display:none"><div class="upgrades" id="bonusShop"></div></div>
+  </section>
+
+  <div class="stats" id="stats"></div>
+  <div class="footer-reset"><button class="reset-btn" id="resetBtn">réinitialiser la progression</button></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SAVE_KEY = 'bar_de_minuit_save_v3';
+const MAX_CAP = 8;
+const MAX_BANK = 600;
+
+const INGREDIENTS = [
+  {id:'rhum',    name:'Rhum ambré',     color:'#a8672b', cost:0},
+  {id:'citron',  name:'Citron vert',    color:'#c4d95a', cost:0},
+  {id:'sucre',   name:'Sirop de sucre', color:'#f3ecd9', cost:0},
+  {id:'menthe',  name:'Menthe fraîche', color:'#4c9a5b', cost:30},
+  {id:'soda',    name:'Eau gazeuse',    color:'#dff3f0', cost:50, fizzy:true},
+  {id:'grenadine',name:'Grenadine',     color:'#c22a3e', cost:70},
+  {id:'triplesec',name:'Triple sec',    color:'#e8b23d', cost:90},
+  {id:'cassis',  name:'Crème de cassis',color:'#4b1d4f', cost:110},
+  {id:'ananas',  name:"Jus d'ananas",   color:'#f0c93d', cost:130},
+  {id:'glace',   name:'Glace pilée',    color:'#cfeffd', cost:150, fizzy:true},
+];
+const ING_MAP = Object.fromEntries(INGREDIENTS.map(i=>[i.id,i]));
+
+const RECIPES = [
+  {id:'tipunch',  name:'Ti\u2019 Punch',    quote:"« Un p\u2019tit Ti\u2019 Punch, comme là-bas. »", glass:'tumbler', ing:{rhum:2,citron:1,sucre:1}, shaken:false, time:12, tip:15, cost:0, reqLevel:0},
+  {id:'daiquiri', name:'Daiquiri',      quote:"« Bien frappé, pas trop sucré. »", glass:'tumbler', ing:{rhum:3,citron:1,sucre:1}, shaken:true, time:14, tip:20, cost:0, reqLevel:0},
+  {id:'cubalibre',name:'Cuba Libre',    quote:"« Le classique, bien pétillant. »", glass:'highball', ing:{rhum:2,citron:1,soda:3}, shaken:false, time:14, tip:22, cost:50, reqLevel:1},
+  {id:'rhumgren', name:'Rhum-Grenadine',quote:"« Un truc coloré pour commencer. »", glass:'tumbler', ing:{rhum:2,grenadine:1,citron:1}, shaken:true, time:12, tip:24, cost:45, reqLevel:1},
+  {id:'mojito',   name:'Mojito',        quote:"« Avec beaucoup de menthe, s\u2019il vous plaît. »", glass:'highball', ing:{rhum:2,citron:1,sucre:1,menthe:2,soda:2}, shaken:false, time:18, tip:30, cost:60, reqLevel:2},
+  {id:'cassissoda',name:'Cassis Soda',  quote:"« Léger et bien frais. »", glass:'highball', ing:{cassis:2,soda:3}, shaken:false, time:12, tip:22, cost:55, reqLevel:2},
+  {id:'frappe',   name:'Rhum-Ananas Frappé', quote:"« Bien glacé, il fait chaud ce soir. »", glass:'tumbler', ing:{rhum:2,ananas:2,glace:2}, shaken:false, time:14, tip:28, cost:70, reqLevel:3},
+  {id:'planteur', name:'Planteur',      quote:"« Le plus fruité de la carte. »", glass:'highball', ing:{rhum:2,ananas:2,grenadine:1,citron:1}, shaken:true, time:16, tip:34, cost:90, reqLevel:4},
+  {id:'sunrise',  name:'Triple Sunrise',quote:"« Le dégradé, celui qu\u2019on voit sur les photos. »", glass:'highball', ing:{rhum:2,triplesec:1,ananas:2,grenadine:1}, shaken:true, time:18, tip:36, cost:100, reqLevel:5},
+];
+
+const STRAW_ICON = '<svg width="14" height="22" viewBox="0 0 14 22" style="vertical-align:middle"><rect x="4" y="0" width="6" height="22" rx="3" fill="#e2536b"/><rect x="4" y="3" width="6" height="3" fill="#fff"/><rect x="4" y="10" width="6" height="3" fill="#fff"/><rect x="4" y="17" width="6" height="3" fill="#fff"/></svg>';
+
+const GARNISH_POSITION = {
+  paille:   { top:'-18px', left:'58%', rotate:'18deg' },
+  ombrelle: { top:'-10px', left:'12%', rotate:'-12deg' },
+  rondelle: { top:'8px',   left:'40%', rotate:'0deg' },
+};
+
+const BONUS_ITEMS = [
+  {id:'shaker',   name:'Shaker',            icon:'🍸',       type:'shaken',  baseCost:250,  costScale:1.6, maxLevel:5},
+  {id:'paille',   name:'Paille',            icon:STRAW_ICON, type:'flat',    baseCost:625,  costScale:1.6, maxLevel:5},
+  {id:'ombrelle', name:'Ombrelle',          icon:'☂️',       type:'flat',    baseCost:1550, costScale:1.6, maxLevel:5},
+  {id:'rondelle', name:"Rondelle d'agrume", icon:'🍋',       type:'flat',    baseCost:3900, costScale:1.6, maxLevel:5},
+  {id:'tip',      name:'Pourboires',        icon:'💬',       type:'percent', baseCost:9750, costScale:1.6, maxLevel:null},
+];
+
+let state = {
+  coins: 15,
+  unlocked: {rhum:true, citron:true, sucre:true},
+  unlockedRecipes: {tipunch:true, daiquiri:true},
+  bonusLevels: {paille:0, tip:0, ombrelle:0, rondelle:0, shaker:0},
+  timeLevel: 0,
+  reserveLevel: 0,
+  passiveLevel: 0,
+  xpPassiveLevel: 0,
+  excuseTickets: 0,
+  excuseBought: 0,
+  xp: 0,
+  bankSeconds: 0,
+  freezeUntil: 0,
+  served: 0,
+  bestAccuracy: 0,
+};
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(raw){ state = Object.assign(state, JSON.parse(raw)); }
+  }catch(e){}
+}
+function saveState(){ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
+
+let currentOrder = null;
+let poured = {};
+let shakenDone = false;
+let garnishAdded = {paille:false, ombrelle:false, rondelle:false};
+let timeLeft = 0;
+let timeTotal = 0;
+let timerHandle = null;
+let fizzHandle = null;
+let orderLocked = false;
+
+const el = id => document.getElementById(id);
+
+function toast(msg){
+  const t = el('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._h);
+  toast._h = setTimeout(()=>t.classList.remove('show'), 2000);
+}
+
+function xpForLevel(n){ return Math.round(40 + (n-1)*35); }
+function levelFromXp(xp){
+  let level = 0, remaining = xp, need = xpForLevel(1);
+  while(remaining >= need){
+    remaining -= need;
+    level++;
+    need = xpForLevel(level+1);
+  }
+  return {level, remaining, need};
+}
+
+function applyFreezeOrConsumeTicket(ms, reason){
+  if(state.excuseTickets > 0){
+    state.excuseTickets--;
+    toast(`Ticket d'excuse utilisé — pas de panne (${reason}) !`);
+  }else{
+    state.freezeUntil = Math.max(state.freezeUntil, Date.now() + ms);
+    toast(`Frigo en panne ${Math.round(ms/1000)}s (${reason})`);
+  }
+  saveState();
+}
+
+function availableRecipes(){
+  return RECIPES.filter(r =>
+    state.unlockedRecipes[r.id] &&
+    Object.keys(r.ing).every(id => state.unlocked[id])
+  );
+}
+
+function pickOrder(){
+  const pool = availableRecipes();
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function timeForOrder(r){ return r.time + state.timeLevel*3; }
+
+function startNewOrder(){
+  orderLocked = false;
+  clearInterval(timerHandle);
+  clearInterval(fizzHandle);
+  currentOrder = pickOrder();
+  poured = {};
+  shakenDone = false;
+  garnishAdded = {paille:false, ombrelle:false, rondelle:false};
+  el('garnishLayer').innerHTML = '';
+  timeTotal = timeForOrder(currentOrder);
+  timeLeft = timeTotal;
+  el('glass').className = 'glass ' + currentOrder.glass;
+  updateGlassVisual();
+  renderOrder();
+  renderShelf();
+  refreshGlassDependentUI();
+  startTimer();
+}
+
+function startTimer(){
+  timerHandle = setInterval(()=>{
+    timeLeft -= 0.1;
+    if(timeLeft <= 0){
+      timeLeft = 0;
+      el('timerFill').style.width = '0%';
+      clearInterval(timerHandle);
+      const totalPoured = Object.values(poured).reduce((a,b)=>a+b,0);
+      if(totalPoured > 0){
+        serveOrder();
+      }else{
+        orderLocked = true;
+        el('serveBtn').disabled = true;
+        el('emptyBtn').disabled = true;
+        el('glassCaption').textContent = "🚪 Client parti — aucun gain";
+        renderAll();
+        setTimeout(startNewOrder, 700);
+      }
+      return;
+    }
+    el('timerFill').style.width = (timeLeft/timeTotal*100) + '%';
+  }, 100);
+}
+
+function renderOrder(){
+  el('orderName').textContent = currentOrder.name;
+  el('orderPrice').textContent = currentOrder.tip + ' 💰';
+  el('shakeFlag').classList.toggle('show', !!currentOrder.shaken);
+  el('orderQuote').textContent = currentOrder.quote;
+  const list = el('recipeList');
+  list.innerHTML = '';
+  Object.entries(currentOrder.ing).forEach(([id, qty])=>{
+    const have = poured[id]||0;
+    const cls = have === 0 ? 'have-neutral' : (have === qty ? 'have-ok' : 'have-bad');
+    const line = document.createElement('div');
+    line.className = 'line';
+    line.innerHTML = `<span>${ING_MAP[id].name}</span><span class="${cls}">${have} / ${qty}</span>`;
+    list.appendChild(line);
+  });
+  if(currentOrder.shaken){
+    const line = document.createElement('div');
+    line.className = 'line';
+    line.innerHTML = `<span>Secoué</span><span class="${shakenDone?'have-ok':'have-neutral'}">${shakenDone?'oui':'non'}</span>`;
+    list.appendChild(line);
+  }
+}
+
+function hexToRgb(hex){ const n = parseInt(hex.slice(1),16); return [(n>>16)&255, (n>>8)&255, n&255]; }
+function rgbToCss(rgb){ return `rgb(${rgb[0]|0},${rgb[1]|0},${rgb[2]|0})`; }
+
+function updateGlassVisual(){
+  const total = Object.values(poured).reduce((a,b)=>a+b,0);
+  const liquid = el('liquid');
+  if(total === 0){
+    liquid.style.height = '0%';
+    liquid.style.background = '#333';
+  }else{
+    let r=0,g=0,b=0;
+    Object.entries(poured).forEach(([id,qty])=>{
+      const [rr,gg,bb] = hexToRgb(ING_MAP[id].color);
+      r += rr*qty; g += gg*qty; b += bb*qty;
+    });
+    liquid.style.background = rgbToCss([r/total, g/total, b/total]);
+    liquid.style.height = Math.min(100, total/MAX_CAP*100) + '%';
+  }
+  const fizzy = Object.keys(poured).some(id => ING_MAP[id].fizzy && poured[id] > 0);
+  clearInterval(fizzHandle);
+  if(fizzy){ fizzHandle = setInterval(spawnBubble, 350); }
+}
+
+function spawnBubble(){
+  const container = el('bubbles');
+  const b = document.createElement('div');
+  b.className = 'bubble';
+  b.style.left = (10 + Math.random()*80) + '%';
+  b.style.animationDuration = (1.2 + Math.random()*0.8) + 's';
+  container.appendChild(b);
+  setTimeout(()=>b.remove(), 2200);
+}
+
+function updateServeAvailability(){
+  const total = Object.values(poured).reduce((a,b)=>a+b,0);
+  el('serveBtn').disabled = total === 0;
+}
+
+function pourIngredient(id){
+  if(!state.unlocked[id]){ tryBuyIngredient(id); return; }
+  if(!currentOrder || orderLocked) return;
+  const total = Object.values(poured).reduce((a,b)=>a+b,0);
+  if(total >= MAX_CAP){
+    toast('Le verre est plein !');
+    return;
+  }
+  if(!(id in currentOrder.ing)){
+    applyFreezeOrConsumeTicket(5000, 'mauvais ingrédient');
+  }
+  poured[id] = (poured[id]||0) + 1;
+  updateGlassVisual();
+  renderOrder();
+  renderShelf();
+  refreshGlassDependentUI();
+  renderFreezeBanner();
+}
+
+function tryBuyIngredient(id){
+  const ing = ING_MAP[id];
+  if(state.coins >= ing.cost){
+    state.coins -= ing.cost;
+    state.unlocked[id] = true;
+    saveState();
+    toast(`${ing.name} rejoint l'étagère !`);
+    renderAll();
+  }else{
+    const btn = document.querySelector(`[data-ing="${id}"]`);
+    if(btn){ btn.classList.add('insufficient'); setTimeout(()=>btn.classList.remove('insufficient'), 350); }
+    toast("Pas assez de pièces...");
+  }
+}
+
+function isIngredientVisible(id){
+  if(state.unlocked[id]) return true;
+  return RECIPES.some(r => state.unlockedRecipes[r.id] && r.ing[id] !== undefined);
+}
+
+function renderShelf(){
+  const shelf = el('shelf');
+  shelf.innerHTML = '';
+  const total = Object.values(poured).reduce((a,b)=>a+b,0);
+  const full = total >= MAX_CAP;
+  INGREDIENTS.filter(ing => isIngredientVisible(ing.id)).forEach(ing=>{
+    const unlocked = !!state.unlocked[ing.id];
+    const btn = document.createElement('button');
+    btn.className = 'ing-btn' + (unlocked ? '' : ' locked') + (unlocked && full ? ' full' : '');
+    btn.dataset.ing = ing.id;
+    const qty = poured[ing.id] || 0;
+    btn.innerHTML = `
+      <div class="swatch" style="background:${ing.color}"></div>
+      <div class="label">${ing.name}</div>
+      ${unlocked ? '' : `<div class="sub">🔒 ${ing.cost} pièces</div>`}
+      ${unlocked && full ? `<div class="sub">Verre plein</div>` : ''}
+      ${unlocked && qty>0 ? `<div class="badge">x${qty}</div>` : ''}
+    `;
+    btn.addEventListener('click', ()=> pourIngredient(ing.id));
+    shelf.appendChild(btn);
+  });
+}
+
+function isGlassComplete(){
+  if(!currentOrder) return false;
+  const { correctSlots, totalSlots } = computeSlotScore();
+  return totalSlots > 0 && correctSlots === totalSlots;
+}
+
+function refreshGlassDependentUI(){
+  if(orderLocked){
+    el('serveBtn').disabled = true;
+    el('emptyBtn').disabled = true;
+    el('shakeBtn').disabled = true;
+    return;
+  }
+  updateServeAvailability();
+  renderShakeButton();
+  renderGarnishButtons();
+}
+
+function renderShakeButton(){
+  const btn = el('shakeBtn');
+  const needed = !!(currentOrder && currentOrder.shaken);
+  if(!needed){
+    btn.style.display = 'none';
+    return;
+  }
+  btn.style.display = '';
+  const owned = (state.bonusLevels.shaker||0) > 0;
+  const ready = owned && isGlassComplete();
+  btn.disabled = !ready;
+  btn.title = !owned ? "Achète un shaker dans l'onglet Bonus" : (!isGlassComplete() ? "Termine d'abord tous les ingrédients" : '');
+}
+
+function shakeGlass(){
+  if(orderLocked || (state.bonusLevels.shaker||0) === 0 || !currentOrder || !isGlassComplete()) return;
+  shakenDone = true;
+  const wrap = el('glassWrap');
+  wrap.classList.add('shaking');
+  setTimeout(()=>wrap.classList.remove('shaking'), 550);
+  renderOrder();
+}
+
+function spawnGarnishIcon(id){
+  const item = BONUS_ITEMS.find(i=>i.id===id);
+  const pos = GARNISH_POSITION[id];
+  const span = document.createElement('span');
+  span.className = 'garnish-icon';
+  span.innerHTML = item.icon;
+  span.style.top = pos.top;
+  span.style.left = pos.left;
+  span.style.transform = `rotate(${pos.rotate})`;
+  el('garnishLayer').appendChild(span);
+}
+
+function addGarnish(id){
+  if(orderLocked || !currentOrder || garnishAdded[id]) return;
+  if((state.bonusLevels[id]||0) === 0) return;
+  if(!isGlassComplete()) return;
+  garnishAdded[id] = true;
+  spawnGarnishIcon(id);
+  renderGarnishButtons();
+}
+
+function renderGarnishButtons(){
+  const box = el('garnishActions');
+  box.innerHTML = '';
+  const ready = isGlassComplete();
+  BONUS_ITEMS.filter(i=>i.type==='flat').forEach(item=>{
+    const level = state.bonusLevels[item.id] || 0;
+    if(level === 0) return;
+    const btn = document.createElement('button');
+    btn.className = 'garnish-btn';
+    btn.innerHTML = item.icon;
+    btn.title = item.name;
+    btn.disabled = garnishAdded[item.id] || !ready;
+    btn.title = garnishAdded[item.id] ? 'Déjà ajouté' : (!ready ? "Termine d'abord tous les ingrédients (ni plus, ni moins)" : `Ajouter : ${item.name}`);
+    btn.addEventListener('click', ()=> addGarnish(item.id));
+    box.appendChild(btn);
+  });
+}
+
+function emptyGlass(){
+  if(orderLocked) return;
+  const total = Object.values(poured).reduce((a,b)=>a+b,0);
+  if(total > 0){
+    applyFreezeOrConsumeTicket(5000, 'gaspillage');
+    renderAll();
+  }
+  poured = {};
+  shakenDone = false;
+  garnishAdded = {paille:false, ombrelle:false, rondelle:false};
+  el('garnishLayer').innerHTML = '';
+  updateGlassVisual();
+  renderOrder();
+  renderShelf();
+  refreshGlassDependentUI();
+}
+
+function computeSlotScore(){
+  const neededIds = Object.keys(currentOrder.ing);
+  let correctSlots = 0;
+  neededIds.forEach(id=>{
+    if((poured[id]||0) === currentOrder.ing[id]) correctSlots++;
+  });
+  const totalSlots = neededIds.length;
+
+  const allIds = new Set([...neededIds, ...Object.keys(poured)]);
+  let mistakes = 0;
+  allIds.forEach(id=>{
+    const need = currentOrder.ing[id] || 0;
+    const have = poured[id] || 0;
+    if(need !== have) mistakes++;
+  });
+  if(currentOrder.shaken && (state.bonusLevels.shaker||0) > 0 && !shakenDone) mistakes++;
+
+  return { correctSlots, totalSlots, mistakes, slotAcc: totalSlots>0 ? correctSlots/totalSlots : 0 };
+}
+
+function computeBonus(){
+  // Bonus additifs débloqués dans l'onglet Bonus.
+  let bonus = 0;
+  const shakerLevel = state.bonusLevels.shaker || 0;
+  if(currentOrder.shaken && shakerLevel > 0 && shakenDone){
+    bonus += Math.round(currentOrder.tip * 0.05 * shakerLevel);
+  }
+  ['paille','ombrelle','rondelle'].forEach(id=>{
+    if(garnishAdded[id]) bonus += (state.bonusLevels[id] || 0);
+  });
+  return bonus;
+}
+
+function serveOrder(){
+  if(!currentOrder || orderLocked) return;
+  const totalPoured = Object.values(poured).reduce((a,b)=>a+b,0);
+  if(totalPoured === 0) return;
+  orderLocked = true;
+
+  const { correctSlots, totalSlots, mistakes, slotAcc } = computeSlotScore();
+  const tipMult = 1 + (state.bonusLevels.tip||0)*0.15;
+
+  const basePrice = totalSlots > 0 ? (currentOrder.tip/totalSlots) * correctSlots : 0;
+  const bonus = computeBonus();
+  const price = Math.round((basePrice + bonus) * tipMult);
+
+  state.coins += price;
+  state.served += 1;
+  state.bestAccuracy = Math.max(state.bestAccuracy, slotAcc);
+
+  const xpGain = Math.round(currentOrder.tip * slotAcc * 0.4);
+  state.xp += xpGain;
+
+  const baseFridge = 60 + state.reserveLevel*10;
+  const fridgeGain = Math.max(10, baseFridge - mistakes*10);
+  state.bankSeconds = Math.min(MAX_BANK, state.bankSeconds + fridgeGain);
+
+  const prefix = slotAcc >= 0.999 ? '🍹' : (slotAcc >= 0.6 ? '🙂' : '😕');
+  const bonusTxt = bonus > 0 ? ` (+${bonus})` : '';
+  const msg = `${prefix} 💰+${price}${bonusTxt} · ⭐+${xpGain} · 🧊+${fridgeGain}s`;
+
+  saveState();
+  el('glassCaption').textContent = msg;
+  renderAll();
+
+  clearInterval(timerHandle);
+  clearInterval(fizzHandle);
+  setTimeout(startNewOrder, 700);
+}
+
+function upgradeCost(base, level, scale){ return Math.round(base * Math.pow(scale || 1.7, level)); }
+
+function renderUpgrades(){
+  const box = el('upgrades');
+  box.innerHTML = '';
+  const lvl = levelFromXp(state.xp).level;
+
+  const timeCost = upgradeCost(200, state.timeLevel, 1.5);
+  const reserveCost = upgradeCost(200, state.reserveLevel, 1.5);
+  const passiveCost = upgradeCost(220, state.passiveLevel, 1.5);
+  const xpPassiveCost = upgradeCost(240, state.xpPassiveLevel, 1.5);
+  const excuseCost = 50;
+
+  const rows = [
+    {
+      name: `Plus de temps (niv. ${state.timeLevel})`,
+      desc: `+3 secondes par commande`,
+      cost: timeCost,
+      action: ()=>{ if(state.coins >= timeCost){ state.coins -= timeCost; state.timeLevel++; saveState(); renderAll(); toast('Le service peut souffler un peu plus.'); } }
+    },
+    {
+      name: `Capacité du frigo (niv. ${state.reserveLevel})`,
+      desc: `+10s de frigo à chaque cocktail servi`,
+      cost: reserveCost,
+      action: ()=>{ if(state.coins >= reserveCost){ state.coins -= reserveCost; state.reserveLevel++; saveState(); renderAll(); toast('Le frigo tient plus longtemps.'); } }
+    },
+    {
+      name: `Revenu passif (niv. ${state.passiveLevel})`,
+      desc: `+1 pièce/s tant que le frigo a du temps`,
+      cost: passiveCost,
+      reqLevel: 2,
+      action: ()=>{ if(state.coins >= passiveCost){ state.coins -= passiveCost; state.passiveLevel++; saveState(); renderAll(); toast('La caisse tourne toute seule.'); } }
+    },
+    {
+      name: `Expérience passive (niv. ${state.xpPassiveLevel})`,
+      desc: `+0.5 XP/s tant que le frigo a du temps`,
+      cost: xpPassiveCost,
+      reqLevel: 3,
+      action: ()=>{ if(state.coins >= xpPassiveCost){ state.coins -= xpPassiveCost; state.xpPassiveLevel++; saveState(); renderAll(); toast('Tu apprends même en douceur.'); } }
+    },
+    {
+      name: `Ticket d'excuse`,
+      desc: `Annule la prochaine panne du frigo. Possédés : ${state.excuseTickets}`,
+      cost: excuseCost,
+      action: ()=>{ if(state.coins >= excuseCost){ state.coins -= excuseCost; state.excuseTickets++; state.excuseBought++; saveState(); renderAll(); toast("Un ticket d'excuse rejoint ta poche."); } }
+    }
+  ];
+
+  rows.forEach(r=>{
+    const levelOk = r.reqLevel === undefined || lvl >= r.reqLevel;
+    const row = document.createElement('div');
+    row.className = 'upgrade-row';
+    let label;
+    if(r.owned) label = '✓';
+    else if(!levelOk) label = `Niveau ${r.reqLevel} requis`;
+    else label = r.cost + ' 💰';
+    row.innerHTML = `
+      <div class="info"><div class="name">${r.name}</div><div class="desc">${r.desc}</div></div>
+      <button ${r.owned || !levelOk ? 'disabled' : ''}>${label}</button>
+    `;
+    const btn = row.querySelector('button');
+    if(!r.owned && levelOk){ btn.disabled = state.coins < r.cost; btn.addEventListener('click', r.action); }
+    box.appendChild(row);
+  });
+}
+
+function renderRecipesTab(){
+  const box = el('recipeShop');
+  box.innerHTML = '';
+  const lvl = levelFromXp(state.xp).level;
+
+  RECIPES.filter(r => r.cost > 0).forEach(r=>{
+    const owned = state.unlockedRecipes[r.id];
+    const levelOk = lvl >= r.reqLevel;
+    const ingList = Object.keys(r.ing).map(id=>ING_MAP[id].name).join(', ');
+    const shakeTag = r.shaken ? ' · 🍸 à secouer' : '';
+    const row = document.createElement('div');
+    row.className = 'upgrade-row';
+    let label;
+    if(owned) label = '✓ Au menu';
+    else if(!levelOk) label = `Niveau ${r.reqLevel} requis`;
+    else label = `${r.cost} 💰`;
+    row.innerHTML = `
+      <div class="info"><div class="name">${r.name}</div><div class="desc">${ingList}${shakeTag}</div></div>
+      <button ${owned || !levelOk ? 'disabled' : ''}>${label}</button>
+    `;
+    const btn = row.querySelector('button');
+    if(!owned && levelOk){
+      btn.disabled = state.coins < r.cost;
+      btn.addEventListener('click', ()=>{
+        if(state.coins >= r.cost){
+          state.coins -= r.cost;
+          state.unlockedRecipes[r.id] = true;
+          saveState();
+          renderAll();
+          toast(`${r.name} rejoint la carte !`);
+        }
+      });
+    }
+    box.appendChild(row);
+  });
+}
+
+function renderBonusShop(){
+  const box = el('bonusShop');
+  box.innerHTML = '';
+
+  BONUS_ITEMS.forEach((item, index)=>{
+    const level = state.bonusLevels[item.id] || 0;
+    const previousBought = index === 0 || (state.bonusLevels[BONUS_ITEMS[index-1].id] || 0) > 0;
+    if(!previousBought && level === 0) return; // pas encore révélé
+
+    const maxed = item.maxLevel !== null && level >= item.maxLevel;
+    const cost = Math.round(item.baseCost * Math.pow(item.costScale, level));
+
+    let desc;
+    if(item.type === 'shaken'){
+      desc = level === 0
+        ? `${item.icon} Débloque "Secouer" (verre complet requis) — +5% du prix par niveau si bien secoué`
+        : `${item.icon} "Secouer" actif (verre complet requis) · +${5*level}% du prix (niv. ${level})`;
+    }else if(item.type === 'percent'){
+      desc = level === 0
+        ? `${item.icon} +15% de pourboire par niveau, toujours actif`
+        : `${item.icon} +${15*level}% de pourboire, toujours actif (niv. ${level})`;
+    }else{
+      desc = level === 0
+        ? `${item.icon} Débloque cette garniture — +1 pièce par niveau si ajoutée avant de servir`
+        : `${item.icon} +${level} pièce(s) si ajoutée sur le cocktail (niv. ${level})`;
+    }
+
+    const row = document.createElement('div');
+    row.className = 'upgrade-row';
+    row.innerHTML = `
+      <div class="info"><div class="name">${item.name}</div><div class="desc">${desc}</div></div>
+      <button ${maxed ? 'disabled' : ''}>${maxed ? 'Niveau max' : cost + ' 💰'}</button>
+    `;
+    const btn = row.querySelector('button');
+    if(!maxed){
+      btn.disabled = state.coins < cost;
+      btn.addEventListener('click', ()=>{
+        if(state.coins >= cost){
+          state.coins -= cost;
+          state.bonusLevels[item.id] = (state.bonusLevels[item.id]||0) + 1;
+          saveState();
+          renderAll();
+          toast(`${item.name} niveau ${state.bonusLevels[item.id]} !`);
+        }
+      });
+    }
+    box.appendChild(row);
+  });
+}
+
+function renderHeader(){
+  el('coinsVal').textContent = Math.floor(state.coins);
+  const info = levelFromXp(state.xp);
+  el('xpVal').textContent = `Niv. ${info.level} · ${Math.floor(info.remaining)}/${info.need} XP`;
+  el('bankVal').textContent = Math.floor(state.bankSeconds) + 's';
+}
+
+function renderFreezeBanner(){
+  const banner = el('freezeBanner');
+  const remainingMs = state.freezeUntil - Date.now();
+  if(remainingMs > 0){
+    banner.classList.add('show');
+    el('freezeSeconds').textContent = Math.ceil(remainingMs/1000);
+  }else{
+    banner.classList.remove('show');
+  }
+}
+
+function renderStats(){
+  el('stats').textContent = `Cocktails servis : ${state.served} · Meilleure précision : ${Math.round(state.bestAccuracy*100)}%`;
+}
+
+function renderAll(){
+  renderHeader();
+  renderFreezeBanner();
+  renderShelf();
+  renderUpgrades();
+  renderRecipesTab();
+  renderBonusShop();
+  renderStats();
+  refreshGlassDependentUI();
+}
+
+const TAB_PANELS = {skills:'tabSkills', recipes:'tabRecipes', bonus:'tabBonus'};
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    Object.entries(TAB_PANELS).forEach(([name, id])=>{
+      el(id).style.display = btn.dataset.tab === name ? '' : 'none';
+    });
+  });
+});
+
+el('emptyBtn').addEventListener('click', emptyGlass);
+el('shakeBtn').addEventListener('click', shakeGlass);
+el('serveBtn').addEventListener('click', serveOrder);
+el('resetBtn').addEventListener('click', ()=>{
+  if(confirm('Recommencer le bar à zéro ? Toute la progression sera perdue.')){
+    localStorage.removeItem(SAVE_KEY);
+    location.reload();
+  }
+});
+
+loadState();
+renderAll();
+startNewOrder();
+
+setInterval(()=>{
+  const now = Date.now();
+  if(now >= state.freezeUntil && state.bankSeconds > 0){
+    state.bankSeconds = Math.max(0, state.bankSeconds - 1);
+    if(state.passiveLevel > 0) state.coins += state.passiveLevel;
+    if(state.xpPassiveLevel > 0) state.xp += state.xpPassiveLevel * 0.5;
+  }
+  saveState();
+  renderHeader();
+  renderFreezeBanner();
+  renderUpgrades();
+  renderRecipesTab();
+  renderBonusShop();
+}, 1000);
+</script>
+</body>
+</html>
