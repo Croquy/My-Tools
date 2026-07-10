@@ -283,11 +283,11 @@ let state = {
   openProjectId: null,
   chargeExpandedCat: null,
   periods: {
-    gantt:      { start: currentYM(), end: ymAdd(currentYM(), 11) },
-    ressources: { start: currentYM(), end: ymAdd(currentYM(), 11) },
+    gantt:      { start: currentYM(), end: ymAdd(currentYM(), 5) },
+    ressources: { start: currentYM(), end: ymAdd(currentYM(), 5) },
     charge:     { start: currentYM(), end: ymAdd(currentYM(), 5) }
   },
-  filters: { categories: [...CAT_ORDER], projectId: '', personId: '', projectStatus: ['a_venir','en_cours'] }
+  filters: { categories: [...CAT_ORDER], projectId: '', personId: '', projectStatus: ['a_venir','en_cours'], showConges: true }
 };
 
 function load(){
@@ -413,7 +413,7 @@ function shiftPeriod(tab, n){
   renderAll();
 }
 function resetPeriod(tab){
-  const defaults = { gantt: 11, ressources: 11, charge: 5 };
+  const defaults = { gantt: 5, ressources: 5, charge: 5 };
   state.periods[tab] = { start: currentYM(), end: ymAdd(currentYM(), defaults[tab]) };
   renderAll();
 }
@@ -482,6 +482,15 @@ function projectTotal(projectId){
     .filter(a => a.projectId === projectId)
     .reduce((s,a) => s + Object.values(a.days || {}).reduce((x,y) => x + (parseFloat(y)||0), 0), 0);
 }
+function facturableTotalForProject(projectId, excludeAffId, excludeMonth){
+  return state.affectations
+    .filter(a => a.projectId === projectId && a.categorie === 'facturable')
+    .reduce((s,a) => {
+      const days = { ...(a.days || {}) };
+      if(excludeAffId && a.id === excludeAffId && excludeMonth){ delete days[excludeMonth]; }
+      return s + Object.values(days).reduce((x,y) => x + (parseFloat(y)||0), 0);
+    }, 0);
+}
 
 function renderStatusFilters(){
   const wrap = document.getElementById('status-filters');
@@ -537,12 +546,11 @@ function renderProjets(){
     div.innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <span style="width:12px;height:12px;border-radius:50%;background:${p.color};flex-shrink:0"></span>
-        <span class="admin-item-name" style="font-weight:700;flex:none">${escapeHtml(p.name)}</span>
+        <span class="admin-item-name" style="font-weight:700;flex:none" title="${monthLabel(p.startMonth)} → ${monthLabel(p.endMonth)}">${escapeHtml(p.name)}</span>
         <span class="admin-item-detail" style="color:var(--pink);font-weight:700">${escapeHtml(p.client || '—')}</span>
         <select class="status-select" style="color:${statusColor(p.statut)};border-color:${statusColor(p.statut)}66" onchange="updateProjectStatus('${p.id}', this.value)">
           ${STATUS_ORDER.map(s => `<option value="${s}" ${p.statut===s?'selected':''}>${statusLabel(s)}</option>`).join('')}
         </select>
-        <span class="admin-item-detail">${monthLabel(p.startMonth)} → ${monthLabel(p.endMonth)}</span>
         ${joursHtml}
         <div style="margin-left:auto;display:flex;gap:6px">
           <button class="btn-sm" onclick="toggleProjectDetail('${p.id}')">Affectations</button>
@@ -579,7 +587,19 @@ function renderProjectDetail(projectId, el){
   const months = monthsBetween(p.startMonth, p.endMonth);
   const rows = state.affectations.filter(a => a.projectId === projectId);
 
-  let html = `<div style="overflow-x:auto"><table class="aff-table"><tr>
+  let gaugeHtml = '';
+  if(p.budgetDays > 0){
+    const factTotal = facturableTotalForProject(projectId);
+    const remaining = Math.round((p.budgetDays - factTotal) * 10) / 10;
+    const gaugeColor = remaining < 0 ? '#ff6e6e' : 'var(--cyan)';
+    gaugeHtml = `<div style="margin-bottom:10px;font-size:12px;color:var(--text-mid)">
+      Budget vendu <b style="color:var(--text)">${p.budgetDays} j</b> ·
+      Facturable saisi <b style="color:var(--cyan)">${factTotal} j</b> ·
+      Restant en Facturable <b style="color:${gaugeColor}">${remaining} j</b>
+    </div>`;
+  }
+
+  let html = `${gaugeHtml}<div style="overflow-x:auto"><table class="aff-table"><tr>
       <th>Personne</th><th>Catégorie</th>`;
   months.forEach(m => html += `<th>${monthLabel(m)}</th>`);
   html += `<th>Total</th><th></th></tr>`;
@@ -634,8 +654,23 @@ function updateAffDay(affId, ym, val){
   const a = state.affectations.find(x => x.id === affId);
   if(!a) return;
   if(!a.days) a.days = {};
-  const v = parseFloat(val);
-  if(!v || v <= 0){ delete a.days[ym]; } else { a.days[ym] = v; }
+  let v = parseFloat(val);
+  if(!v || v <= 0){
+    delete a.days[ym];
+    save();
+    renderProjets();
+    return;
+  }
+  const p = state.projects.find(x => x.id === a.projectId);
+  if(a.categorie === 'facturable' && p && p.budgetDays > 0){
+    const otherFacturable = facturableTotalForProject(a.projectId, affId, ym);
+    const remaining = Math.max(0, Math.round((p.budgetDays - otherFacturable) * 10) / 10);
+    if(v > remaining){
+      alert(`Budget vendu dépassé : il ne reste que ${remaining} j disponible(s) en Facturable pour ce projet (vendu ${p.budgetDays} j).\nLa valeur a été plafonnée à ${remaining} j — saisis le surplus dans une ligne "Dépassement".`);
+      v = remaining;
+    }
+  }
+  if(v <= 0){ delete a.days[ym]; } else { a.days[ym] = v; }
   save();
   renderProjets();
 }
@@ -913,7 +948,11 @@ function renderChargeFilters(){
     <label class="cat-check">
       <input type="checkbox" ${state.filters.categories.includes(c) ? 'checked' : ''} onchange="toggleCatFilter('${c}', this.checked)">
       <span style="color:${catColor(c)};font-weight:700">${catLabel(c)}</span>
-    </label>`).join('');
+    </label>`).join('') + `
+    <label class="cat-check">
+      <input type="checkbox" ${state.filters.showConges ? 'checked' : ''} onchange="toggleCongesFilter(this.checked)">
+      <span style="color:#f1fa8c;font-weight:700">Congés</span>
+    </label>`;
 
   const projSel = document.getElementById('charge-filter-projet');
   const curProj = state.filters.projectId;
@@ -936,6 +975,10 @@ function toggleCatFilter(c, checked){
 }
 function updateFilter(key, val){
   state.filters[key] = val;
+  renderCharge();
+}
+function toggleCongesFilter(checked){
+  state.filters.showConges = checked;
   renderCharge();
 }
 function toggleChargeDetail(c){
@@ -998,12 +1041,51 @@ function renderCharge(){
     });
   });
 
+  // Personnes concernées par le filtre (indépendant du filtre projet, les congés ne sont pas liés à un projet)
+  const relevantPeople = state.filters.personId ? state.people.filter(p => p.id === state.filters.personId) : state.people;
+
+  const congeTotals = {};
+  months.forEach(m => congeTotals[m] = relevantPeople.reduce((s,p) => s + ((p.conges && p.conges[m]) || 0), 0));
+  const congeTotalPeriod = months.reduce((s,m) => s + congeTotals[m], 0);
+
+  const capTotals = {};
+  months.forEach(m => capTotals[m] = relevantPeople.reduce((s,p) => s + personCapacity(p, m), 0));
+
+  const chargeTotals = {};
+  months.forEach(m => chargeTotals[m] = state.filters.categories.reduce((s,c) => s + monthTotals[m][c], 0));
+
+  const capTotalPeriod = months.reduce((s,m) => s + capTotals[m], 0);
+  const chargeTotalPeriod = months.reduce((s,m) => s + chargeTotals[m], 0);
+
+  // ── Cartes de synthèse ──
   const summary = document.getElementById('charge-summary');
-  summary.innerHTML = CAT_ORDER.map(c => `
+  let summaryHtml = CAT_ORDER.map(c => `
     <div class="summary-card">
       <div class="summary-val" style="color:${catColor(c)}">${Math.round(catTotals[c]*10)/10}</div>
       <div class="summary-label">${catLabel(c)} (jours, période affichée)</div>
     </div>`).join('');
+  if(state.filters.showConges){
+    summaryHtml += `
+    <div class="summary-card">
+      <div class="summary-val" style="color:#f1fa8c">${Math.round(congeTotalPeriod*10)/10}</div>
+      <div class="summary-label">Congés (jours, période affichée)</div>
+    </div>`;
+  }
+  const diffPeriod = Math.round((capTotalPeriod - chargeTotalPeriod) * 10) / 10;
+  summaryHtml += `
+    <div class="summary-card">
+      <div class="summary-val" style="color:var(--cyan)">${Math.round(capTotalPeriod*10)/10}</div>
+      <div class="summary-label">Disponible total (jours ouvrés − congés)</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-val" style="color:var(--purple)">${Math.round(chargeTotalPeriod*10)/10}</div>
+      <div class="summary-label">Charge totale (catégories cochées)</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-val" style="color:${diffPeriod < 0 ? '#ff6e6e' : '#50fa7b'}">${diffPeriod > 0 ? '+' : ''}${diffPeriod}</div>
+      <div class="summary-label">Différence (dispo − charge)</div>
+    </div>`;
+  summary.innerHTML = summaryHtml;
 
   const head = document.getElementById('charge-head');
   head.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr)`;
@@ -1030,16 +1112,41 @@ function renderCharge(){
     }
   });
 
+  if(state.filters.showConges){
+    const congeRow = document.createElement('div');
+    congeRow.className = 'gantt-row';
+    congeRow.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr)`;
+    congeRow.innerHTML = `<div class="gantt-row-label" style="color:#f1fa8c">Congés</div>` +
+      months.map(m => `<div class="res-cell">${congeTotals[m] || '—'}</div>`).join('');
+    body.appendChild(congeRow);
+  }
+
   const totRow = document.createElement('div');
   totRow.className = 'gantt-row';
   totRow.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr)`;
   totRow.style.borderTop = '2px solid var(--purple)';
-  totRow.innerHTML = `<div class="gantt-row-label" style="font-weight:800">Total</div>` +
-    months.map(m => {
-      const t = state.filters.categories.reduce((s,c) => s + monthTotals[m][c], 0);
-      return `<div class="res-cell total">${t || '—'}</div>`;
-    }).join('');
+  totRow.innerHTML = `<div class="gantt-row-label" style="font-weight:800">Charge totale</div>` +
+    months.map(m => `<div class="res-cell total">${chargeTotals[m] || '—'}</div>`).join('');
   body.appendChild(totRow);
+
+  const capRow = document.createElement('div');
+  capRow.className = 'gantt-row';
+  capRow.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr)`;
+  capRow.innerHTML = `<div class="gantt-row-label" style="color:var(--cyan)">Disponible total</div>` +
+    months.map(m => `<div class="res-cell" style="color:var(--cyan)">${Math.round(capTotals[m]*10)/10 || '—'}</div>`).join('');
+  body.appendChild(capRow);
+
+  const diffRow = document.createElement('div');
+  diffRow.className = 'gantt-row';
+  diffRow.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr)`;
+  diffRow.style.borderTop = '1px solid var(--border)';
+  diffRow.innerHTML = `<div class="gantt-row-label" style="font-weight:800">Différence</div>` +
+    months.map(m => {
+      const diff = Math.round((capTotals[m] - chargeTotals[m]) * 10) / 10;
+      const color = diff < 0 ? '#ff6e6e' : '#50fa7b';
+      return `<div class="res-cell total" style="color:${color}">${diff > 0 ? '+' : ''}${diff}</div>`;
+    }).join('');
+  body.appendChild(diffRow);
 
   if(state.people.length === 0 && state.projects.length === 0){
     body.innerHTML += '<p style="padding:14px;color:var(--text-dim);font-style:italic;text-align:center">Ajoute des projets et des personnes pour voir la charge.</p>';
