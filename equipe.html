@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suivi Équipe - My Tools</title>
+<script src="gate.js"></script>
+<link rel="stylesheet" href="style.css">
+<style>
+  /* ── Composants spécifiques à Suivi Équipe ── */
+  .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--text-dim);text-decoration:none;font-size:12px;font-weight:600;margin-bottom:2px;transition:color .15s}
+  .back-link:hover{color:var(--pink)}
+
+  .toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+
+  .timeline-nav{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+  .timeline-label{font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;color:var(--text);min-width:170px;text-align:center}
+
+  .gantt-scroll{overflow-x:auto;padding-bottom:6px}
+  .gantt-head,.gantt-row{display:grid;align-items:center;min-height:40px}
+  .gantt-head{border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:4px}
+  .gantt-col-head{font-size:11px;color:var(--text-dim);text-align:center;font-weight:700;letter-spacing:.03em}
+  .gantt-row{position:relative;border-bottom:1px solid var(--border);min-height:44px}
+  .gantt-row-label{font-size:13px;font-weight:600;padding-right:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+  .gantt-cell{border-left:1px solid rgba(255,255,255,.04);height:100%}
+  .gantt-bar{grid-row:1;align-self:center;height:26px;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:700;color:#0d0a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.35);z-index:2;transition:transform .15s}
+  .gantt-bar:hover{transform:scaleY(1.15)}
+
+  .res-cell{text-align:center;font-size:13px;color:var(--text-mid);padding:8px 4px;border-left:1px solid rgba(255,255,255,.04);border-radius:6px}
+  .res-cell.over{color:#ff5555;font-weight:800;background:rgba(255,85,85,.12)}
+  .res-cell.empty{color:var(--text-dim);opacity:.4}
+  .res-cell.cap{color:var(--cyan);font-weight:700}
+  .res-cell.total{font-weight:700}
+
+  .color-swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .color-swatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s;flex-shrink:0}
+  .color-swatch:hover{transform:scale(1.15)}
+  .color-swatch.selected{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+
+  .cat-check{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-mid);cursor:pointer;user-select:none}
+  .cat-check input{accent-color:var(--pink)}
+  .filters-row{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin-bottom:16px;padding:14px 16px;background:rgba(255,255,255,.03);border-radius:14px;border:1px solid var(--border)}
+  .filters-group{display:flex;flex-direction:column;gap:6px}
+  .filters-group-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .filters-group-row{display:flex;gap:12px;flex-wrap:wrap}
+
+  .cat-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.02em}
+
+  .detail-box{margin-top:12px;padding:14px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid var(--border)}
+  .aff-table{width:100%;border-collapse:collapse;font-size:12px}
+  .aff-table th{padding:6px;color:var(--text-dim);font-weight:700;text-align:center}
+  .aff-table th:first-child{text-align:left}
+  .aff-table td{padding:5px}
+  .aff-input{width:56px;padding:5px 4px;text-align:center}
+
+  .hidden{display:none!important}
+
+  @media (max-width:700px){
+    .filters-row{flex-direction:column;align-items:stretch}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="header">
+    <div class="header-left">
+      <a href="index.html" class="back-link">← Accueil</a>
+      <h1 class="page-title">🧑‍💻 Suivi Équipe</h1>
+      <p class="header-subtitle">Projets, planning & charge de l'équipe</p>
+    </div>
+    <div class="header-center"></div>
+    <div class="header-right"></div>
+  </header>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-projets" onclick="showView('projets')">📁 Projets</button>
+    <button class="nav-tab" id="tab-equipe" onclick="showView('equipe')">👥 Équipe</button>
+    <button class="nav-tab" id="tab-gantt" onclick="showView('gantt')">📊 Gantt</button>
+    <button class="nav-tab" id="tab-ressources" onclick="showView('ressources')">🧮 Ressources</button>
+    <button class="nav-tab" id="tab-charge" onclick="showView('charge')">🌍 Charge globale</button>
+  </div>
+
+  <!-- ═══════════ VUE PROJETS ═══════════ -->
+  <div class="view active" id="view-projets">
+    <div class="panel-section">
+      <div class="toolbar">
+        <div class="section-title" style="margin-bottom:0">Liste des projets</div>
+        <button class="btn btn-sm" onclick="openProjectModal()">+ Nouveau projet</button>
+      </div>
+      <div class="admin-list" id="projets-list"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ VUE ÉQUIPE ═══════════ -->
+  <div class="view" id="view-equipe">
+    <div class="panel-section">
+      <div class="toolbar">
+        <div class="section-title" style="margin-bottom:0">Membres de l'équipe</div>
+        <button class="btn btn-sm" onclick="openPersonModal()">+ Nouvelle personne</button>
+      </div>
+      <div class="admin-list" id="equipe-list"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ VUE GANTT ═══════════ -->
+  <div class="view" id="view-gantt">
+    <div class="panel-section">
+      <div class="timeline-nav">
+        <button class="btn-icon" onclick="shiftTimeline(-3)">«</button>
+        <button class="btn-icon" onclick="shiftTimeline(-1)">‹</button>
+        <span class="timeline-label" id="gantt-timeline-label"></span>
+        <button class="btn-icon" onclick="shiftTimeline(1)">›</button>
+        <button class="btn-icon" onclick="shiftTimeline(3)">»</button>
+        <button class="btn-sm" onclick="resetTimeline()" style="margin-left:8px">Aujourd'hui</button>
+        <select class="styled-select" id="gantt-count" onchange="setTimelineCount(this.value)" style="margin-left:auto;font-size:13px;padding:6px 12px">
+          <option value="6">6 mois</option>
+          <option value="12" selected>12 mois</option>
+          <option value="18">18 mois</option>
+        </select>
+      </div>
+      <div class="gantt-scroll">
+        <div class="gantt-head" id="gantt-head"></div>
+        <div id="gantt-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ VUE RESSOURCES ═══════════ -->
+  <div class="view" id="view-ressources">
+    <div class="panel-section">
+      <div class="timeline-nav">
+        <button class="btn-icon" onclick="shiftTimeline(-3)">«</button>
+        <button class="btn-icon" onclick="shiftTimeline(-1)">‹</button>
+        <span class="timeline-label" id="res-timeline-label"></span>
+        <button class="btn-icon" onclick="shiftTimeline(1)">›</button>
+        <button class="btn-icon" onclick="shiftTimeline(3)">»</button>
+        <button class="btn-sm" onclick="resetTimeline()" style="margin-left:8px">Aujourd'hui</button>
+      </div>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px">Total de jours affectés par personne et par mois (tous projets confondus, congés inclus). En <span style="color:#ff5555;font-weight:700">rouge</span> : dépassement de la capacité mensuelle.</p>
+      <div class="gantt-scroll">
+        <div class="gantt-head" id="res-head"></div>
+        <div id="res-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ VUE CHARGE GLOBALE ═══════════ -->
+  <div class="view" id="view-charge">
+    <div class="filters-row">
+      <div class="filters-group">
+        <div class="filters-group-label">Catégories</div>
+        <div class="filters-group-row" id="charge-cat-filters"></div>
+      </div>
+      <div class="filters-group">
+        <div class="filters-group-label">Projet</div>
+        <select class="styled-select" id="charge-filter-projet" onchange="updateFilter('projectId', this.value)" style="font-size:13px;padding:6px 12px"></select>
+      </div>
+      <div class="filters-group">
+        <div class="filters-group-label">Personne</div>
+        <select class="styled-select" id="charge-filter-personne" onchange="updateFilter('personId', this.value)" style="font-size:13px;padding:6px 12px"></select>
+      </div>
+    </div>
+
+    <div class="summary-grid" id="charge-summary" style="margin-bottom:16px"></div>
+
+    <div class="panel-section">
+      <div class="timeline-nav">
+        <button class="btn-icon" onclick="shiftTimeline(-3)">«</button>
+        <button class="btn-icon" onclick="shiftTimeline(-1)">‹</button>
+        <span class="timeline-label" id="charge-timeline-label"></span>
+        <button class="btn-icon" onclick="shiftTimeline(1)">›</button>
+        <button class="btn-icon" onclick="shiftTimeline(3)">»</button>
+        <button class="btn-sm" onclick="resetTimeline()" style="margin-left:8px">Aujourd'hui</button>
+      </div>
+      <div class="gantt-scroll">
+        <div class="gantt-head" id="charge-head"></div>
+        <div id="charge-body"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════ MODAL PROJET ═══════════ -->
+<div class="modal-overlay" id="project-modal">
+  <div class="modal-card">
+    <div class="modal-title" id="project-modal-title">Nouveau projet</div>
+    <input type="hidden" id="pm-id">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <div class="label-sm" style="margin-bottom:5px">Nom du projet</div>
+        <input class="field" id="pm-name" placeholder="Ex: Refonte site client X">
+      </div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1">
+          <div class="label-sm" style="margin-bottom:5px">Client</div>
+          <input class="field" id="pm-client" placeholder="Ex: Société ABC">
+        </div>
+        <div style="flex:1">
+          <div class="label-sm" style="margin-bottom:5px">N° commande</div>
+          <input class="field" id="pm-commande" placeholder="Ex: CMD-2026-014">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1">
+          <div class="label-sm" style="margin-bottom:5px">Début</div>
+          <input class="field" type="month" id="pm-start">
+        </div>
+        <div style="flex:1">
+          <div class="label-sm" style="margin-bottom:5px">Fin</div>
+          <input class="field" type="month" id="pm-end">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1">
+          <div class="label-sm" style="margin-bottom:5px">Budget jours vendus <small style="color:var(--text-dim)">(0 = illimité)</small></div>
+          <input class="field" type="number" id="pm-budget" min="0" step="0.5" value="0">
+        </div>
+        <div style="flex:1">
+          <div class="label-sm" style="margin-bottom:5px">Catégorie par défaut</div>
+          <select class="field" id="pm-categorie">
+            <option value="facturable">Facturable</option>
+            <option value="depassement">Dépassement</option>
+            <option value="conge">Congé</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <div class="label-sm" style="margin-bottom:5px">Couleur</div>
+        <div class="color-swatches" id="pm-colors"></div>
+        <input type="hidden" id="pm-color" value="#bd93f9">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-dismiss" onclick="closeModal('project-modal')">Annuler</button>
+      <button class="btn" onclick="saveProject()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL PERSONNE ═══════════ -->
+<div class="modal-overlay" id="person-modal">
+  <div class="modal-card">
+    <div class="modal-title" id="person-modal-title">Nouvelle personne</div>
+    <input type="hidden" id="pem-id">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <div class="label-sm" style="margin-bottom:5px">Nom</div>
+        <input class="field" id="pem-name" placeholder="Ex: Marie Dupont">
+      </div>
+      <div>
+        <div class="label-sm" style="margin-bottom:5px">Rôle <small style="color:var(--text-dim)">(optionnel)</small></div>
+        <input class="field" id="pem-role" placeholder="Ex: Chef de projet">
+      </div>
+      <div>
+        <div class="label-sm" style="margin-bottom:5px">Capacité (jours/mois)</div>
+        <input class="field" type="number" id="pem-capacity" min="0" step="0.5" value="20">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-dismiss" onclick="closeModal('person-modal')">Annuler</button>
+      <button class="btn" onclick="savePerson()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════ */
+/* ÉTAT & STOCKAGE */
+/* ═══════════════════════════════════════════════════════════════ */
+const STORAGE_KEY = 'equipe_suivi_data_v1';
+const PALETTE = ['#ff79c6','#bd93f9','#8be9fd','#50fa7b','#f1fa8c','#ff6e6e','#ffb86c','#6ad3ff'];
+const CAT_ORDER = ['facturable','depassement','conge','autre'];
+
+let state = {
+  people: [],
+  projects: [],
+  affectations: [],
+  timelineStart: currentYM(),
+  timelineCount: 12,
+  filters: { categories: [...CAT_ORDER], projectId: '', personId: '' }
+};
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const d = JSON.parse(raw);
+      state.people = d.people || [];
+      state.projects = d.projects || [];
+      state.affectations = d.affectations || [];
+    }
+  }catch(e){ console.error('Erreur chargement', e); }
+}
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    people: state.people, projects: state.projects, affectations: state.affectations
+  }));
+}
+function uid(){ return 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function escapeHtml(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* UTILITAIRES DATES */
+/* ═══════════════════════════════════════════════════════════════ */
+function currentYM(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+function ymAdd(ym, n){
+  let [y,m] = ym.split('-').map(Number);
+  m += n;
+  while(m>12){ m-=12; y++; }
+  while(m<1){ m+=12; y--; }
+  return y + '-' + String(m).padStart(2,'0');
+}
+function monthsBetween(start, end){
+  if(!start || !end) return [];
+  const arr = []; let cur = start; let guard = 0;
+  while(cur <= end && guard < 240){ arr.push(cur); cur = ymAdd(cur,1); guard++; }
+  return arr;
+}
+const MONTH_NAMES = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+function monthLabel(ym){
+  if(!ym) return '—';
+  const [y,m] = ym.split('-').map(Number);
+  return MONTH_NAMES[m-1] + ' ' + y;
+}
+function getTimelineMonths(){
+  return monthsBetween(state.timelineStart, ymAdd(state.timelineStart, state.timelineCount - 1));
+}
+function shiftTimeline(n){ state.timelineStart = ymAdd(state.timelineStart, n); renderAll(); }
+function resetTimeline(){ state.timelineStart = currentYM(); renderAll(); }
+function setTimelineCount(v){ state.timelineCount = parseInt(v); renderAll(); }
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* CATÉGORIES */
+/* ═══════════════════════════════════════════════════════════════ */
+function catLabel(c){ return { facturable:'Facturable', depassement:'Dépassement', conge:'Congé', autre:'Autre' }[c] || c; }
+function catColor(c){ return { facturable:'#50fa7b', depassement:'#ff6e6e', conge:'#f1fa8c', autre:'#8be9fd' }[c] || '#fff'; }
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* NAVIGATION VUES */
+/* ═══════════════════════════════════════════════════════════════ */
+function showView(id){
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  document.getElementById('view-' + id).classList.add('active');
+  renderAll();
+}
+
+function renderAll(){
+  renderProjets();
+  renderEquipe();
+  renderGantt();
+  renderRessources();
+  renderChargeFilters();
+  renderCharge();
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* VUE PROJETS */
+/* ═══════════════════════════════════════════════════════════════ */
+function projectTotal(projectId){
+  return state.affectations
+    .filter(a => a.projectId === projectId)
+    .reduce((s,a) => s + Object.values(a.days || {}).reduce((x,y) => x + (parseFloat(y)||0), 0), 0);
+}
+
+function renderProjets(){
+  const wrap = document.getElementById('projets-list');
+  wrap.innerHTML = '';
+  if(state.projects.length === 0){
+    wrap.innerHTML = '<p style="color:var(--text-dim);font-style:italic;padding:20px;text-align:center">Aucun projet. Ajoute ton premier projet ci-dessus.</p>';
+    return;
+  }
+  state.projects.forEach(p => {
+    const total = projectTotal(p.id);
+    const over = p.budgetDays > 0 && total > p.budgetDays;
+    const div = document.createElement('div');
+    div.className = 'admin-item';
+    div.style.flexDirection = 'column';
+    div.style.alignItems = 'stretch';
+    div.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="width:12px;height:12px;border-radius:50%;background:${p.color};flex-shrink:0"></span>
+        <span class="admin-item-name" style="font-weight:700;flex:none">${escapeHtml(p.name)}</span>
+        <span class="cat-badge" style="background:${catColor(p.defaultCategorie)}22;color:${catColor(p.defaultCategorie)}">${catLabel(p.defaultCategorie)}</span>
+        <span class="admin-item-detail">${escapeHtml(p.client || '—')}</span>
+        <span class="admin-item-detail">Cmd: ${escapeHtml(p.commande || '—')}</span>
+        <span class="admin-item-detail">${monthLabel(p.startMonth)} → ${monthLabel(p.endMonth)}</span>
+        <span class="admin-item-detail" style="color:${over ? '#ff6e6e' : 'var(--cyan)'};font-weight:700">
+          ${total}${p.budgetDays > 0 ? ' / ' + p.budgetDays : ''} j${over ? ' ⚠️ dépassement' : ''}
+        </span>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn-sm" onclick="toggleProjectDetail('${p.id}')">Affectations</button>
+          <button class="btn-icon" onclick="openProjectModal('${p.id}')" title="Modifier">✎</button>
+          <button class="btn-del-sm" onclick="deleteProject('${p.id}')">Suppr</button>
+        </div>
+      </div>
+      <div id="detail-${p.id}" class="hidden detail-box"></div>
+    `;
+    wrap.appendChild(div);
+  });
+}
+
+function toggleProjectDetail(projectId){
+  const el = document.getElementById('detail-' + projectId);
+  const wasHidden = el.classList.contains('hidden');
+  document.querySelectorAll('[id^="detail-"]').forEach(d => d.classList.add('hidden'));
+  if(wasHidden){
+    el.classList.remove('hidden');
+    renderProjectDetail(projectId, el);
+  }
+}
+
+function renderProjectDetail(projectId, el){
+  const p = state.projects.find(x => x.id === projectId);
+  if(!p){ return; }
+  const months = monthsBetween(p.startMonth, p.endMonth);
+  const rows = state.affectations.filter(a => a.projectId === projectId);
+
+  let html = `<div style="overflow-x:auto"><table class="aff-table"><tr>
+      <th>Personne</th><th>Catégorie</th>`;
+  months.forEach(m => html += `<th>${monthLabel(m)}</th>`);
+  html += `<th>Total</th><th></th></tr>`;
+
+  if(rows.length === 0){
+    html += `<tr><td colspan="${months.length + 4}" style="text-align:center;color:var(--text-dim);font-style:italic;padding:12px">Aucune affectation. Ajoute une personne ci-dessous.</td></tr>`;
+  }
+
+  rows.forEach(a => {
+    const person = state.people.find(pp => pp.id === a.personId);
+    const rowTotal = Object.values(a.days || {}).reduce((s,v) => s + (parseFloat(v)||0), 0);
+    html += `<tr>
+      <td style="font-weight:700">${person ? escapeHtml(person.name) : '(supprimée)'}</td>
+      <td>
+        <select class="field" style="font-size:11px;padding:4px 6px" onchange="updateAffCategorie('${a.id}', this.value)">
+          ${CAT_ORDER.map(c => `<option value="${c}" ${a.categorie===c?'selected':''}>${catLabel(c)}</option>`).join('')}
+        </select>
+      </td>`;
+    months.forEach(m => {
+      html += `<td><input type="number" class="field aff-input" min="0" step="0.5" value="${a.days && a.days[m] ? a.days[m] : ''}" placeholder="0" onchange="updateAffDay('${a.id}','${m}', this.value)"></td>`;
+    });
+    html += `<td style="text-align:center;font-weight:700;color:var(--cyan)">${rowTotal || '—'}</td>
+      <td><button class="btn-del-sm" onclick="deleteAff('${a.id}')">✕</button></td></tr>`;
+  });
+  html += `</table></div>
+    <div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select id="add-person-${projectId}" class="field" style="max-width:220px">
+        <option value="">+ Ajouter une personne...</option>
+        ${state.people.map(pp => `<option value="${pp.id}">${escapeHtml(pp.name)}</option>`).join('')}
+      </select>
+      <button class="btn-sm" onclick="addAffectation('${projectId}')">Ajouter</button>
+      ${months.length === 0 ? '<span style="color:var(--text-dim);font-size:12px;font-style:italic">Renseigne des dates de début/fin valides pour ce projet.</span>' : ''}
+    </div>`;
+  el.innerHTML = html;
+}
+
+function addAffectation(projectId){
+  const sel = document.getElementById('add-person-' + projectId);
+  const personId = sel.value;
+  if(!personId) return;
+  const p = state.projects.find(x => x.id === projectId);
+  state.affectations.push({
+    id: uid(), projectId, personId,
+    categorie: p.defaultCategorie || 'facturable',
+    days: {}
+  });
+  save();
+  const el = document.getElementById('detail-' + projectId);
+  renderProjectDetail(projectId, el);
+  renderProjets();
+}
+
+function updateAffDay(affId, ym, val){
+  const a = state.affectations.find(x => x.id === affId);
+  if(!a) return;
+  if(!a.days) a.days = {};
+  const v = parseFloat(val);
+  if(!v || v <= 0){ delete a.days[ym]; } else { a.days[ym] = v; }
+  save();
+  const el = document.getElementById('detail-' + a.projectId);
+  if(el && !el.classList.contains('hidden')) renderProjectDetail(a.projectId, el);
+  renderProjets();
+}
+
+function updateAffCategorie(affId, val){
+  const a = state.affectations.find(x => x.id === affId);
+  if(!a) return;
+  a.categorie = val;
+  save();
+}
+
+function deleteAff(affId){
+  const a = state.affectations.find(x => x.id === affId);
+  if(!a) return;
+  state.affectations = state.affectations.filter(x => x.id !== affId);
+  save();
+  const el = document.getElementById('detail-' + a.projectId);
+  if(el) renderProjectDetail(a.projectId, el);
+  renderProjets();
+}
+
+/* ── Modal projet ── */
+function openProjectModal(id){
+  const isEdit = !!id;
+  document.getElementById('project-modal-title').textContent = isEdit ? 'Modifier le projet' : 'Nouveau projet';
+  document.getElementById('pm-id').value = id || '';
+  const p = isEdit ? state.projects.find(x => x.id === id) : null;
+  document.getElementById('pm-name').value = p ? p.name : '';
+  document.getElementById('pm-client').value = p ? p.client : '';
+  document.getElementById('pm-commande').value = p ? p.commande : '';
+  document.getElementById('pm-start').value = p ? p.startMonth : currentYM();
+  document.getElementById('pm-end').value = p ? p.endMonth : ymAdd(currentYM(), 2);
+  document.getElementById('pm-budget').value = p ? p.budgetDays : 0;
+  document.getElementById('pm-categorie').value = p ? p.defaultCategorie : 'facturable';
+
+  const chosenColor = p ? p.color : PALETTE[state.projects.length % PALETTE.length];
+  document.getElementById('pm-color').value = chosenColor;
+  const swatchWrap = document.getElementById('pm-colors');
+  swatchWrap.innerHTML = PALETTE.map(c => `<span class="color-swatch ${c===chosenColor?'selected':''}" style="background:${c}" onclick="pickColor('${c}')"></span>`).join('');
+
+  document.getElementById('project-modal').classList.add('visible');
+}
+function pickColor(c){
+  document.getElementById('pm-color').value = c;
+  document.querySelectorAll('#pm-colors .color-swatch').forEach(s => s.classList.remove('selected'));
+  event.target.classList.add('selected');
+}
+function closeModal(id){ document.getElementById(id).classList.remove('visible'); }
+
+function saveProject(){
+  const id = document.getElementById('pm-id').value;
+  const name = document.getElementById('pm-name').value.trim();
+  if(!name){ alert('Le nom du projet est requis.'); return; }
+  const start = document.getElementById('pm-start').value || currentYM();
+  const end = document.getElementById('pm-end').value || start;
+  const data = {
+    name,
+    client: document.getElementById('pm-client').value.trim(),
+    commande: document.getElementById('pm-commande').value.trim(),
+    startMonth: start <= end ? start : end,
+    endMonth: start <= end ? end : start,
+    budgetDays: parseFloat(document.getElementById('pm-budget').value) || 0,
+    defaultCategorie: document.getElementById('pm-categorie').value,
+    color: document.getElementById('pm-color').value
+  };
+  if(id){
+    const p = state.projects.find(x => x.id === id);
+    Object.assign(p, data);
+  } else {
+    state.projects.push({ id: uid(), ...data });
+  }
+  save();
+  closeModal('project-modal');
+  renderAll();
+}
+
+function deleteProject(id){
+  if(!confirm('Supprimer ce projet et toutes ses affectations ?')) return;
+  state.projects = state.projects.filter(x => x.id !== id);
+  state.affectations = state.affectations.filter(a => a.projectId !== id);
+  save();
+  renderAll();
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* VUE ÉQUIPE */
+/* ═══════════════════════════════════════════════════════════════ */
+function renderEquipe(){
+  const wrap = document.getElementById('equipe-list');
+  wrap.innerHTML = '';
+  if(state.people.length === 0){
+    wrap.innerHTML = '<p style="color:var(--text-dim);font-style:italic;padding:20px;text-align:center">Aucun membre. Ajoute ta première personne ci-dessus.</p>';
+    return;
+  }
+  state.people.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'admin-item';
+    div.innerHTML = `
+      <span class="admin-item-name">${escapeHtml(p.name)}</span>
+      <span class="admin-item-detail">${escapeHtml(p.role || '—')}</span>
+      <span class="admin-item-detail" style="color:var(--cyan);font-weight:700">${p.capacity} j/mois</span>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn-icon" onclick="openPersonModal('${p.id}')" title="Modifier">✎</button>
+        <button class="btn-del-sm" onclick="deletePerson('${p.id}')">Suppr</button>
+      </div>
+    `;
+    wrap.appendChild(div);
+  });
+}
+
+function openPersonModal(id){
+  const isEdit = !!id;
+  document.getElementById('person-modal-title').textContent = isEdit ? 'Modifier la personne' : 'Nouvelle personne';
+  document.getElementById('pem-id').value = id || '';
+  const p = isEdit ? state.people.find(x => x.id === id) : null;
+  document.getElementById('pem-name').value = p ? p.name : '';
+  document.getElementById('pem-role').value = p ? (p.role || '') : '';
+  document.getElementById('pem-capacity').value = p ? p.capacity : 20;
+  document.getElementById('person-modal').classList.add('visible');
+}
+
+function savePerson(){
+  const id = document.getElementById('pem-id').value;
+  const name = document.getElementById('pem-name').value.trim();
+  if(!name){ alert('Le nom est requis.'); return; }
+  const data = {
+    name,
+    role: document.getElementById('pem-role').value.trim(),
+    capacity: parseFloat(document.getElementById('pem-capacity').value) || 0
+  };
+  if(id){
+    const p = state.people.find(x => x.id === id);
+    Object.assign(p, data);
+  } else {
+    state.people.push({ id: uid(), ...data });
+  }
+  save();
+  closeModal('person-modal');
+  renderAll();
+}
+
+function deletePerson(id){
+  if(!confirm('Supprimer cette personne et toutes ses affectations ?')) return;
+  state.people = state.people.filter(x => x.id !== id);
+  state.affectations = state.affectations.filter(a => a.personId !== id);
+  save();
+  renderAll();
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* VUE GANTT */
+/* ═══════════════════════════════════════════════════════════════ */
+function renderGantt(){
+  const months = getTimelineMonths();
+  document.getElementById('gantt-timeline-label').textContent = monthLabel(months[0]) + ' → ' + monthLabel(months[months.length-1]);
+
+  const head = document.getElementById('gantt-head');
+  head.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr)`;
+  head.innerHTML = `<div class="gantt-row-label"></div>` + months.map(m => `<div class="gantt-col-head">${monthLabel(m)}</div>`).join('');
+
+  const body = document.getElementById('gantt-body');
+  body.innerHTML = '';
+  if(state.projects.length === 0){
+    body.innerHTML = '<p style="padding:20px;color:var(--text-dim);font-style:italic;text-align:center">Aucun projet à afficher. Ajoute des projets dans l\'onglet Projets.</p>';
+    return;
+  }
+
+  state.projects.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'gantt-row';
+    row.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr)`;
+
+    const label = document.createElement('div');
+    label.className = 'gantt-row-label';
+    label.textContent = p.name;
+    row.appendChild(label);
+
+    months.forEach(() => {
+      const cell = document.createElement('div');
+      cell.className = 'gantt-cell';
+      row.appendChild(cell);
+    });
+
+    if(!(p.endMonth < months[0] || p.startMonth > months[months.length-1])){
+      let s = months.indexOf(p.startMonth);
+      let e = months.indexOf(p.endMonth);
+      if(s < 0) s = 0;
+      if(e < 0) e = months.length - 1;
+      const bar = document.createElement('div');
+      bar.className = 'gantt-bar';
+      bar.style.gridColumn = `${s+2} / ${e+3}`;
+      bar.style.background = p.color;
+      bar.textContent = p.name + ' (' + projectTotal(p.id) + (p.budgetDays > 0 ? '/' + p.budgetDays : '') + ' j)';
+      bar.title = p.client ? p.name + ' — ' + p.client : p.name;
+      bar.onclick = () => { showView('projets'); setTimeout(() => toggleProjectDetail(p.id), 60); };
+      row.appendChild(bar);
+    }
+    body.appendChild(row);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* VUE RESSOURCES */
+/* ═══════════════════════════════════════════════════════════════ */
+function renderRessources(){
+  const months = getTimelineMonths();
+  document.getElementById('res-timeline-label').textContent = monthLabel(months[0]) + ' → ' + monthLabel(months[months.length-1]);
+
+  const head = document.getElementById('res-head');
+  head.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr) 90px`;
+  head.innerHTML = `<div class="gantt-row-label">Personne</div>` +
+    months.map(m => `<div class="gantt-col-head">${monthLabel(m)}</div>`).join('') +
+    `<div class="gantt-col-head">Capacité</div>`;
+
+  const body = document.getElementById('res-body');
+  body.innerHTML = '';
+  if(state.people.length === 0){
+    body.innerHTML = '<p style="padding:20px;color:var(--text-dim);font-style:italic;text-align:center">Ajoute des membres d\'équipe dans l\'onglet Équipe.</p>';
+    return;
+  }
+
+  state.people.forEach(person => {
+    const row = document.createElement('div');
+    row.className = 'gantt-row';
+    row.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr) 90px`;
+    row.innerHTML = `<div class="gantt-row-label">${escapeHtml(person.name)}</div>`;
+    months.forEach(m => {
+      const total = state.affectations
+        .filter(a => a.personId === person.id)
+        .reduce((s,a) => s + (parseFloat(a.days && a.days[m]) || 0), 0);
+      const over = total > person.capacity;
+      row.innerHTML += `<div class="res-cell ${over ? 'over' : ''} ${total === 0 ? 'empty' : ''}">${total > 0 ? total : '—'}</div>`;
+    });
+    row.innerHTML += `<div class="res-cell cap">${person.capacity} j</div>`;
+    body.appendChild(row);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* VUE CHARGE GLOBALE */
+/* ═══════════════════════════════════════════════════════════════ */
+function renderChargeFilters(){
+  const catWrap = document.getElementById('charge-cat-filters');
+  catWrap.innerHTML = CAT_ORDER.map(c => `
+    <label class="cat-check">
+      <input type="checkbox" ${state.filters.categories.includes(c) ? 'checked' : ''} onchange="toggleCatFilter('${c}', this.checked)">
+      <span style="color:${catColor(c)};font-weight:700">${catLabel(c)}</span>
+    </label>`).join('');
+
+  const projSel = document.getElementById('charge-filter-projet');
+  const curProj = state.filters.projectId;
+  projSel.innerHTML = `<option value="">Tous les projets</option>` +
+    state.projects.map(p => `<option value="${p.id}" ${curProj===p.id?'selected':''}>${escapeHtml(p.name)}</option>`).join('');
+
+  const perSel = document.getElementById('charge-filter-personne');
+  const curPer = state.filters.personId;
+  perSel.innerHTML = `<option value="">Toute l'équipe</option>` +
+    state.people.map(p => `<option value="${p.id}" ${curPer===p.id?'selected':''}>${escapeHtml(p.name)}</option>`).join('');
+}
+
+function toggleCatFilter(c, checked){
+  if(checked){
+    if(!state.filters.categories.includes(c)) state.filters.categories.push(c);
+  } else {
+    state.filters.categories = state.filters.categories.filter(x => x !== c);
+  }
+  renderCharge();
+}
+function updateFilter(key, val){
+  state.filters[key] = val;
+  renderCharge();
+}
+
+function renderCharge(){
+  const months = getTimelineMonths();
+  document.getElementById('charge-timeline-label').textContent = monthLabel(months[0]) + ' → ' + monthLabel(months[months.length-1]);
+
+  const affs = state.affectations.filter(a => {
+    if(!state.filters.categories.includes(a.categorie)) return false;
+    if(state.filters.projectId && a.projectId !== state.filters.projectId) return false;
+    if(state.filters.personId && a.personId !== state.filters.personId) return false;
+    return true;
+  });
+
+  const monthTotals = {};
+  months.forEach(m => monthTotals[m] = { facturable:0, depassement:0, conge:0, autre:0 });
+  const catTotals = { facturable:0, depassement:0, conge:0, autre:0 };
+
+  affs.forEach(a => {
+    months.forEach(m => {
+      const v = parseFloat(a.days && a.days[m]) || 0;
+      if(v > 0){ monthTotals[m][a.categorie] += v; catTotals[a.categorie] += v; }
+    });
+  });
+
+  const summary = document.getElementById('charge-summary');
+  summary.innerHTML = CAT_ORDER.map(c => `
+    <div class="summary-card">
+      <div class="summary-val" style="color:${catColor(c)}">${Math.round(catTotals[c]*10)/10}</div>
+      <div class="summary-label">${catLabel(c)} (jours, période affichée)</div>
+    </div>`).join('');
+
+  const head = document.getElementById('charge-head');
+  head.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr)`;
+  head.innerHTML = `<div class="gantt-row-label">Catégorie</div>` + months.map(m => `<div class="gantt-col-head">${monthLabel(m)}</div>`).join('');
+
+  const body = document.getElementById('charge-body');
+  body.innerHTML = '';
+
+  CAT_ORDER.forEach(c => {
+    if(!state.filters.categories.includes(c)) return;
+    const row = document.createElement('div');
+    row.className = 'gantt-row';
+    row.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr)`;
+    row.innerHTML = `<div class="gantt-row-label" style="color:${catColor(c)}">${catLabel(c)}</div>` +
+      months.map(m => `<div class="res-cell">${monthTotals[m][c] || '—'}</div>`).join('');
+    body.appendChild(row);
+  });
+
+  const totRow = document.createElement('div');
+  totRow.className = 'gantt-row';
+  totRow.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr)`;
+  totRow.style.borderTop = '2px solid var(--purple)';
+  totRow.innerHTML = `<div class="gantt-row-label" style="font-weight:800">Total</div>` +
+    months.map(m => {
+      const t = state.filters.categories.reduce((s,c) => s + monthTotals[m][c], 0);
+      return `<div class="res-cell total">${t || '—'}</div>`;
+    }).join('');
+  body.appendChild(totRow);
+
+  if(state.people.length === 0 && state.projects.length === 0){
+    body.innerHTML += '<p style="padding:14px;color:var(--text-dim);font-style:italic;text-align:center">Ajoute des projets et des personnes pour voir la charge.</p>';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* INIT */
+/* ═══════════════════════════════════════════════════════════════ */
+load();
+renderAll();
+</script>
+</body>
+</html>
