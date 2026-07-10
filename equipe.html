@@ -7,14 +7,15 @@
 <script src="gate.js"></script>
 <link rel="stylesheet" href="style.css">
 <style>
-  /* ── Composants spécifiques à Suivi Équipe ── */
   .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--text-dim);text-decoration:none;font-size:12px;font-weight:600;margin-bottom:2px;transition:color .15s}
   .back-link:hover{color:var(--pink)}
 
   .toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px}
 
-  .timeline-nav{display:flex;align-items:center;gap:10px;margin-bottom:16px}
-  .timeline-label{font-family:'Quicksand',sans-serif;font-size:14px;font-weight:700;color:var(--text);min-width:170px;text-align:center}
+  .period-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .period-nav label{font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+  .period-nav input[type="month"]{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:13px;padding:6px 10px;border-radius:10px;outline:none}
+  .period-nav input[type="month"]:focus{border-color:var(--pink)}
 
   .gantt-scroll{overflow-x:auto;padding-bottom:6px}
   .gantt-head,.gantt-row{display:grid;align-items:center;min-height:40px}
@@ -26,10 +27,9 @@
   .gantt-bar{grid-row:1;align-self:center;height:26px;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:700;color:#0d0a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.35);z-index:2;transition:transform .15s}
   .gantt-bar:hover{transform:scaleY(1.15)}
 
-  .res-cell{text-align:center;font-size:13px;color:var(--text-mid);padding:8px 4px;border-left:1px solid rgba(255,255,255,.04);border-radius:6px}
-  .res-cell.over{color:#ff5555;font-weight:800;background:rgba(255,85,85,.12)}
+  .res-cell{text-align:center;font-size:12px;color:var(--text-mid);padding:6px 4px;border-left:1px solid rgba(255,255,255,.04);border-radius:6px}
+  .res-cell.over{color:#ff6e6e;font-weight:800;background:rgba(255,110,110,.12)}
   .res-cell.empty{color:var(--text-dim);opacity:.4}
-  .res-cell.cap{color:var(--cyan);font-weight:700}
   .res-cell.total{font-weight:700}
 
   .color-swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
@@ -45,6 +45,7 @@
   .filters-group-row{display:flex;gap:12px;flex-wrap:wrap}
 
   .cat-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.02em}
+  .status-select{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:20px;font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;outline:none;cursor:pointer}
 
   .detail-box{margin-top:12px;padding:14px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid var(--border)}
   .aff-table{width:100%;border-collapse:collapse;font-size:12px}
@@ -53,10 +54,27 @@
   .aff-table td{padding:5px}
   .aff-input{width:56px;padding:5px 4px;text-align:center}
 
+  .person-res-group{margin-bottom:14px;border:1px solid var(--border);border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.02)}
+  .person-res-header{display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+  .person-res-name{font-family:'Quicksand',sans-serif;font-weight:700;font-size:14px;color:var(--text)}
+  .person-res-role{font-size:12px;color:var(--text-dim)}
+  .person-res-taux{font-size:12px;color:var(--text-mid);display:flex;align-items:center;gap:5px}
+  .person-res-taux input{width:52px;padding:4px 6px;text-align:center;font-size:12px}
+  .person-res-sub-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;padding:4px 0;font-weight:700}
+
+  .charge-cat-row{cursor:pointer;transition:background .15s}
+  .charge-cat-row:hover{background:rgba(255,255,255,.03)}
+  .charge-detail{padding:10px 10px 14px 170px;display:flex;flex-direction:column;gap:8px}
+  .charge-detail-person{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:8px 12px}
+  .charge-detail-person-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px}
+  .charge-detail-projects{display:flex;gap:6px;flex-wrap:wrap}
+  .charge-detail-proj-pill{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);color:var(--text-mid)}
+
   .hidden{display:none!important}
 
   @media (max-width:700px){
     .filters-row{flex-direction:column;align-items:stretch}
+    .charge-detail{padding-left:16px}
   }
 </style>
 </head>
@@ -75,14 +93,19 @@
 
   <div class="nav-tabs">
     <button class="nav-tab active" id="tab-projets" onclick="showView('projets')">📁 Projets</button>
-    <button class="nav-tab" id="tab-equipe" onclick="showView('equipe')">👥 Équipe</button>
+    <button class="nav-tab" id="tab-ressources" onclick="showView('ressources')">🧑‍🤝‍🧑 Équipe & Ressources</button>
     <button class="nav-tab" id="tab-gantt" onclick="showView('gantt')">📊 Gantt</button>
-    <button class="nav-tab" id="tab-ressources" onclick="showView('ressources')">🧮 Ressources</button>
     <button class="nav-tab" id="tab-charge" onclick="showView('charge')">🌍 Charge globale</button>
   </div>
 
   <!-- ═══════════ VUE PROJETS ═══════════ -->
   <div class="view active" id="view-projets">
+    <div class="filters-row">
+      <div class="filters-group">
+        <div class="filters-group-label">Statut</div>
+        <div class="filters-group-row" id="status-filters"></div>
+      </div>
+    </div>
     <div class="panel-section">
       <div class="toolbar">
         <div class="section-title" style="margin-bottom:0">Liste des projets</div>
@@ -92,55 +115,32 @@
     </div>
   </div>
 
-  <!-- ═══════════ VUE ÉQUIPE ═══════════ -->
-  <div class="view" id="view-equipe">
+  <!-- ═══════════ VUE ÉQUIPE & RESSOURCES ═══════════ -->
+  <div class="view" id="view-ressources">
     <div class="panel-section">
       <div class="toolbar">
-        <div class="section-title" style="margin-bottom:0">Membres de l'équipe</div>
-        <button class="btn btn-sm" onclick="openPersonModal()">+ Nouvelle personne</button>
+        <div class="section-title" style="margin-bottom:0">Charge par personne</div>
+        <button class="btn btn-sm" onclick="openPersonModal()">+ Ajouter une personne</button>
       </div>
-      <div class="admin-list" id="equipe-list"></div>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px">
+        Capacité calculée automatiquement : <b>jours ouvrés du mois (jours fériés français déduits) × taux d'activité − congés saisis</b>.
+        Par défaut chaque personne travaille à 100%. En <span style="color:#ff6e6e;font-weight:700">rouge</span> : dépassement de la charge projets sur la capacité disponible.
+      </p>
+      <div class="period-nav" id="period-nav-ressources"></div>
+      <div class="gantt-scroll">
+        <div class="gantt-head" id="res-head"></div>
+        <div id="res-body"></div>
+      </div>
     </div>
   </div>
 
   <!-- ═══════════ VUE GANTT ═══════════ -->
   <div class="view" id="view-gantt">
     <div class="panel-section">
-      <div class="timeline-nav">
-        <button class="btn-icon" onclick="shiftTimeline(-3)">«</button>
-        <button class="btn-icon" onclick="shiftTimeline(-1)">‹</button>
-        <span class="timeline-label" id="gantt-timeline-label"></span>
-        <button class="btn-icon" onclick="shiftTimeline(1)">›</button>
-        <button class="btn-icon" onclick="shiftTimeline(3)">»</button>
-        <button class="btn-sm" onclick="resetTimeline()" style="margin-left:8px">Aujourd'hui</button>
-        <select class="styled-select" id="gantt-count" onchange="setTimelineCount(this.value)" style="margin-left:auto;font-size:13px;padding:6px 12px">
-          <option value="6">6 mois</option>
-          <option value="12" selected>12 mois</option>
-          <option value="18">18 mois</option>
-        </select>
-      </div>
+      <div class="period-nav" id="period-nav-gantt"></div>
       <div class="gantt-scroll">
         <div class="gantt-head" id="gantt-head"></div>
         <div id="gantt-body"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════ VUE RESSOURCES ═══════════ -->
-  <div class="view" id="view-ressources">
-    <div class="panel-section">
-      <div class="timeline-nav">
-        <button class="btn-icon" onclick="shiftTimeline(-3)">«</button>
-        <button class="btn-icon" onclick="shiftTimeline(-1)">‹</button>
-        <span class="timeline-label" id="res-timeline-label"></span>
-        <button class="btn-icon" onclick="shiftTimeline(1)">›</button>
-        <button class="btn-icon" onclick="shiftTimeline(3)">»</button>
-        <button class="btn-sm" onclick="resetTimeline()" style="margin-left:8px">Aujourd'hui</button>
-      </div>
-      <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px">Total de jours affectés par personne et par mois (tous projets confondus, congés inclus). En <span style="color:#ff5555;font-weight:700">rouge</span> : dépassement de la capacité mensuelle.</p>
-      <div class="gantt-scroll">
-        <div class="gantt-head" id="res-head"></div>
-        <div id="res-body"></div>
       </div>
     </div>
   </div>
@@ -165,14 +165,8 @@
     <div class="summary-grid" id="charge-summary" style="margin-bottom:16px"></div>
 
     <div class="panel-section">
-      <div class="timeline-nav">
-        <button class="btn-icon" onclick="shiftTimeline(-3)">«</button>
-        <button class="btn-icon" onclick="shiftTimeline(-1)">‹</button>
-        <span class="timeline-label" id="charge-timeline-label"></span>
-        <button class="btn-icon" onclick="shiftTimeline(1)">›</button>
-        <button class="btn-icon" onclick="shiftTimeline(3)">»</button>
-        <button class="btn-sm" onclick="resetTimeline()" style="margin-left:8px">Aujourd'hui</button>
-      </div>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:10px">Clique sur une catégorie pour voir le détail par personne et par projet.</p>
+      <div class="period-nav" id="period-nav-charge"></div>
       <div class="gantt-scroll">
         <div class="gantt-head" id="charge-head"></div>
         <div id="charge-body"></div>
@@ -218,14 +212,21 @@
           <input class="field" type="number" id="pm-budget" min="0" step="0.5" value="0">
         </div>
         <div style="flex:1">
-          <div class="label-sm" style="margin-bottom:5px">Catégorie par défaut</div>
-          <select class="field" id="pm-categorie">
-            <option value="facturable">Facturable</option>
-            <option value="depassement">Dépassement</option>
-            <option value="conge">Congé</option>
-            <option value="autre">Autre</option>
+          <div class="label-sm" style="margin-bottom:5px">Statut</div>
+          <select class="field" id="pm-statut">
+            <option value="a_venir">À venir</option>
+            <option value="en_cours">En cours</option>
+            <option value="termine">Terminé</option>
           </select>
         </div>
+      </div>
+      <div>
+        <div class="label-sm" style="margin-bottom:5px">Catégorie par défaut des affectations</div>
+        <select class="field" id="pm-categorie">
+          <option value="facturable">Facturable</option>
+          <option value="depassement">Dépassement</option>
+          <option value="autre">Autre</option>
+        </select>
       </div>
       <div>
         <div class="label-sm" style="margin-bottom:5px">Couleur</div>
@@ -255,8 +256,8 @@
         <input class="field" id="pem-role" placeholder="Ex: Chef de projet">
       </div>
       <div>
-        <div class="label-sm" style="margin-bottom:5px">Capacité (jours/mois)</div>
-        <input class="field" type="number" id="pem-capacity" min="0" step="0.5" value="20">
+        <div class="label-sm" style="margin-bottom:5px">Taux d'activité (%)</div>
+        <input class="field" type="number" id="pem-taux" min="0" max="100" step="5" value="100">
       </div>
     </div>
     <div class="modal-actions">
@@ -270,17 +271,23 @@
 /* ═══════════════════════════════════════════════════════════════ */
 /* ÉTAT & STOCKAGE */
 /* ═══════════════════════════════════════════════════════════════ */
-const STORAGE_KEY = 'equipe_suivi_data_v1';
+const STORAGE_KEY = 'equipe_suivi_data_v2';
 const PALETTE = ['#ff79c6','#bd93f9','#8be9fd','#50fa7b','#f1fa8c','#ff6e6e','#ffb86c','#6ad3ff'];
-const CAT_ORDER = ['facturable','depassement','conge','autre'];
+const CAT_ORDER = ['facturable','depassement','autre'];
+const STATUS_ORDER = ['a_venir','en_cours','termine'];
 
 let state = {
   people: [],
   projects: [],
   affectations: [],
-  timelineStart: currentYM(),
-  timelineCount: 12,
-  filters: { categories: [...CAT_ORDER], projectId: '', personId: '' }
+  openProjectId: null,
+  chargeExpandedCat: null,
+  periods: {
+    gantt:      { start: currentYM(), end: ymAdd(currentYM(), 11) },
+    ressources: { start: currentYM(), end: ymAdd(currentYM(), 11) },
+    charge:     { start: currentYM(), end: ymAdd(currentYM(), 5) }
+  },
+  filters: { categories: [...CAT_ORDER], projectId: '', personId: '', projectStatus: ['a_venir','en_cours'] }
 };
 
 function load(){
@@ -293,6 +300,18 @@ function load(){
       state.affectations = d.affectations || [];
     }
   }catch(e){ console.error('Erreur chargement', e); }
+  // migrations douces pour anciennes données
+  state.people.forEach(p => {
+    if(p.tauxActivite == null) p.tauxActivite = 100;
+    if(!p.conges) p.conges = {};
+  });
+  state.projects.forEach(p => {
+    if(!p.statut) p.statut = 'a_venir';
+    if(p.defaultCategorie === 'conge') p.defaultCategorie = 'autre';
+  });
+  state.affectations.forEach(a => {
+    if(a.categorie === 'conge') a.categorie = 'autre';
+  });
 }
 function save(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -320,8 +339,9 @@ function ymAdd(ym, n){
 }
 function monthsBetween(start, end){
   if(!start || !end) return [];
+  if(end < start) end = start;
   const arr = []; let cur = start; let guard = 0;
-  while(cur <= end && guard < 240){ arr.push(cur); cur = ymAdd(cur,1); guard++; }
+  while(cur <= end && guard < 60){ arr.push(cur); cur = ymAdd(cur,1); guard++; }
   return arr;
 }
 const MONTH_NAMES = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
@@ -330,18 +350,107 @@ function monthLabel(ym){
   const [y,m] = ym.split('-').map(Number);
   return MONTH_NAMES[m-1] + ' ' + y;
 }
-function getTimelineMonths(){
-  return monthsBetween(state.timelineStart, ymAdd(state.timelineStart, state.timelineCount - 1));
-}
-function shiftTimeline(n){ state.timelineStart = ymAdd(state.timelineStart, n); renderAll(); }
-function resetTimeline(){ state.timelineStart = currentYM(); renderAll(); }
-function setTimelineCount(v){ state.timelineCount = parseInt(v); renderAll(); }
 
 /* ═══════════════════════════════════════════════════════════════ */
-/* CATÉGORIES */
+/* JOURS OUVRÉS FRANÇAIS (jours fériés) */
 /* ═══════════════════════════════════════════════════════════════ */
-function catLabel(c){ return { facturable:'Facturable', depassement:'Dépassement', conge:'Congé', autre:'Autre' }[c] || c; }
-function catColor(c){ return { facturable:'#50fa7b', depassement:'#ff6e6e', conge:'#f1fa8c', autre:'#8be9fd' }[c] || '#fff'; }
+let holidayCache = {};
+function easterDate(year){
+  const a=year%19, b=Math.floor(year/100), c=year%100, d=Math.floor(b/4), e=b%4,
+        f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3), h=(19*a+b-d-g+15)%30,
+        i=Math.floor(c/4), k=c%4, l=(32+2*e+2*i-h-k)%7, mm=Math.floor((a+11*h+22*l)/451);
+  const month = Math.floor((h+l-7*mm+114)/31);
+  const day = ((h+l-7*mm+114)%31)+1;
+  return new Date(year, month-1, day);
+}
+function addDays(date, n){ const r = new Date(date); r.setDate(r.getDate()+n); return r; }
+function dISO(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function frenchHolidaysForYear(year){
+  if(holidayCache[year]) return holidayCache[year];
+  const easter = easterDate(year);
+  const list = [
+    new Date(year,0,1),    // Jour de l'an
+    addDays(easter,1),     // Lundi de Pâques
+    new Date(year,4,1),    // Fête du travail
+    new Date(year,4,8),    // Victoire 1945
+    addDays(easter,39),    // Ascension
+    addDays(easter,50),    // Lundi de Pentecôte
+    new Date(year,6,14),   // Fête nationale
+    new Date(year,7,15),   // Assomption
+    new Date(year,10,1),   // Toussaint
+    new Date(year,10,11),  // Armistice
+    new Date(year,11,25)   // Noël
+  ].map(dISO);
+  holidayCache[year] = list;
+  return list;
+}
+function joursOuvresInMonth(ym){
+  const [y,m] = ym.split('-').map(Number);
+  const holidays = new Set(frenchHolidaysForYear(y));
+  const daysInMonth = new Date(y, m, 0).getDate();
+  let count = 0;
+  for(let d=1; d<=daysInMonth; d++){
+    const dow = new Date(y, m-1, d).getDay();
+    if(dow === 0 || dow === 6) continue;
+    const iso = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    if(holidays.has(iso)) continue;
+    count++;
+  }
+  return count;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* PÉRIODES (indépendantes par onglet) */
+/* ═══════════════════════════════════════════════════════════════ */
+function getPeriodMonths(tab){
+  const p = state.periods[tab];
+  return monthsBetween(p.start, p.end);
+}
+function shiftPeriod(tab, n){
+  const p = state.periods[tab];
+  p.start = ymAdd(p.start, n);
+  p.end = ymAdd(p.end, n);
+  renderAll();
+}
+function resetPeriod(tab){
+  const defaults = { gantt: 11, ressources: 11, charge: 5 };
+  state.periods[tab] = { start: currentYM(), end: ymAdd(currentYM(), defaults[tab]) };
+  renderAll();
+}
+function updatePeriodStart(tab, val){
+  if(!val) return;
+  state.periods[tab].start = val;
+  if(state.periods[tab].end < val) state.periods[tab].end = val;
+  renderAll();
+}
+function updatePeriodEnd(tab, val){
+  if(!val) return;
+  state.periods[tab].end = val;
+  if(state.periods[tab].start > val) state.periods[tab].start = val;
+  renderAll();
+}
+function renderPeriodNav(tab){
+  const el = document.getElementById('period-nav-' + tab);
+  if(!el) return;
+  const p = state.periods[tab];
+  el.innerHTML = `
+    <label>Du</label>
+    <input type="month" value="${p.start}" onchange="updatePeriodStart('${tab}', this.value)">
+    <label>au</label>
+    <input type="month" value="${p.end}" onchange="updatePeriodEnd('${tab}', this.value)">
+    <button class="btn-icon" onclick="shiftPeriod('${tab}',-1)" title="Mois précédent">‹</button>
+    <button class="btn-icon" onclick="shiftPeriod('${tab}',1)" title="Mois suivant">›</button>
+    <button class="btn-sm" onclick="resetPeriod('${tab}')">Réinitialiser</button>
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* CATÉGORIES & STATUTS */
+/* ═══════════════════════════════════════════════════════════════ */
+function catLabel(c){ return { facturable:'Facturable', depassement:'Dépassement', autre:'Autre' }[c] || c; }
+function catColor(c){ return { facturable:'#50fa7b', depassement:'#ff6e6e', autre:'#8be9fd' }[c] || '#fff'; }
+function statusLabel(s){ return { a_venir:'À venir', en_cours:'En cours', termine:'Terminé' }[s] || s; }
+function statusColor(s){ return { a_venir:'#8be9fd', en_cours:'#50fa7b', termine:'#8894a8' }[s] || '#fff'; }
 
 /* ═══════════════════════════════════════════════════════════════ */
 /* NAVIGATION VUES */
@@ -356,11 +465,13 @@ function showView(id){
 
 function renderAll(){
   renderProjets();
-  renderEquipe();
   renderGantt();
   renderRessources();
   renderChargeFilters();
   renderCharge();
+  renderPeriodNav('gantt');
+  renderPeriodNav('ressources');
+  renderPeriodNav('charge');
 }
 
 /* ═══════════════════════════════════════════════════════════════ */
@@ -372,56 +483,99 @@ function projectTotal(projectId){
     .reduce((s,a) => s + Object.values(a.days || {}).reduce((x,y) => x + (parseFloat(y)||0), 0), 0);
 }
 
+function renderStatusFilters(){
+  const wrap = document.getElementById('status-filters');
+  wrap.innerHTML = STATUS_ORDER.map(s => `
+    <label class="cat-check">
+      <input type="checkbox" ${state.filters.projectStatus.includes(s) ? 'checked' : ''} onchange="toggleStatusFilter('${s}', this.checked)">
+      <span style="color:${statusColor(s)};font-weight:700">${statusLabel(s)}</span>
+    </label>`).join('');
+}
+function toggleStatusFilter(s, checked){
+  if(checked){
+    if(!state.filters.projectStatus.includes(s)) state.filters.projectStatus.push(s);
+  } else {
+    state.filters.projectStatus = state.filters.projectStatus.filter(x => x !== s);
+  }
+  renderProjets();
+  renderGantt();
+}
+
 function renderProjets(){
+  renderStatusFilters();
   const wrap = document.getElementById('projets-list');
   wrap.innerHTML = '';
+  const visible = state.projects.filter(p => state.filters.projectStatus.includes(p.statut));
   if(state.projects.length === 0){
     wrap.innerHTML = '<p style="color:var(--text-dim);font-style:italic;padding:20px;text-align:center">Aucun projet. Ajoute ton premier projet ci-dessus.</p>';
     return;
   }
-  state.projects.forEach(p => {
+  if(visible.length === 0){
+    wrap.innerHTML = '<p style="color:var(--text-dim);font-style:italic;padding:20px;text-align:center">Aucun projet ne correspond aux statuts sélectionnés.</p>';
+    return;
+  }
+  visible.forEach(p => {
     const total = projectTotal(p.id);
-    const over = p.budgetDays > 0 && total > p.budgetDays;
     const div = document.createElement('div');
     div.className = 'admin-item';
     div.style.flexDirection = 'column';
     div.style.alignItems = 'stretch';
+
+    let joursHtml;
+    if(p.budgetDays > 0){
+      const ecart = Math.round((p.budgetDays - total) * 10) / 10;
+      const ecartColor = ecart < 0 ? '#ff6e6e' : '#50fa7b';
+      const ecartLabel = ecart < 0 ? `dépassement ${Math.abs(ecart)} j` : `reste ${ecart} j`;
+      joursHtml = `
+        <span class="admin-item-detail">Vendu <b style="color:var(--text)">${p.budgetDays} j</b></span>
+        <span class="admin-item-detail">Prévu <b style="color:var(--cyan)">${total} j</b></span>
+        <span class="admin-item-detail" style="color:${ecartColor};font-weight:700">${ecartLabel}</span>`;
+    } else {
+      joursHtml = `<span class="admin-item-detail">Prévu <b style="color:var(--cyan)">${total} j</b></span>`;
+    }
+
     div.innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <span style="width:12px;height:12px;border-radius:50%;background:${p.color};flex-shrink:0"></span>
         <span class="admin-item-name" style="font-weight:700;flex:none">${escapeHtml(p.name)}</span>
-        <span class="cat-badge" style="background:${catColor(p.defaultCategorie)}22;color:${catColor(p.defaultCategorie)}">${catLabel(p.defaultCategorie)}</span>
-        <span class="admin-item-detail">${escapeHtml(p.client || '—')}</span>
-        <span class="admin-item-detail">Cmd: ${escapeHtml(p.commande || '—')}</span>
+        <span class="admin-item-detail" style="color:var(--pink);font-weight:700">${escapeHtml(p.client || '—')}</span>
+        <select class="status-select" style="color:${statusColor(p.statut)};border-color:${statusColor(p.statut)}66" onchange="updateProjectStatus('${p.id}', this.value)">
+          ${STATUS_ORDER.map(s => `<option value="${s}" ${p.statut===s?'selected':''}>${statusLabel(s)}</option>`).join('')}
+        </select>
         <span class="admin-item-detail">${monthLabel(p.startMonth)} → ${monthLabel(p.endMonth)}</span>
-        <span class="admin-item-detail" style="color:${over ? '#ff6e6e' : 'var(--cyan)'};font-weight:700">
-          ${total}${p.budgetDays > 0 ? ' / ' + p.budgetDays : ''} j${over ? ' ⚠️ dépassement' : ''}
-        </span>
+        ${joursHtml}
         <div style="margin-left:auto;display:flex;gap:6px">
           <button class="btn-sm" onclick="toggleProjectDetail('${p.id}')">Affectations</button>
           <button class="btn-icon" onclick="openProjectModal('${p.id}')" title="Modifier">✎</button>
           <button class="btn-del-sm" onclick="deleteProject('${p.id}')">Suppr</button>
         </div>
       </div>
-      <div id="detail-${p.id}" class="hidden detail-box"></div>
+      <div id="detail-${p.id}" class="detail-box ${state.openProjectId === p.id ? '' : 'hidden'}"></div>
     `;
     wrap.appendChild(div);
+    if(state.openProjectId === p.id){
+      renderProjectDetail(p.id, document.getElementById('detail-' + p.id));
+    }
   });
 }
 
+function updateProjectStatus(id, val){
+  const p = state.projects.find(x => x.id === id);
+  if(!p) return;
+  p.statut = val;
+  save();
+  renderProjets();
+  renderGantt();
+}
+
 function toggleProjectDetail(projectId){
-  const el = document.getElementById('detail-' + projectId);
-  const wasHidden = el.classList.contains('hidden');
-  document.querySelectorAll('[id^="detail-"]').forEach(d => d.classList.add('hidden'));
-  if(wasHidden){
-    el.classList.remove('hidden');
-    renderProjectDetail(projectId, el);
-  }
+  state.openProjectId = (state.openProjectId === projectId) ? null : projectId;
+  renderProjets();
 }
 
 function renderProjectDetail(projectId, el){
   const p = state.projects.find(x => x.id === projectId);
-  if(!p){ return; }
+  if(!p || !el) return;
   const months = monthsBetween(p.startMonth, p.endMonth);
   const rows = state.affectations.filter(a => a.projectId === projectId);
 
@@ -473,8 +627,6 @@ function addAffectation(projectId){
     days: {}
   });
   save();
-  const el = document.getElementById('detail-' + projectId);
-  renderProjectDetail(projectId, el);
   renderProjets();
 }
 
@@ -485,8 +637,6 @@ function updateAffDay(affId, ym, val){
   const v = parseFloat(val);
   if(!v || v <= 0){ delete a.days[ym]; } else { a.days[ym] = v; }
   save();
-  const el = document.getElementById('detail-' + a.projectId);
-  if(el && !el.classList.contains('hidden')) renderProjectDetail(a.projectId, el);
   renderProjets();
 }
 
@@ -502,8 +652,6 @@ function deleteAff(affId){
   if(!a) return;
   state.affectations = state.affectations.filter(x => x.id !== affId);
   save();
-  const el = document.getElementById('detail-' + a.projectId);
-  if(el) renderProjectDetail(a.projectId, el);
   renderProjets();
 }
 
@@ -519,6 +667,7 @@ function openProjectModal(id){
   document.getElementById('pm-start').value = p ? p.startMonth : currentYM();
   document.getElementById('pm-end').value = p ? p.endMonth : ymAdd(currentYM(), 2);
   document.getElementById('pm-budget').value = p ? p.budgetDays : 0;
+  document.getElementById('pm-statut').value = p ? p.statut : 'a_venir';
   document.getElementById('pm-categorie').value = p ? p.defaultCategorie : 'facturable';
 
   const chosenColor = p ? p.color : PALETTE[state.projects.length % PALETTE.length];
@@ -548,6 +697,7 @@ function saveProject(){
     startMonth: start <= end ? start : end,
     endMonth: start <= end ? end : start,
     budgetDays: parseFloat(document.getElementById('pm-budget').value) || 0,
+    statut: document.getElementById('pm-statut').value,
     defaultCategorie: document.getElementById('pm-categorie').value,
     color: document.getElementById('pm-color').value
   };
@@ -566,34 +716,102 @@ function deleteProject(id){
   if(!confirm('Supprimer ce projet et toutes ses affectations ?')) return;
   state.projects = state.projects.filter(x => x.id !== id);
   state.affectations = state.affectations.filter(a => a.projectId !== id);
+  if(state.openProjectId === id) state.openProjectId = null;
   save();
   renderAll();
 }
 
 /* ═══════════════════════════════════════════════════════════════ */
-/* VUE ÉQUIPE */
+/* VUE ÉQUIPE & RESSOURCES */
 /* ═══════════════════════════════════════════════════════════════ */
-function renderEquipe(){
-  const wrap = document.getElementById('equipe-list');
-  wrap.innerHTML = '';
+function personCapacity(person, ym){
+  const ouvres = joursOuvresInMonth(ym);
+  const taux = (person.tauxActivite != null ? person.tauxActivite : 100) / 100;
+  const conge = (person.conges && person.conges[ym]) || 0;
+  return Math.max(0, Math.round((ouvres * taux - conge) * 10) / 10);
+}
+function personAllocated(personId, ym){
+  return state.affectations
+    .filter(a => a.personId === personId)
+    .reduce((s,a) => s + (parseFloat(a.days && a.days[ym]) || 0), 0);
+}
+
+function renderRessources(){
+  const months = getPeriodMonths('ressources');
+  const head = document.getElementById('res-head');
+  head.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr) 90px`;
+  head.innerHTML = `<div class="gantt-row-label"></div>` + months.map(m => `<div class="gantt-col-head">${monthLabel(m)}</div>`).join('') + `<div class="gantt-col-head">Total</div>`;
+
+  const body = document.getElementById('res-body');
+  body.innerHTML = '';
   if(state.people.length === 0){
-    wrap.innerHTML = '<p style="color:var(--text-dim);font-style:italic;padding:20px;text-align:center">Aucun membre. Ajoute ta première personne ci-dessus.</p>';
+    body.innerHTML = '<p style="padding:20px;color:var(--text-dim);font-style:italic;text-align:center">Aucun membre. Clique sur "+ Ajouter une personne".</p>';
     return;
   }
-  state.people.forEach(p => {
-    const div = document.createElement('div');
-    div.className = 'admin-item';
-    div.innerHTML = `
-      <span class="admin-item-name">${escapeHtml(p.name)}</span>
-      <span class="admin-item-detail">${escapeHtml(p.role || '—')}</span>
-      <span class="admin-item-detail" style="color:var(--cyan);font-weight:700">${p.capacity} j/mois</span>
-      <div style="margin-left:auto;display:flex;gap:6px">
-        <button class="btn-icon" onclick="openPersonModal('${p.id}')" title="Modifier">✎</button>
-        <button class="btn-del-sm" onclick="deletePerson('${p.id}')">Suppr</button>
+
+  state.people.forEach(person => {
+    const group = document.createElement('div');
+    group.className = 'person-res-group';
+
+    let totalAlloc = 0, totalCap = 0;
+
+    let congesRowHtml = `<div class="gantt-row" style="min-height:36px" >
+        <div class="gantt-row-label person-res-sub-label">Congés (j)</div>`;
+    let chargeRowHtml = `<div class="gantt-row" style="min-height:36px">
+        <div class="gantt-row-label person-res-sub-label">Charge / Capacité</div>`;
+
+    months.forEach(m => {
+      const congeVal = (person.conges && person.conges[m]) || '';
+      congesRowHtml += `<div class="res-cell"><input type="number" class="field aff-input" min="0" step="0.5" value="${congeVal}" placeholder="0" onchange="updateConge('${person.id}','${m}', this.value)"></div>`;
+
+      const alloc = personAllocated(person.id, m);
+      const cap = personCapacity(person, m);
+      totalAlloc += alloc; totalCap += cap;
+      const over = alloc > cap;
+      chargeRowHtml += `<div class="res-cell ${over ? 'over' : ''} ${alloc===0 ? 'empty' : ''}">${alloc || 0} / ${cap}</div>`;
+    });
+    congesRowHtml += `<div class="res-cell"></div></div>`;
+    chargeRowHtml += `<div class="res-cell total" style="color:${totalAlloc>totalCap?'#ff6e6e':'var(--cyan)'}">${Math.round(totalAlloc*10)/10} / ${Math.round(totalCap*10)/10}</div></div>`;
+
+    congesRowHtml = congesRowHtml.replace('<div class="gantt-row"', `<div class="gantt-row" style="grid-template-columns:160px repeat(${months.length},1fr) 90px;"`);
+    chargeRowHtml = chargeRowHtml.replace('<div class="gantt-row"', `<div class="gantt-row" style="grid-template-columns:160px repeat(${months.length},1fr) 90px;"`);
+
+    group.innerHTML = `
+      <div class="person-res-header">
+        <span class="person-res-name">${escapeHtml(person.name)}</span>
+        <span class="person-res-role">${escapeHtml(person.role || '')}</span>
+        <span class="person-res-taux">Taux
+          <input type="number" min="0" max="100" step="5" value="${person.tauxActivite}" onchange="updatePersonTaux('${person.id}', this.value)">%
+        </span>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn-icon" onclick="openPersonModal('${person.id}')" title="Modifier">✎</button>
+          <button class="btn-del-sm" onclick="deletePerson('${person.id}')">Suppr</button>
+        </div>
       </div>
+      ${congesRowHtml}
+      ${chargeRowHtml}
     `;
-    wrap.appendChild(div);
+    body.appendChild(group);
   });
+}
+
+function updateConge(personId, ym, val){
+  const p = state.people.find(x => x.id === personId);
+  if(!p) return;
+  if(!p.conges) p.conges = {};
+  const v = parseFloat(val);
+  if(!v || v <= 0){ delete p.conges[ym]; } else { p.conges[ym] = v; }
+  save();
+  renderRessources();
+}
+function updatePersonTaux(personId, val){
+  const p = state.people.find(x => x.id === personId);
+  if(!p) return;
+  let v = parseFloat(val);
+  if(isNaN(v)) v = 100;
+  p.tauxActivite = Math.max(0, Math.min(100, v));
+  save();
+  renderRessources();
 }
 
 function openPersonModal(id){
@@ -603,7 +821,7 @@ function openPersonModal(id){
   const p = isEdit ? state.people.find(x => x.id === id) : null;
   document.getElementById('pem-name').value = p ? p.name : '';
   document.getElementById('pem-role').value = p ? (p.role || '') : '';
-  document.getElementById('pem-capacity').value = p ? p.capacity : 20;
+  document.getElementById('pem-taux').value = p ? p.tauxActivite : 100;
   document.getElementById('person-modal').classList.add('visible');
 }
 
@@ -614,13 +832,13 @@ function savePerson(){
   const data = {
     name,
     role: document.getElementById('pem-role').value.trim(),
-    capacity: parseFloat(document.getElementById('pem-capacity').value) || 0
+    tauxActivite: Math.max(0, Math.min(100, parseFloat(document.getElementById('pem-taux').value) || 100))
   };
   if(id){
     const p = state.people.find(x => x.id === id);
     Object.assign(p, data);
   } else {
-    state.people.push({ id: uid(), ...data });
+    state.people.push({ id: uid(), ...data, conges: {} });
   }
   save();
   closeModal('person-modal');
@@ -639,21 +857,20 @@ function deletePerson(id){
 /* VUE GANTT */
 /* ═══════════════════════════════════════════════════════════════ */
 function renderGantt(){
-  const months = getTimelineMonths();
-  document.getElementById('gantt-timeline-label').textContent = monthLabel(months[0]) + ' → ' + monthLabel(months[months.length-1]);
-
+  const months = getPeriodMonths('gantt');
   const head = document.getElementById('gantt-head');
   head.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr)`;
   head.innerHTML = `<div class="gantt-row-label"></div>` + months.map(m => `<div class="gantt-col-head">${monthLabel(m)}</div>`).join('');
 
   const body = document.getElementById('gantt-body');
   body.innerHTML = '';
-  if(state.projects.length === 0){
-    body.innerHTML = '<p style="padding:20px;color:var(--text-dim);font-style:italic;text-align:center">Aucun projet à afficher. Ajoute des projets dans l\'onglet Projets.</p>';
+  const visible = state.projects.filter(p => state.filters.projectStatus.includes(p.statut));
+  if(visible.length === 0){
+    body.innerHTML = '<p style="padding:20px;color:var(--text-dim);font-style:italic;text-align:center">Aucun projet à afficher pour les statuts sélectionnés (voir l\'onglet Projets).</p>';
     return;
   }
 
-  state.projects.forEach(p => {
+  visible.forEach(p => {
     const row = document.createElement('div');
     row.className = 'gantt-row';
     row.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr)`;
@@ -680,46 +897,9 @@ function renderGantt(){
       bar.style.background = p.color;
       bar.textContent = p.name + ' (' + projectTotal(p.id) + (p.budgetDays > 0 ? '/' + p.budgetDays : '') + ' j)';
       bar.title = p.client ? p.name + ' — ' + p.client : p.name;
-      bar.onclick = () => { showView('projets'); setTimeout(() => toggleProjectDetail(p.id), 60); };
+      bar.onclick = () => { showView('projets'); state.openProjectId = p.id; renderProjets(); };
       row.appendChild(bar);
     }
-    body.appendChild(row);
-  });
-}
-
-/* ═══════════════════════════════════════════════════════════════ */
-/* VUE RESSOURCES */
-/* ═══════════════════════════════════════════════════════════════ */
-function renderRessources(){
-  const months = getTimelineMonths();
-  document.getElementById('res-timeline-label').textContent = monthLabel(months[0]) + ' → ' + monthLabel(months[months.length-1]);
-
-  const head = document.getElementById('res-head');
-  head.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr) 90px`;
-  head.innerHTML = `<div class="gantt-row-label">Personne</div>` +
-    months.map(m => `<div class="gantt-col-head">${monthLabel(m)}</div>`).join('') +
-    `<div class="gantt-col-head">Capacité</div>`;
-
-  const body = document.getElementById('res-body');
-  body.innerHTML = '';
-  if(state.people.length === 0){
-    body.innerHTML = '<p style="padding:20px;color:var(--text-dim);font-style:italic;text-align:center">Ajoute des membres d\'équipe dans l\'onglet Équipe.</p>';
-    return;
-  }
-
-  state.people.forEach(person => {
-    const row = document.createElement('div');
-    row.className = 'gantt-row';
-    row.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr) 90px`;
-    row.innerHTML = `<div class="gantt-row-label">${escapeHtml(person.name)}</div>`;
-    months.forEach(m => {
-      const total = state.affectations
-        .filter(a => a.personId === person.id)
-        .reduce((s,a) => s + (parseFloat(a.days && a.days[m]) || 0), 0);
-      const over = total > person.capacity;
-      row.innerHTML += `<div class="res-cell ${over ? 'over' : ''} ${total === 0 ? 'empty' : ''}">${total > 0 ? total : '—'}</div>`;
-    });
-    row.innerHTML += `<div class="res-cell cap">${person.capacity} j</div>`;
     body.appendChild(row);
   });
 }
@@ -758,21 +938,58 @@ function updateFilter(key, val){
   state.filters[key] = val;
   renderCharge();
 }
+function toggleChargeDetail(c){
+  state.chargeExpandedCat = (state.chargeExpandedCat === c) ? null : c;
+  renderCharge();
+}
 
-function renderCharge(){
-  const months = getTimelineMonths();
-  document.getElementById('charge-timeline-label').textContent = monthLabel(months[0]) + ' → ' + monthLabel(months[months.length-1]);
-
-  const affs = state.affectations.filter(a => {
-    if(!state.filters.categories.includes(a.categorie)) return false;
+function filteredAffectations(){
+  return state.affectations.filter(a => {
     if(state.filters.projectId && a.projectId !== state.filters.projectId) return false;
     if(state.filters.personId && a.personId !== state.filters.personId) return false;
     return true;
   });
+}
+
+function buildCategoryDetail(c, months){
+  const affs = filteredAffectations().filter(a => a.categorie === c);
+  const byPerson = {};
+  affs.forEach(a => {
+    const total = months.reduce((s,m) => s + (parseFloat(a.days && a.days[m]) || 0), 0);
+    if(total <= 0) return;
+    if(!byPerson[a.personId]) byPerson[a.personId] = {};
+    byPerson[a.personId][a.projectId] = (byPerson[a.personId][a.projectId] || 0) + total;
+  });
+  const personIds = Object.keys(byPerson);
+  let html = '<div class="charge-detail">';
+  if(personIds.length === 0){
+    html += '<p style="color:var(--text-dim);font-style:italic;font-size:12px">Aucune donnée pour cette catégorie sur la période / les filtres actuels.</p>';
+  }
+  personIds.forEach(pid => {
+    const person = state.people.find(p => p.id === pid);
+    const projTotals = byPerson[pid];
+    const personTotal = Math.round(Object.values(projTotals).reduce((s,v) => s+v, 0) * 10) / 10;
+    html += `<div class="charge-detail-person">
+      <div class="charge-detail-person-name">${person ? escapeHtml(person.name) : '(supprimée)'} <span style="color:var(--text-dim);font-weight:400">— ${personTotal} j</span></div>
+      <div class="charge-detail-projects">`;
+    Object.keys(projTotals).forEach(prid => {
+      const proj = state.projects.find(p => p.id === prid);
+      html += `<span class="charge-detail-proj-pill" style="border-color:${proj ? proj.color : '#888'}">${proj ? escapeHtml(proj.name) : '(supprimé)'}: ${Math.round(projTotals[prid]*10)/10} j</span>`;
+    });
+    html += `</div></div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderCharge(){
+  const months = getPeriodMonths('charge');
+
+  const affs = filteredAffectations().filter(a => state.filters.categories.includes(a.categorie));
 
   const monthTotals = {};
-  months.forEach(m => monthTotals[m] = { facturable:0, depassement:0, conge:0, autre:0 });
-  const catTotals = { facturable:0, depassement:0, conge:0, autre:0 };
+  months.forEach(m => monthTotals[m] = { facturable:0, depassement:0, autre:0 });
+  const catTotals = { facturable:0, depassement:0, autre:0 };
 
   affs.forEach(a => {
     months.forEach(m => {
@@ -798,11 +1015,19 @@ function renderCharge(){
   CAT_ORDER.forEach(c => {
     if(!state.filters.categories.includes(c)) return;
     const row = document.createElement('div');
-    row.className = 'gantt-row';
+    row.className = 'gantt-row charge-cat-row';
     row.style.gridTemplateColumns = `160px repeat(${months.length}, 1fr)`;
-    row.innerHTML = `<div class="gantt-row-label" style="color:${catColor(c)}">${catLabel(c)}</div>` +
+    row.onclick = () => toggleChargeDetail(c);
+    const arrow = state.chargeExpandedCat === c ? '▾' : '▸';
+    row.innerHTML = `<div class="gantt-row-label" style="color:${catColor(c)}">${arrow} ${catLabel(c)}</div>` +
       months.map(m => `<div class="res-cell">${monthTotals[m][c] || '—'}</div>`).join('');
     body.appendChild(row);
+
+    if(state.chargeExpandedCat === c){
+      const detailWrap = document.createElement('div');
+      detailWrap.innerHTML = buildCategoryDetail(c, months);
+      body.appendChild(detailWrap.firstElementChild);
+    }
   });
 
   const totRow = document.createElement('div');
