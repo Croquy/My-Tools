@@ -37,6 +37,15 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Compagnon de morning.html (état de jeu + journal de bord)
+    match /morning_companion/{doc} {
+      allow read, write: if true;
+    }
+
+    match /morning_journal/{doc} {
+      allow read, write: if true;
+    }
+
     // Par défaut : refuser
     match /{document=**} {
       allow read: if false;

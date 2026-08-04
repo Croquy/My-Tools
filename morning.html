@@ -6,7 +6,216 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ma journée ✨</title>
   <link rel="stylesheet" href="style.css">
-  <style></style>
+  <style>
+    /* ══ Compagnon ══ */
+    .companion-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 12px 18px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .companion-avatar {
+      font-size: 34px;
+      line-height: 1;
+      filter: drop-shadow(0 0 8px rgba(189,147,249,0.4));
+    }
+    .companion-id { display: flex; flex-direction: column; gap: 2px; min-width: 90px; }
+    .companion-name { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); }
+    .companion-level { font-size: 11px; color: var(--text-dim); }
+    .companion-bars { flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 6px; }
+    .companion-bar-row { display: flex; align-items: center; gap: 8px; }
+    .companion-bar-label { font-size: 10px; color: var(--text-dim); width: 46px; flex-shrink: 0; }
+    .companion-track { flex: 1; height: 6px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; }
+    .companion-fill-xp { height: 100%; background: linear-gradient(90deg, var(--purple), var(--pink)); border-radius: 10px; transition: width .4s ease; }
+    .companion-fill-vit { height: 100%; background: linear-gradient(90deg, var(--mint), var(--cyan)); border-radius: 10px; transition: width .4s ease; }
+    .companion-streak { font-size: 12px; color: var(--yellow); font-weight: 600; white-space: nowrap; }
+    .companion-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .companion-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-mid);
+      border-radius: 10px;
+      padding: 7px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: .2s;
+      white-space: nowrap;
+    }
+    .companion-btn:hover { border-color: var(--purple); color: var(--text); }
+    .companion-btn.active { background: var(--purple-light); border-color: var(--purple); color: var(--text); }
+    .companion-msg {
+      width: 100%;
+      font-size: 12px;
+      color: var(--text-mid);
+      font-style: italic;
+      padding-top: 4px;
+      border-top: 1px dashed var(--border);
+      margin-top: 2px;
+    }
+
+    /* ══ Journal overlay ══ */
+    .journal-card {
+      background: linear-gradient(135deg, #1a1235, #0d1528);
+      border: 1px solid rgba(189, 147, 249, 0.35);
+      border-radius: 24px;
+      padding: 24px;
+      max-width: 560px;
+      width: 92%;
+      max-height: 82vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(189, 147, 249, 0.15);
+      animation: slideUp 0.3s ease;
+    }
+    .journal-title {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 14px;
+    }
+    .journal-search {
+      width: 100%;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+    .journal-entry {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .journal-entry:hover { border-color: var(--purple); }
+    .journal-entry-date { font-size: 12px; font-weight: 700; color: var(--cyan); margin-bottom: 4px; }
+    .journal-entry-preview { font-size: 11px; color: var(--text-dim); line-height: 1.5; white-space: pre-line; }
+    .journal-entry-full { display: none; font-family: monospace; font-size: 11px; color: var(--text-mid); white-space: pre-wrap; margin-top: 8px; line-height: 1.7; }
+    .journal-entry.open .journal-entry-full { display: block; }
+    .journal-entry.open .journal-entry-preview { display: none; }
+    .journal-empty { color: var(--text-dim); font-size: 13px; text-align: center; padding: 20px 0; }
+    .journal-close { margin-top: 8px; }
+
+    /* ══ Assistant overlay ══ */
+    .assistant-card {
+      background: linear-gradient(135deg, #1a1235, #0d1528);
+      border: 1px solid rgba(139, 233, 253, 0.35);
+      border-radius: 24px;
+      padding: 24px;
+      max-width: 480px;
+      width: 92%;
+      max-height: 82vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(139, 233, 253, 0.15);
+      animation: slideUp 0.3s ease;
+    }
+    .assistant-title {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 12px;
+    }
+    .assistant-answer {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text-mid);
+      min-height: 60px;
+      max-height: 40vh;
+      overflow-y: auto;
+      margin-bottom: 12px;
+      white-space: pre-wrap;
+    }
+    .assistant-row { display: flex; gap: 8px; }
+    .assistant-input {
+      flex: 1;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-size: 13px;
+    }
+    .assistant-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+
+    /* ══ Mode Boulot / Détente ══ */
+    .mode-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .mode-btn {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-mid);
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: 'Quicksand', sans-serif;
+      cursor: pointer;
+      transition: .2s;
+      text-align: center;
+    }
+    .mode-btn.active.boulot { background: var(--purple-light); border-color: var(--purple); color: var(--text); }
+    .mode-btn.active.detente { background: var(--mint-light); border-color: var(--mint); color: var(--text); }
+
+    .mood-body { padding: 18px 16px; display: flex; flex-direction: column; gap: 14px; }
+    .mood-row { display: flex; gap: 8px; justify-content: space-between; }
+    .mood-option {
+      flex: 1;
+      background: var(--done-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 4px;
+      font-size: 22px;
+      cursor: pointer;
+      text-align: center;
+      transition: .2s;
+    }
+    .mood-option.selected { border-color: var(--mint); background: var(--mint-light); transform: translateY(-2px); }
+    .mood-hint { font-size: 11px; color: var(--text-dim); text-align: center; }
+
+    .loisir-add { display: flex; gap: 6px; padding: 12px 16px 8px; }
+    .loisir-type {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-mid);
+      font-size: 12px;
+      padding: 0 6px;
+    }
+    .loisir-list { padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+    .loisir-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--done-bg);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+    .loisir-tag { font-size: 11px; color: var(--mint); font-weight: 700; white-space: nowrap; }
+    .loisir-text { flex: 1; }
+  </style>
 </head>
 
 <body>
@@ -43,23 +252,71 @@
 
     </div>
 
+    <!-- ══ Compagnon ══ -->
+    <div class="companion-bar">
+      <div class="companion-avatar" id="companion-avatar">🌱</div>
+      <div class="companion-id">
+        <div class="companion-name">Ton compagnon</div>
+        <div class="companion-level" id="companion-level">Niveau 1</div>
+      </div>
+      <div class="companion-bars">
+        <div class="companion-bar-row">
+          <span class="companion-bar-label">XP</span>
+          <div class="companion-track"><div class="companion-fill-xp" id="companion-xp-fill"></div></div>
+        </div>
+        <div class="companion-bar-row">
+          <span class="companion-bar-label">Vitalité</span>
+          <div class="companion-track"><div class="companion-fill-vit" id="companion-vit-fill"></div></div>
+        </div>
+      </div>
+      <div class="companion-streak" id="companion-streak">🔥 0 j</div>
+      <div class="companion-actions">
+        <button class="companion-btn" id="btn-vacation" onclick="toggleVacationToday()">🏖 Vacances</button>
+        <button class="companion-btn" onclick="openJournal()">📖 Journal</button>
+        <button class="companion-btn" onclick="openAssistant()">💬 Demander</button>
+      </div>
+      <div class="companion-msg" id="companion-msg"></div>
+    </div>
+
+    <!-- ══ Mode Boulot / Détente ══ -->
+    <div class="mode-toggle">
+      <button class="mode-btn boulot" id="mode-btn-boulot" onclick="switchMode('boulot')">💼 Boulot</button>
+      <button class="mode-btn detente" id="mode-btn-detente" onclick="switchMode('detente')">🌙 Détente</button>
+    </div>
+
     <!-- ══ Layout ══ -->
     <div class="layout">
 
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title pink">🗓 Planning</span>
-          <span class="panel-header-center" id="planning-msg"></span>
-          <span class="panel-header-right" id="planning-progress"></span>
-        </div>
-        <div id="planning-body"></div>
-        <div class="progress-wrap">
-          <div class="progress-label">
-            <span>Progression</span>
-            <span id="progress-pct">0%</span>
+      <div class="left-slot" id="slot-boulot-planning">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title pink">🗓 Planning</span>
+            <span class="panel-header-center" id="planning-msg"></span>
+            <span class="panel-header-right" id="planning-progress"></span>
           </div>
-          <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill"></div>
+          <div id="planning-body"></div>
+          <div class="progress-wrap">
+            <div class="progress-label">
+              <span>Progression</span>
+              <span id="progress-pct">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="left-slot" id="slot-detente-mood" style="display:none">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title cyan">🌙 Humeur</span>
+            <span class="panel-header-center"></span>
+            <span class="panel-header-right"></span>
+          </div>
+          <div class="mood-body">
+            <div class="mood-row" id="mood-row"></div>
+            <div class="mood-hint">Ça compte pas contre toi, même un dimanche — c'est juste pour toi.</div>
           </div>
         </div>
       </div>
@@ -75,27 +332,52 @@
             </div>
           </div>
           <div class="postit-body">
-            <textarea class="postit-area"
-              placeholder="Notes libres, idées, trucs à pas oublier...&#10;Ça disparaît ce soir 🌙"></textarea>
+            <textarea class="postit-area" id="notes-area"
+              placeholder="Notes libres, idées, trucs à pas oublier...&#10;Sauvegardées avec le résumé du jour 💜"></textarea>
           </div>
         </div>
 
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title purple">✅ À faire</span>
-            <span class="panel-header-center" id="todo-msg"></span>
-            <div class="panel-header-right">
-              <button class="btn-craque panel-btn" onclick="openCraque()">Là je craque 🫠</button>
-              <span id="todo-stats"></span>
+        <div class="left-slot" id="slot-boulot-todo">
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title purple">✅ À faire</span>
+              <span class="panel-header-center" id="todo-msg"></span>
+              <div class="panel-header-right">
+                <button class="btn-craque panel-btn" onclick="openCraque()">Là je craque 🫠</button>
+                <span id="todo-stats"></span>
+              </div>
+            </div>
+            <div class="todo-body">
+              <div class="todo-add">
+                <input type="text" id="todo-input" placeholder="Ajouter une tâche..."
+                  onkeydown="if(event.key==='Enter') addTodo()">
+                <button class="btn-add" onclick="addTodo()">+</button>
+              </div>
+              <div class="todo-list" id="todo-list"></div>
             </div>
           </div>
-          <div class="todo-body">
-            <div class="todo-add">
-              <input type="text" id="todo-input" placeholder="Ajouter une tâche..."
-                onkeydown="if(event.key==='Enter') addTodo()">
-              <button class="btn-add" onclick="addTodo()">+</button>
+        </div>
+
+        <div class="left-slot" id="slot-detente-loisirs" style="display:none">
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title purple">🎮 Loisirs</span>
+              <span class="panel-header-center"></span>
+              <span class="panel-header-right"></span>
             </div>
-            <div class="todo-list" id="todo-list"></div>
+            <div class="loisir-add">
+              <select class="loisir-type" id="loisir-type">
+                <option value="🎬 Film">🎬 Film</option>
+                <option value="📺 Série">📺 Série</option>
+                <option value="🎮 Jeu">🎮 Jeu</option>
+                <option value="📖 Livre">📖 Livre</option>
+                <option value="✨ Autre">✨ Autre</option>
+              </select>
+              <input type="text" id="loisir-input" placeholder="Quoi ?"
+                onkeydown="if(event.key==='Enter') addLoisir()">
+              <button class="btn-add" onclick="addLoisir()">+</button>
+            </div>
+            <div class="loisir-list" id="loisir-list"></div>
           </div>
         </div>
 
@@ -128,7 +410,59 @@
     </div>
   </div>
 
+  <!-- Overlay journal -->
+  <div class="overlay" id="journal-overlay">
+    <div class="journal-card">
+      <div class="journal-title">📖 Journal de bord</div>
+      <input type="text" class="journal-search" id="journal-search" placeholder="Chercher une tâche, un mot, une date (ex: '3 août', 'facture')..." oninput="renderJournalList()">
+      <div id="journal-list"></div>
+      <div class="resume-actions journal-close">
+        <button class="btn-close-resume" onclick="closeJournal()">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay assistant -->
+  <div class="overlay" id="assistant-overlay">
+    <div class="assistant-card">
+      <div class="assistant-title">💬 Demander au compagnon</div>
+      <div class="assistant-answer" id="assistant-answer">Pose-moi une question du genre « quand est-ce que j'ai fait le rapport X ? » ou « il y avait une note sur quoi la semaine dernière ? »</div>
+      <div class="assistant-row">
+        <input type="text" class="assistant-input" id="assistant-input" placeholder="Ta question..." onkeydown="if(event.key==='Enter') askCompagnon()">
+        <button class="btn-add" onclick="askCompagnon()">→</button>
+      </div>
+      <div class="assistant-actions">
+        <button class="btn-close-resume" onclick="closeAssistant()">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Firebase (persistance) ══ -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="tools/firebase-service.js"></script>
+
   <script>
+    // ─────────────────────────────────────────────────────────────
+    // CONFIG — à adapter
+    // ─────────────────────────────────────────────────────────────
+    // URL de ta Cloud Function proxy Groq (voir functions/index.js fourni à côté).
+    // Tant que c'est vide, le bouton "Demander" fait une recherche locale dans
+    // le journal sans passer par l'IA.
+    const GROQ_PROXY_URL = 'https://my-tools-6r60.onrender.com/ask-companion'; // ex: 'https://morning-companion-proxy.onrender.com/ask-companion'
+
+    // ─────────────────────────────────────────────────────────────
+    // Petit helper localStorage (cache instantané, sync Firestore en tâche de fond)
+    // ─────────────────────────────────────────────────────────────
+    const LS = {
+      get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+      set: (k, v) => localStorage.setItem(k, JSON.stringify(v))
+    };
+
+    if (window.firebaseConfig) {
+      try { FirestoreService.init(window.firebaseConfig); } catch (e) { console.warn('Firebase init:', e); }
+    }
+
     // ── Date & semaine ────────────────────────────────────────
     const jours = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
     const mois = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
@@ -140,6 +474,12 @@
       const y = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
       return Math.ceil((((date - y) / 86400000) + 1) / 7);
     }
+
+    function dateKey(d) {
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function todayKey() { return dateKey(new Date()); }
+    function isWeekendDate(d) { const day = d.getDay(); return day === 0 || day === 6; }
 
     const now = new Date();
     document.getElementById('header-date').textContent =
@@ -173,7 +513,6 @@
     }
 
     // ── Helpers groupes ──────────────────────────────────────
-    // Détermine si un créneau est "absorbé" par le précédent (même texte non vide)
     function isMergedInto(i) {
       if (i === 0) return false;
       const cur = slots[i].value.trim().toLowerCase();
@@ -181,13 +520,11 @@
       return cur !== '' && cur === prev;
     }
 
-    // Trouve le premier index du groupe auquel appartient i
     function groupStart(i) {
       while (i > 0 && isMergedInto(i)) i--;
       return i;
     }
 
-    // Recalcule done en cascade à partir d'un index chef de groupe
     function propagateDone(startIdx, done) {
       const label = slots[startIdx].value.trim().toLowerCase();
       let j = startIdx;
@@ -197,7 +534,6 @@
       }
     }
 
-    // Recalcule tous les groupes : si un créneau est absorbé, son done suit le chef
     function recomputeGroups() {
       for (let i = 1; i < slots.length; i++) {
         if (isMergedInto(i)) {
@@ -216,8 +552,8 @@
 
       slots.forEach((slot, i) => {
         const isSpecial = (slot.isDaily && !slot.modified) || (slot.isLunch && !slot.modified);
-        const absorbed = !isSpecial && isMergedInto(i); // absorbé dans un groupe
-        const isChef = !isSpecial && !absorbed && slot.value.trim() !== ''; // chef de groupe ou créneau libre
+        const absorbed = !isSpecial && isMergedInto(i);
+        const isChef = !isSpecial && !absorbed && slot.value.trim() !== '';
 
         const row = document.createElement('div');
         row.className = 'slot'
@@ -225,7 +561,6 @@
           + (slot.isDaily && !slot.modified ? ' slot-daily' : '')
           + (slot.isLunch && !slot.modified ? ' slot-lunch' : '');
 
-        // Case à cocher : visible uniquement pour le chef de groupe ou les spéciaux modifiés
         const showBtn = !isSpecial && !absorbed;
         const btnHtml = showBtn ? `
         <button class="slot-btn" onclick="toggleSlotDone(${i})">
@@ -259,17 +594,15 @@
     function onSlotChange(i, newVal) {
       slots[i].value = newVal;
 
-      // Gestion libération daily/lunch
       if (slots[i].isDaily || slots[i].isLunch) {
         const orig = slots[i].isDaily ? 'Daily équipe' : 'Pause déjeuner';
         slots[i].modified = (newVal.trim() !== orig && newVal.trim() !== '');
         if (slots[i].modified) slots[i].done = false;
       }
 
-      // Recalcul cascade : si ce créneau change, les suivants qui lui correspondaient
-      // ne font peut-être plus partie du même groupe
       recomputeGroups();
       renderPlanning();
+      notifyActivity();
     }
 
     function toggleSlotDone(i) {
@@ -278,6 +611,7 @@
       propagateDone(start, newDone);
       renderPlanning();
       if (newDone) showPsyInline('planning');
+      notifyActivity();
     }
 
     function copyFromPrevious(i) {
@@ -297,12 +631,14 @@
       todos.push({ text, done: false });
       input.value = '';
       renderTodos();
+      notifyActivity();
     }
 
     function toggleTodo(i) {
       todos[i].done = !todos[i].done;
       renderTodos();
       if (todos[i].done) showPsyInline('todo');
+      notifyActivity();
     }
 
     function deleteTodo(i, e) {
@@ -328,6 +664,102 @@
       const done = todos.filter(t => t.done).length;
       document.getElementById('todo-stats').textContent =
         todos.length > 0 ? done + '/' + todos.length : '';
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // MODE BOULOT / DÉTENTE
+    // Le mode Détente (humeur + loisirs) ne déclenche jamais notifyActivity() :
+    // ça ne compte jamais contre toi, même un weekend ou en vacances.
+    // ─────────────────────────────────────────────────────────────
+    let currentMode = LS.get('morning_mode') || 'boulot';
+
+    function switchMode(mode) {
+      currentMode = mode;
+      LS.set('morning_mode', mode);
+      document.getElementById('slot-boulot-planning').style.display = mode === 'boulot' ? '' : 'none';
+      document.getElementById('slot-boulot-todo').style.display = mode === 'boulot' ? '' : 'none';
+      document.getElementById('slot-detente-mood').style.display = mode === 'detente' ? '' : 'none';
+      document.getElementById('slot-detente-loisirs').style.display = mode === 'detente' ? '' : 'none';
+      document.getElementById('mode-btn-boulot').classList.toggle('active', mode === 'boulot');
+      document.getElementById('mode-btn-detente').classList.toggle('active', mode === 'detente');
+      if (mode === 'detente') { renderMoodPicker(); renderLoisirs(); }
+    }
+
+    // ── Humeur du jour ──────────────────────────────────────────
+    const moods = [
+      { key: 'bas', emoji: '😞' },
+      { key: 'mitige', emoji: '😐' },
+      { key: 'ok', emoji: '🙂' },
+      { key: 'bien', emoji: '😄' },
+      { key: 'top', emoji: '🥰' },
+    ];
+
+    function getTodayMood() {
+      const store = LS.get('morning_moods') || {};
+      return store[todayKey()] || null;
+    }
+
+    function setTodayMood(key) {
+      const store = LS.get('morning_moods') || {};
+      store[todayKey()] = key;
+      LS.set('morning_moods', store);
+      renderMoodPicker();
+    }
+
+    function renderMoodPicker() {
+      const row = document.getElementById('mood-row');
+      const current = getTodayMood();
+      row.innerHTML = '';
+      moods.forEach(m => {
+        const btn = document.createElement('div');
+        btn.className = 'mood-option' + (current === m.key ? ' selected' : '');
+        btn.textContent = m.emoji;
+        btn.onclick = () => setTodayMood(m.key);
+        row.appendChild(btn);
+      });
+    }
+
+    // ── Loisirs du jour ──────────────────────────────────────────
+    function getTodayLoisirs() {
+      const store = LS.get('morning_loisirs') || {};
+      return store[todayKey()] || [];
+    }
+
+    function addLoisir() {
+      const typeSel = document.getElementById('loisir-type');
+      const input = document.getElementById('loisir-input');
+      const text = input.value.trim();
+      if (!text) return;
+      const store = LS.get('morning_loisirs') || {};
+      const key = todayKey();
+      store[key] = store[key] || [];
+      store[key].push({ type: typeSel.value, text });
+      LS.set('morning_loisirs', store);
+      input.value = '';
+      renderLoisirs();
+    }
+
+    function deleteLoisir(i) {
+      const store = LS.get('morning_loisirs') || {};
+      const key = todayKey();
+      (store[key] || []).splice(i, 1);
+      LS.set('morning_loisirs', store);
+      renderLoisirs();
+    }
+
+    function renderLoisirs() {
+      const list = document.getElementById('loisir-list');
+      list.innerHTML = '';
+      getTodayLoisirs().forEach((l, i) => {
+        const item = document.createElement('div');
+        item.className = 'loisir-item';
+        item.innerHTML = `
+          <span class="loisir-tag">${l.type}</span>
+          <span class="loisir-text">${l.text}</span>
+          <button class="btn-del" onclick="deleteLoisir(${i})">✕</button>
+        `;
+        list.appendChild(item);
+      });
     }
 
     // ── Messages psy ──────────────────────────────────────────
@@ -382,7 +814,7 @@
       },
       {
         emoji: '🌸', title: "C'est beaucoup, là.",
-        msg: "Burnout ça veut dire que ton corps et ta tête ont épuisé leurs réserves. Une pause maintenant c'est pas de la faiblesse, c'est de la maintenance préventive. T'es pas une machine."
+        msg: "Une pause maintenant c'est pas de la faiblesse, c'est de la maintenance préventive. T'es pas une machine."
       },
       {
         emoji: '💜', title: 'Tu fais trop.',
@@ -394,7 +826,7 @@
       },
       {
         emoji: '✨', title: 'La liste peut attendre.',
-        msg: "Rien sur cette liste ne vaut le fait de tenir sur la durée. Cinq minutes maintenant ou une semaine d'arrêt maladie dans trois semaines. Le calcul est vite fait."
+        msg: "Rien sur cette liste ne vaut le fait de tenir sur la durée. Cinq minutes maintenant valent mieux qu'un coup de fatigue plus tard. Le calcul est vite fait."
       },
       {
         emoji: '🦄', title: "T'as le droit.",
@@ -428,15 +860,192 @@
       document.getElementById('psy-text').textContent =
         "🌿 5 minutes. Loin de l'écran. T'as fait le bon choix, reviens quand t'es prête.";
       document.getElementById('psy-card').classList.add('visible');
+      onPauseTaken();
     }
 
     document.getElementById('craque-overlay').addEventListener('click', function (e) {
       if (e.target === this) closeCraque();
     });
 
-    // ── Résumé ────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // COMPAGNON — état persistant, XP, vitalité, streak
+    // ─────────────────────────────────────────────────────────────
+    const XP_STAGES = [
+      { min: 0, emoji: '🌱', label: 'Graine' },
+      { min: 50, emoji: '🌿', label: 'Pousse' },
+      { min: 150, emoji: '🌳', label: 'Arbre' },
+      { min: 350, emoji: '🌸', label: 'Arbre en fleurs' },
+      { min: 700, emoji: '✨', label: 'Lumineux' },
+      { min: 1200, emoji: '🌟', label: 'Radieux' },
+    ];
+
+    function defaultCompanionState() {
+      return {
+        xp: 0,
+        vitality: 70,
+        streak: 0,
+        bestStreak: 0,
+        lastCheckIn: null,
+        tookPauseToday: false,
+        savedResumeToday: false,
+        weekendNudgeDate: null,
+        vacationDates: []
+      };
+    }
+
+    let companion = LS.get('morning_companion') || defaultCompanionState();
+
+    function stageFor(xp) {
+      let s = XP_STAGES[0];
+      for (const stage of XP_STAGES) if (xp >= stage.min) s = stage;
+      return s;
+    }
+    function levelFor(xp) {
+      return XP_STAGES.findIndex(s => s === stageFor(xp)) + 1;
+    }
+    function nextStageXp(xp) {
+      const idx = XP_STAGES.findIndex(s => s === stageFor(xp));
+      return idx < XP_STAGES.length - 1 ? XP_STAGES[idx + 1].min : null;
+    }
+
+    function isVacationToday() { return companion.vacationDates.includes(todayKey()); }
+
+    async function saveCompanion() {
+      LS.set('morning_companion', companion);
+      if (window.FirestoreService && FirestoreService.initialized) {
+        try { await FirestoreService.setDoc('morning_companion', 'state', companion); }
+        catch (e) { console.warn('Erreur sauvegarde compagnon:', e); }
+      }
+    }
+
+    function renderCompanion() {
+      const stage = stageFor(companion.xp);
+      document.getElementById('companion-avatar').textContent = stage.emoji;
+      document.getElementById('companion-level').textContent =
+        'Niveau ' + levelFor(companion.xp) + ' — ' + stage.label;
+
+      const next = nextStageXp(companion.xp);
+      const prevMin = stage.min;
+      const span = next ? (next - prevMin) : 1;
+      const pctXp = next ? Math.min(100, Math.round(((companion.xp - prevMin) / span) * 100)) : 100;
+      document.getElementById('companion-xp-fill').style.width = pctXp + '%';
+      document.getElementById('companion-vit-fill').style.width = Math.max(0, Math.min(100, companion.vitality)) + '%';
+
+      document.getElementById('companion-streak').textContent =
+        '🔥 ' + companion.streak + ' j' + (companion.bestStreak > companion.streak ? ' (record ' + companion.bestStreak + ')' : '');
+
+      document.getElementById('btn-vacation').classList.toggle('active', isVacationToday());
+    }
+
+    function companionSay(msg) {
+      const el = document.getElementById('companion-msg');
+      el.textContent = msg;
+    }
+
+    function toggleVacationToday() {
+      const k = todayKey();
+      const idx = companion.vacationDates.indexOf(k);
+      if (idx === -1) {
+        companion.vacationDates.push(k);
+        companionSay('🏖 Mode vacances activé pour aujourd\'hui. Aucune activité ne sera comptée contre toi — profite.');
+      } else {
+        companion.vacationDates.splice(idx, 1);
+        companionSay('Mode vacances désactivé pour aujourd\'hui.');
+      }
+      saveCompanion();
+      renderCompanion();
+    }
+
+    // Appelé une fois au chargement de la page pour gérer le passage à un nouveau jour
+    function dailyCheckIn() {
+      const key = todayKey();
+      if (companion.lastCheckIn === key) { return; } // déjà fait aujourd'hui
+
+      const wasYesterdayWeekday = (() => {
+        if (!companion.lastCheckIn) return false;
+        const [y, m, d] = companion.lastCheckIn.split('-').map(Number);
+        const last = new Date(y, m - 1, d);
+        const diffDays = Math.round((new Date(key.split('-')[0], key.split('-')[1] - 1, key.split('-')[2]) - last) / 86400000);
+        return diffDays === 1 && !isWeekendDate(last);
+      })();
+
+      // Repos réel (weekend ou vacances) sans activité de la veille : régénération de vitalité
+      const today = new Date();
+      if (isWeekendDate(today) || isVacationToday()) {
+        companion.vitality = Math.min(100, companion.vitality + 8);
+      }
+
+      // Si la continuité de streak est cassée (pas hier en semaine), on garde le record mais on repart doucement
+      if (!wasYesterdayWeekday && !isWeekendDate(today)) {
+        companion.streak = 0;
+      }
+
+      companion.tookPauseToday = false;
+      companion.savedResumeToday = false;
+      companion.lastCheckIn = key;
+      saveCompanion();
+    }
+
+    function onPauseTaken() {
+      companion.tookPauseToday = true;
+      companion.vitality = Math.min(100, companion.vitality + 5);
+      saveCompanion();
+      renderCompanion();
+    }
+
+    // Détecte une activité un jour de repos (weekend/vacances) — nudge doux, une fois par jour
+    function notifyActivity() {
+      const today = new Date();
+      const key = todayKey();
+      const isRestDay = isWeekendDate(today) || isVacationToday();
+      if (isRestDay && companion.weekendNudgeDate !== key) {
+        companion.weekendNudgeDate = key;
+        companion.vitality = Math.max(0, companion.vitality - 8);
+        saveCompanion();
+        renderCompanion();
+        companionSay("C'est le weekend (ou tes vacances) — je vois que tu bosses. Pas de souci, mais pense à souffler, je garde un œil sur ta vitalité pour toi 🌙");
+      }
+    }
+
+    function awardDailyXpIfNeeded() {
+      const key = todayKey();
+      if (companion.savedResumeToday) return; // déjà attribué aujourd'hui
+      const today = new Date();
+      const isRestDay = isWeekendDate(today) || isVacationToday();
+
+      companion.savedResumeToday = true;
+
+      if (isRestDay) {
+        // Pas d'XP le weekend/vacances — le résumé est quand même sauvegardé pour la mémoire
+        saveCompanion();
+        return;
+      }
+
+      let gained = 5; // présence
+      if (companion.tookPauseToday) gained += 5; // pause prise
+      gained += 5; // clôture consciente de la journée
+      companion.xp += gained;
+      companion.streak += 1;
+      companion.bestStreak = Math.max(companion.bestStreak, companion.streak);
+      companionSay('+' + gained + ' XP ✨ Journée bouclée, streak à ' + companion.streak + ' jour' + (companion.streak > 1 ? 's' : '') + '.');
+      saveCompanion();
+      renderCompanion();
+    }
+
+    async function initCompanion() {
+      // Tente de récupérer l'état distant (Firestore) et de fusionner avec le cache local
+      if (window.FirestoreService && FirestoreService.initialized) {
+        try {
+          const remote = await FirestoreService.getDoc('morning_companion', 'state');
+          if (remote) companion = Object.assign(defaultCompanionState(), remote);
+        } catch (e) { console.warn('Chargement compagnon distant impossible, cache local utilisé:', e); }
+      }
+      dailyCheckIn();
+      renderCompanion();
+    }
+
+    // ── Résumé + journal ────────────────────────────────────────
     function buildMergedSlots() {
-      // On ne garde que les créneaux actifs (pas special non modifié, pas vide)
       const actifs = slots.filter(s =>
         s.value && s.value.trim() !== '' &&
         (s.modified || (!s.isDaily && !s.isLunch))
@@ -455,7 +1064,7 @@
       return merged;
     }
 
-    function openResume() {
+    function buildResumeText() {
       const d = new Date();
       const dateStr = jours[d.getDay()] + ' ' + d.getDate() + ' ' + mois[d.getMonth()];
 
@@ -468,7 +1077,6 @@
         merged.forEach(s => {
           let plage = s.timeFrom;
           if (s.timeTo) {
-            // timeTo = début du dernier créneau → fin = timeTo + 30min
             const [hh, mm] = s.timeTo.replace('h', ':').split(':').map(Number);
             const endMin = hh * 60 + mm + 30;
             const endH = String(Math.floor(endMin / 60)).padStart(2, '0');
@@ -495,8 +1103,20 @@
       }
       if (todos.length === 0) txt += '📋 Aucune tâche saisie\n\n';
 
-      const notes = document.querySelector('.postit-area').value.trim();
+      const notes = document.getElementById('notes-area').value.trim();
       if (notes) txt += '🗒 NOTES\n' + notes + '\n\n';
+
+      const mood = getTodayMood();
+      const loisirs = getTodayLoisirs();
+      if (mood || loisirs.length > 0) {
+        txt += '🌙 DÉTENTE\n';
+        if (mood) {
+          const m = moods.find(x => x.key === mood);
+          txt += '  Humeur : ' + (m ? m.emoji : mood) + '\n';
+        }
+        loisirs.forEach(l => { txt += '  ' + l.type + ' — ' + l.text + '\n'; });
+        txt += '\n';
+      }
 
       txt += '━'.repeat(36) + '\n';
       const slotsDone = merged.filter(s => s.done).length;
@@ -506,8 +1126,36 @@
         txt += ' · 🫠 ' + craqueCount + ' craquage' + (craqueCount > 1 ? 's' : '');
       txt += '\n';
 
-      document.getElementById('resume-body').textContent = txt;
+      return txt;
+    }
+
+    async function saveJournalEntry() {
+      const key = todayKey();
+      const d = new Date();
+      const entry = {
+        date: key,
+        dateLabel: jours[d.getDay()] + ' ' + d.getDate() + ' ' + mois[d.getMonth()],
+        text: buildResumeText(),
+        isRestDay: isWeekendDate(d) || isVacationToday(),
+        savedAt: d.toISOString()
+      };
+
+      // Cache local (utilisé par la recherche et l'assistant, même hors-ligne)
+      const journalCache = LS.get('morning_journal_cache') || {};
+      journalCache[key] = entry;
+      LS.set('morning_journal_cache', journalCache);
+
+      if (window.FirestoreService && FirestoreService.initialized) {
+        try { await FirestoreService.setDoc('morning_journal', key, entry); }
+        catch (e) { console.warn('Erreur sauvegarde journal:', e); }
+      }
+      return entry;
+    }
+
+    function openResume() {
+      document.getElementById('resume-body').textContent = buildResumeText();
       document.getElementById('resume-overlay').classList.add('visible');
+      saveJournalEntry().then(() => awardDailyXpIfNeeded());
     }
 
     function closeResume() {
@@ -526,9 +1174,159 @@
       if (e.target === this) closeResume();
     });
 
+    // ─────────────────────────────────────────────────────────────
+    // JOURNAL — historique consultable et cherchable
+    // ─────────────────────────────────────────────────────────────
+    let journalEntriesCache = [];
+
+    async function loadAllJournalEntries() {
+      const localCache = LS.get('morning_journal_cache') || {};
+      let entries = Object.values(localCache);
+
+      if (window.FirestoreService && FirestoreService.initialized) {
+        try {
+          const remote = await FirestoreService.getCollection('morning_journal');
+          const byDate = {};
+          entries.forEach(e => byDate[e.date] = e);
+          remote.forEach(e => byDate[e.date] = e); // le distant fait foi si différence
+          entries = Object.values(byDate);
+        } catch (e) { console.warn('Chargement journal distant impossible, cache local utilisé:', e); }
+      }
+
+      entries.sort((a, b) => b.date.localeCompare(a.date));
+      journalEntriesCache = entries;
+      return entries;
+    }
+
+    function normalize(s) {
+      return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function searchJournal(query) {
+      const q = normalize(query).trim();
+      if (!q) return journalEntriesCache;
+      return journalEntriesCache.filter(e =>
+        normalize(e.dateLabel + ' ' + e.date + ' ' + e.text).includes(q)
+      );
+    }
+
+    async function openJournal() {
+      document.getElementById('journal-overlay').classList.add('visible');
+      document.getElementById('journal-list').innerHTML = '<div class="journal-empty">Chargement…</div>';
+      await loadAllJournalEntries();
+      document.getElementById('journal-search').value = '';
+      renderJournalList();
+    }
+
+    function renderJournalList() {
+      const query = document.getElementById('journal-search').value;
+      const results = searchJournal(query);
+      const list = document.getElementById('journal-list');
+      list.innerHTML = '';
+
+      if (results.length === 0) {
+        list.innerHTML = '<div class="journal-empty">Rien trouvé pour l\'instant.</div>';
+        return;
+      }
+
+      results.forEach(entry => {
+        const preview = entry.text.split('\n').slice(0, 4).join('\n');
+        const div = document.createElement('div');
+        div.className = 'journal-entry';
+        div.innerHTML = `
+          <div class="journal-entry-date">${entry.dateLabel}${entry.isRestDay ? ' · 🏖' : ''}</div>
+          <div class="journal-entry-preview">${preview}</div>
+          <div class="journal-entry-full">${entry.text}</div>
+        `;
+        div.onclick = () => div.classList.toggle('open');
+        list.appendChild(div);
+      });
+    }
+
+    function closeJournal() {
+      document.getElementById('journal-overlay').classList.remove('visible');
+    }
+
+    document.getElementById('journal-overlay').addEventListener('click', function (e) {
+      if (e.target === this) closeJournal();
+    });
+
+    // ─────────────────────────────────────────────────────────────
+    // ASSISTANT — "Demander au compagnon"
+    // Recherche locale dans le journal (mots-clés) + appel optionnel à Groq
+    // via un petit serveur proxy sur Render (GROQ_PROXY_URL) pour une vraie réponse
+    // en langage naturel avec le contexte trouvé.
+    // ─────────────────────────────────────────────────────────────
+    async function openAssistant() {
+      document.getElementById('assistant-overlay').classList.add('visible');
+      if (journalEntriesCache.length === 0) await loadAllJournalEntries();
+      document.getElementById('assistant-input').focus();
+    }
+
+    function closeAssistant() {
+      document.getElementById('assistant-overlay').classList.remove('visible');
+    }
+
+    document.getElementById('assistant-overlay').addEventListener('click', function (e) {
+      if (e.target === this) closeAssistant();
+    });
+
+    function buildContextFromQuestion(question) {
+      // Recherche simple : on prend les mots significatifs de la question
+      // et on remonte les entrées du journal qui matchent le mieux.
+      const words = normalize(question).split(/\s+/).filter(w => w.length > 2);
+      const scored = journalEntriesCache.map(e => {
+        const hay = normalize(e.dateLabel + ' ' + e.date + ' ' + e.text);
+        const score = words.reduce((acc, w) => acc + (hay.includes(w) ? 1 : 0), 0);
+        return { entry: e, score };
+      }).filter(s => s.score > 0);
+      scored.sort((a, b) => b.score - a.score);
+      return scored.slice(0, 5).map(s => s.entry);
+    }
+
+    async function askCompagnon() {
+      const input = document.getElementById('assistant-input');
+      const question = input.value.trim();
+      if (!question) return;
+      const answerEl = document.getElementById('assistant-answer');
+      answerEl.textContent = 'Je cherche dans le journal…';
+
+      const matches = buildContextFromQuestion(question);
+
+      if (!GROQ_PROXY_URL) {
+        // Pas d'IA configurée : on affiche directement les entrées les plus pertinentes trouvées.
+        if (matches.length === 0) {
+          answerEl.textContent = "Je n'ai rien trouvé de correspondant dans le journal. Essaie avec d'autres mots-clés, ou ouvre le 📖 Journal pour parcourir toi-même.";
+        } else {
+          answerEl.textContent = matches.map(m => `📅 ${m.dateLabel}\n${m.text}`).join('\n\n' + '─'.repeat(28) + '\n\n');
+        }
+        input.value = '';
+        return;
+      }
+
+      try {
+        const context = matches.map(m => `[${m.dateLabel}]\n${m.text}`).join('\n\n');
+        const res = await fetch(GROQ_PROXY_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question, context })
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        answerEl.textContent = data.answer || "Pas de réponse reçue.";
+      } catch (e) {
+        console.warn('Erreur assistant IA:', e);
+        answerEl.textContent = "Le lien avec l'IA a échoué, voici ce que j'ai trouvé dans le journal à la place :\n\n" +
+          (matches.length ? matches.map(m => `📅 ${m.dateLabel}\n${m.text}`).join('\n\n') : "Rien trouvé.");
+      }
+      input.value = '';
+    }
+
     // ── Init ──────────────────────────────────────────────────
     renderPlanning();
     renderTodos();
+    switchMode(currentMode);
+    initCompanion();
   </script>
 </body>
 
