@@ -209,12 +209,62 @@
       align-items: center;
       gap: 8px;
       background: var(--done-bg);
+      border: 1px solid transparent;
       border-radius: 10px;
       padding: 8px 10px;
       font-size: 13px;
+      cursor: pointer;
+      transition: .2s;
     }
+    .loisir-item:hover { border-color: var(--border); }
+    .loisir-item.checked { border-color: var(--mint); background: var(--mint-light); }
+    .loisir-check { font-size: 14px; }
     .loisir-tag { font-size: 11px; color: var(--mint); font-weight: 700; white-space: nowrap; }
     .loisir-text { flex: 1; }
+
+    .search-result-item {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin: 0 16px 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: .2s;
+    }
+    .search-result-item:hover { border-color: var(--purple); }
+
+    /* ══ Ludothèque ══ */
+    .ludo-filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .ludo-filter-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .ludo-filter-btn.active { border-color: var(--purple); color: var(--text); background: var(--purple-light); }
+    .ludo-card {
+      display: flex;
+      gap: 12px;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .ludo-cover { width: 56px; height: 78px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: rgba(255,255,255,0.05); }
+    .ludo-info { flex: 1; min-width: 0; }
+    .ludo-title-row { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+    .ludo-title { font-weight: 700; font-size: 13px; color: var(--text); }
+    .ludo-year { font-size: 11px; color: var(--text-dim); }
+    .ludo-note { font-size: 11px; color: var(--yellow); }
+    .ludo-genres { font-size: 10px; color: var(--cyan); margin-top: 2px; }
+    .ludo-synopsis { font-size: 11px; color: var(--text-dim); margin-top: 4px; line-height: 1.5; }
+    .ludo-status { font-size: 10px; margin-top: 4px; color: var(--mint); }
+    .ludo-actions { display: flex; gap: 4px; margin-top: 6px; }
   </style>
 </head>
 
@@ -273,6 +323,7 @@
       <div class="companion-actions">
         <button class="companion-btn" id="btn-vacation" onclick="toggleVacationToday()">🏖 Vacances</button>
         <button class="companion-btn" onclick="openJournal()">📖 Journal</button>
+        <button class="companion-btn" onclick="openLudotheque()">📚 Ludothèque</button>
         <button class="companion-btn" onclick="openAssistant()">💬 Demander</button>
       </div>
       <div class="companion-msg" id="companion-msg"></div>
@@ -362,25 +413,40 @@
           <div class="panel">
             <div class="panel-header">
               <span class="panel-title purple">🎮 Loisirs</span>
-              <span class="panel-header-center"></span>
+              <span class="panel-header-center" id="loisir-streak-label"></span>
               <span class="panel-header-right"></span>
             </div>
             <div class="loisir-add">
               <select class="loisir-type" id="loisir-type">
-                <option value="🎬 Film">🎬 Film</option>
-                <option value="📺 Série">📺 Série</option>
-                <option value="🎮 Jeu">🎮 Jeu</option>
-                <option value="📖 Livre">📖 Livre</option>
-                <option value="✨ Autre">✨ Autre</option>
+                <option value="jeu">🎮 Jeu vidéo</option>
+                <option value="film">🎬 Film/Série</option>
+                <option value="boardgame">🎲 Jeu de société</option>
+                <option value="livre">📖 Livre</option>
+                <option value="autre">✨ Autre</option>
               </select>
-              <input type="text" id="loisir-input" placeholder="Quoi ?"
-                onkeydown="if(event.key==='Enter') addLoisir()">
-              <button class="btn-add" onclick="addLoisir()">+</button>
+              <input type="text" id="loisir-input" placeholder="Nom..."
+                onkeydown="if(event.key==='Enter') searchLoisir()">
+              <button class="btn-add" title="Chercher une fiche" onclick="searchLoisir()">🔍</button>
+              <button class="btn-add" title="Ajouter simplement, sans fiche" onclick="addLoisir()">+</button>
             </div>
+            <div id="loisir-search-results"></div>
             <div class="loisir-list" id="loisir-list"></div>
           </div>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay ludothèque -->
+  <div class="overlay" id="ludotheque-overlay">
+    <div class="journal-card">
+      <div class="journal-title">📚 Ludothèque</div>
+      <input type="text" class="journal-search" id="ludotheque-search" placeholder="Chercher un titre..." oninput="renderLudotheque()">
+      <div class="ludo-filters" id="ludo-filters"></div>
+      <div id="ludotheque-list"></div>
+      <div class="resume-actions journal-close">
+        <button class="btn-close-resume" onclick="closeLudotheque()">Fermer</button>
       </div>
     </div>
   </div>
@@ -449,7 +515,10 @@
     // URL de ta Cloud Function proxy Groq (voir functions/index.js fourni à côté).
     // Tant que c'est vide, le bouton "Demander" fait une recherche locale dans
     // le journal sans passer par l'IA.
-    const GROQ_PROXY_URL = 'https://my-tools-6r60.onrender.com/ask-companion'; // ex: 'https://morning-companion-proxy.onrender.com/ask-companion'
+    const SERVER_BASE_URL = ''; // ex: 'https://morning-companion-proxy.onrender.com'
+    const GROQ_PROXY_URL = SERVER_BASE_URL ? SERVER_BASE_URL + '/ask-companion' : '';
+    const MEDIA_SEARCH_URL = SERVER_BASE_URL ? SERVER_BASE_URL + '/search-media' : '';
+    const MEDIA_DETAIL_URL = SERVER_BASE_URL ? SERVER_BASE_URL + '/media-detail' : '';
 
     // ─────────────────────────────────────────────────────────────
     // Petit helper localStorage (cache instantané, sync Firestore en tâche de fond)
@@ -719,46 +788,287 @@
       });
     }
 
-    // ── Loisirs du jour ──────────────────────────────────────────
-    function getTodayLoisirs() {
-      const store = LS.get('morning_loisirs') || {};
-      return store[todayKey()] || [];
+    // ── Carnet loisirs (bullet journal ludique, liste "en cours") ─
+    let loisirsList = [];
+
+    const CATEGORY_LABELS = {
+      jeu: '🎮 Jeu', film: '🎬 Film/Série', boardgame: '🎲 Société', livre: '📖 Livre', autre: '✨ Autre'
+    };
+
+    async function loadLoisirsList() {
+      loisirsList = LS.get('morning_loisirs_list') || [];
+      if (window.FirestoreService && FirestoreService.initialized) {
+        try {
+          const remote = await FirestoreService.getDoc('morning_loisirs', 'list');
+          if (remote && remote.items) loisirsList = remote.items;
+        } catch (e) { console.warn('Chargement carnet loisirs distant impossible, cache local utilisé:', e); }
+      }
     }
 
+    async function saveLoisirsList() {
+      LS.set('morning_loisirs_list', loisirsList);
+      if (window.FirestoreService && FirestoreService.initialized) {
+        try { await FirestoreService.setDoc('morning_loisirs', 'list', { items: loisirsList }); }
+        catch (e) { console.warn('Erreur sauvegarde carnet loisirs:', e); }
+      }
+    }
+
+    // Ajout simple, sans fiche enrichie (fonctionne toujours, même sans serveur configuré)
     function addLoisir() {
-      const typeSel = document.getElementById('loisir-type');
+      const category = document.getElementById('loisir-type').value;
       const input = document.getElementById('loisir-input');
-      const text = input.value.trim();
-      if (!text) return;
-      const store = LS.get('morning_loisirs') || {};
-      const key = todayKey();
-      store[key] = store[key] || [];
-      store[key].push({ type: typeSel.value, text });
-      LS.set('morning_loisirs', store);
+      const title = input.value.trim();
+      if (!title) return;
+      loisirsList.push({
+        id: Date.now().toString(36), category, title, year: null, genres: [], note: null,
+        synopsis: null, cover: null, link: null, extra: {}, status: 'active', dates: []
+      });
       input.value = '';
+      document.getElementById('loisir-search-results').innerHTML = '';
+      saveLoisirsList();
       renderLoisirs();
     }
 
-    function deleteLoisir(i) {
-      const store = LS.get('morning_loisirs') || {};
+    // Recherche via le serveur (RAWG / TMDB / BGG) pour créer une fiche enrichie
+    async function searchLoisir() {
+      const category = document.getElementById('loisir-type').value;
+      const input = document.getElementById('loisir-input');
+      const query = input.value.trim();
+      if (!query) return;
+      const resultsEl = document.getElementById('loisir-search-results');
+
+      if (!MEDIA_SEARCH_URL || category === 'livre' || category === 'autre') {
+        addLoisir(); // pas d'API pour cette catégorie ou pas de serveur configuré : ajout direct
+        return;
+      }
+
+      resultsEl.innerHTML = '<div class="journal-empty">Recherche…</div>';
+      try {
+        const res = await fetch(MEDIA_SEARCH_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ category, query })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erreur');
+        renderSearchResults(category, data.results || []);
+      } catch (e) {
+        console.warn('Recherche média échouée:', e);
+        resultsEl.innerHTML = '<div class="journal-empty">Recherche indisponible pour le moment — ajoute-le simplement avec +.</div>';
+      }
+    }
+
+    function renderSearchResults(category, results) {
+      const resultsEl = document.getElementById('loisir-search-results');
+      resultsEl.innerHTML = '';
+      if (results.length === 0) {
+        resultsEl.innerHTML = '<div class="journal-empty">Rien trouvé — ajoute-le simplement avec +.</div>';
+        return;
+      }
+      results.forEach(r => {
+        const row = document.createElement('div');
+        row.className = 'search-result-item';
+        row.textContent = r.title + (r.year && r.year !== '?' ? ' (' + r.year + ')' : '');
+        row.onclick = () => pickSearchResult(category, r);
+        resultsEl.appendChild(row);
+      });
+    }
+
+    async function pickSearchResult(category, r) {
+      const resultsEl = document.getElementById('loisir-search-results');
+      resultsEl.innerHTML = '<div class="journal-empty">Récupération de la fiche…</div>';
+      try {
+        const res = await fetch(MEDIA_DETAIL_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ category, id: r.id, mediaType: r.mediaType, title: r.title })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erreur');
+        const d = data.detail;
+        loisirsList.push({
+          id: Date.now().toString(36), category: d.category, title: d.title, year: d.year,
+          genres: d.genres || [], note: d.note, synopsis: d.synopsis, cover: d.cover, link: d.link,
+          extra: d.extra || {}, status: 'active', dates: []
+        });
+        document.getElementById('loisir-input').value = '';
+        resultsEl.innerHTML = '';
+        saveLoisirsList();
+        renderLoisirs();
+        companionSay('Fiche ajoutée à ta ludothèque ✨');
+      } catch (e) {
+        console.warn('Récupération fiche échouée:', e);
+        resultsEl.innerHTML = '<div class="journal-empty">Fiche indisponible pour le moment, réessaie plus tard.</div>';
+      }
+    }
+
+    function isCheckedToday(item) {
+      return item.dates.includes(todayKey());
+    }
+
+    const loisirMsgs = [
+      "Noté ✨ Ton carnet loisirs avance, même 30 secondes ça compte.",
+      "🎮 Bien vu de l'avoir marqué, c'est ça qui fait la différence sur la durée.",
+      "Carnet à jour 📔 Pas besoin d'un roman, juste une case cochée suffit.",
+      "💜 T'as pris le temps de noter, c'est déjà beaucoup.",
+      "✨ Petit à petit, ton historique loisirs prend forme.",
+    ];
+
+    function logLoisirStreak() {
       const key = todayKey();
-      (store[key] || []).splice(i, 1);
-      LS.set('morning_loisirs', store);
+      if (companion.lastLoisirLogDate === key) return; // déjà compté aujourd'hui
+      const y = new Date(); y.setDate(y.getDate() - 1);
+      const wasYesterday = companion.lastLoisirLogDate === dateKey(y);
+      companion.loisirStreak = wasYesterday ? companion.loisirStreak + 1 : 1;
+      companion.bestLoisirStreak = Math.max(companion.bestLoisirStreak || 0, companion.loisirStreak);
+      companion.lastLoisirLogDate = key;
+      companion.vitality = Math.min(100, companion.vitality + 2);
+      saveCompanion();
+      renderCompanion();
+    }
+
+    function toggleLoisirToday(id) {
+      const item = loisirsList.find(i => i.id === id);
+      if (!item) return;
+      const key = todayKey();
+      const idx = item.dates.indexOf(key);
+      if (idx === -1) {
+        item.dates.push(key);
+        logLoisirStreak();
+        companionSay(loisirMsgs[Math.floor(Math.random() * loisirMsgs.length)]);
+      } else {
+        item.dates.splice(idx, 1); // annule un clic accidentel, sans pénalité
+      }
+      saveLoisirsList();
       renderLoisirs();
+    }
+
+    function finishLoisirItem(id, e) {
+      e.stopPropagation();
+      const item = loisirsList.find(i => i.id === id);
+      if (!item) return;
+      item.status = 'done'; // reste dans l'historique/la ludothèque, disparaît juste de la liste active
+      saveLoisirsList();
+      renderLoisirs();
+    }
+
+    function deleteLoisirItem(id, e) {
+      e.stopPropagation();
+      loisirsList = loisirsList.filter(i => i.id !== id);
+      saveLoisirsList();
+      renderLoisirs();
+      renderLudotheque();
     }
 
     function renderLoisirs() {
+      const label = document.getElementById('loisir-streak-label');
+      label.textContent = companion.loisirStreak > 0 ? '📔 ' + companion.loisirStreak + ' j de suite' : '';
+
       const list = document.getElementById('loisir-list');
       list.innerHTML = '';
-      getTodayLoisirs().forEach((l, i) => {
-        const item = document.createElement('div');
-        item.className = 'loisir-item';
-        item.innerHTML = `
-          <span class="loisir-tag">${l.type}</span>
-          <span class="loisir-text">${l.text}</span>
-          <button class="btn-del" onclick="deleteLoisir(${i})">✕</button>
+
+      const active = loisirsList.filter(i => i.status !== 'done');
+      if (active.length === 0) {
+        list.innerHTML = '<div class="journal-empty">Rien "en cours" pour l\'instant — cherche ou ajoute un jeu/film ci-dessus.</div>';
+        return;
+      }
+
+      active.forEach(item => {
+        const checked = isCheckedToday(item);
+        const row = document.createElement('div');
+        row.className = 'loisir-item' + (checked ? ' checked' : '');
+        row.onclick = () => toggleLoisirToday(item.id);
+        row.innerHTML = `
+          <span class="loisir-check">${checked ? '✅' : '○'}</span>
+          <span class="loisir-tag">${CATEGORY_LABELS[item.category] || item.category}</span>
+          <span class="loisir-text">${item.title}</span>
+          <button class="btn-del" title="Terminé" onclick="finishLoisirItem('${item.id}', event)">🏁</button>
+          <button class="btn-del" title="Supprimer" onclick="deleteLoisirItem('${item.id}', event)">✕</button>
         `;
-        list.appendChild(item);
+        list.appendChild(row);
+      });
+    }
+
+    // ── Ludothèque : vue d'ensemble, filtrable, triable ───────────
+    let ludoFilter = 'tout';
+    let ludoSort = 'recent';
+
+    function openLudotheque() {
+      document.getElementById('ludotheque-overlay').classList.add('visible');
+      document.getElementById('ludotheque-search').value = '';
+      renderLudoFilters();
+      renderLudotheque();
+    }
+    function closeLudotheque() {
+      document.getElementById('ludotheque-overlay').classList.remove('visible');
+    }
+    document.getElementById('ludotheque-overlay').addEventListener('click', function (e) {
+      if (e.target === this) closeLudotheque();
+    });
+
+    function renderLudoFilters() {
+      const cats = [
+        { key: 'tout', label: 'Tout' },
+        { key: 'jeu', label: '🎮 Jeux' },
+        { key: 'film', label: '🎬 Films/Séries' },
+        { key: 'boardgame', label: '🎲 Société' },
+        { key: 'livre', label: '📖 Livres' },
+        { key: 'actif', label: '⏳ En cours' },
+        { key: 'termine', label: '🏁 Terminés' },
+      ];
+      const el = document.getElementById('ludo-filters');
+      el.innerHTML = '';
+      cats.forEach(c => {
+        const btn = document.createElement('div');
+        btn.className = 'ludo-filter-btn' + (ludoFilter === c.key ? ' active' : '');
+        btn.textContent = c.label;
+        btn.onclick = () => { ludoFilter = c.key; renderLudoFilters(); renderLudotheque(); };
+        el.appendChild(btn);
+      });
+    }
+
+    function renderLudotheque() {
+      const query = normalize(document.getElementById('ludotheque-search').value);
+      let items = loisirsList.slice();
+
+      if (ludoFilter === 'actif') items = items.filter(i => i.status !== 'done');
+      else if (ludoFilter === 'termine') items = items.filter(i => i.status === 'done');
+      else if (ludoFilter !== 'tout') items = items.filter(i => i.category === ludoFilter);
+
+      if (query) items = items.filter(i => normalize(i.title + ' ' + (i.synopsis || '') + ' ' + (i.genres || []).join(' ')).includes(query));
+
+      items.sort((a, b) => {
+        if (ludoSort === 'note') return (parseFloat(b.note) || 0) - (parseFloat(a.note) || 0);
+        if (ludoSort === 'titre') return a.title.localeCompare(b.title);
+        return parseInt(b.id, 36) - parseInt(a.id, 36); // récent d'abord
+      });
+
+      const list = document.getElementById('ludotheque-list');
+      list.innerHTML = '';
+      if (items.length === 0) {
+        list.innerHTML = '<div class="journal-empty">Rien ici pour l\'instant.</div>';
+        return;
+      }
+
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'ludo-card';
+        card.innerHTML = `
+          ${item.cover ? `<img class="ludo-cover" src="${item.cover}" loading="lazy">` : '<div class="ludo-cover"></div>'}
+          <div class="ludo-info">
+            <div class="ludo-title-row">
+              <span class="ludo-title">${item.title}</span>
+              ${item.year ? `<span class="ludo-year">(${item.year})</span>` : ''}
+              ${item.note ? `<span class="ludo-note">★ ${item.note}</span>` : ''}
+            </div>
+            ${item.genres && item.genres.length ? `<div class="ludo-genres">${item.genres.join(' · ')}</div>` : ''}
+            ${item.synopsis ? `<div class="ludo-synopsis">${item.synopsis}</div>` : ''}
+            <div class="ludo-status">${item.status === 'done' ? '🏁 Terminé' : '⏳ En cours · ' + item.dates.length + ' session' + (item.dates.length > 1 ? 's' : '')}</div>
+            <div class="ludo-actions">
+              ${item.status !== 'done' ? `<button class="btn-del" title="Terminé" onclick="finishLoisirItem('${item.id}', event); renderLudotheque();">🏁</button>` : ''}
+              <button class="btn-del" title="Supprimer" onclick="deleteLoisirItem('${item.id}', event)">✕</button>
+            </div>
+          </div>
+        `;
+        list.appendChild(card);
       });
     }
 
@@ -889,7 +1199,10 @@
         tookPauseToday: false,
         savedResumeToday: false,
         weekendNudgeDate: null,
-        vacationDates: []
+        vacationDates: [],
+        loisirStreak: 0,
+        bestLoisirStreak: 0,
+        lastLoisirLogDate: null
       };
     }
 
@@ -1107,14 +1420,14 @@
       if (notes) txt += '🗒 NOTES\n' + notes + '\n\n';
 
       const mood = getTodayMood();
-      const loisirs = getTodayLoisirs();
-      if (mood || loisirs.length > 0) {
+      const loisirsToday = loisirsList.filter(isCheckedToday);
+      if (mood || loisirsToday.length > 0) {
         txt += '🌙 DÉTENTE\n';
         if (mood) {
           const m = moods.find(x => x.key === mood);
           txt += '  Humeur : ' + (m ? m.emoji : mood) + '\n';
         }
-        loisirs.forEach(l => { txt += '  ' + l.type + ' — ' + l.text + '\n'; });
+        loisirsToday.forEach(l => { txt += '  ' + (CATEGORY_LABELS[l.category] || l.category) + ' — ' + l.title + '\n'; });
         txt += '\n';
       }
 
@@ -1260,6 +1573,7 @@
     async function openAssistant() {
       document.getElementById('assistant-overlay').classList.add('visible');
       if (journalEntriesCache.length === 0) await loadAllJournalEntries();
+      if (loisirsList.length === 0) await loadLoisirsList();
       document.getElementById('assistant-input').focus();
     }
 
@@ -1284,28 +1598,50 @@
       return scored.slice(0, 5).map(s => s.entry);
     }
 
+    function buildLudoMatches(question) {
+      const words = normalize(question).split(/\s+/).filter(w => w.length > 2);
+      const scored = loisirsList.map(item => {
+        const hay = normalize(item.title + ' ' + (item.synopsis || '') + ' ' + (item.genres || []).join(' '));
+        const score = words.reduce((acc, w) => acc + (hay.includes(w) ? 1 : 0), 0);
+        return { item, score };
+      }).filter(s => s.score > 0);
+      scored.sort((a, b) => b.score - a.score);
+      return scored.slice(0, 5).map(s => s.item);
+    }
+
+    function formatLudoMatch(item) {
+      return `${CATEGORY_LABELS[item.category] || item.category} — ${item.title}` +
+        (item.year ? ` (${item.year})` : '') +
+        (item.status === 'done' ? ' [terminé]' : ' [en cours, ' + item.dates.length + ' session(s)]') +
+        (item.synopsis ? '\n' + item.synopsis : '');
+    }
+
     async function askCompagnon() {
       const input = document.getElementById('assistant-input');
       const question = input.value.trim();
       if (!question) return;
       const answerEl = document.getElementById('assistant-answer');
-      answerEl.textContent = 'Je cherche dans le journal…';
+      answerEl.textContent = 'Je cherche dans le journal et la ludothèque…';
 
       const matches = buildContextFromQuestion(question);
+      const ludoMatches = buildLudoMatches(question);
 
       if (!GROQ_PROXY_URL) {
-        // Pas d'IA configurée : on affiche directement les entrées les plus pertinentes trouvées.
-        if (matches.length === 0) {
-          answerEl.textContent = "Je n'ai rien trouvé de correspondant dans le journal. Essaie avec d'autres mots-clés, ou ouvre le 📖 Journal pour parcourir toi-même.";
-        } else {
-          answerEl.textContent = matches.map(m => `📅 ${m.dateLabel}\n${m.text}`).join('\n\n' + '─'.repeat(28) + '\n\n');
-        }
+        // Pas d'IA configurée : on affiche directement ce qui a été trouvé.
+        const blocks = [];
+        if (ludoMatches.length) blocks.push('📚 Ludothèque\n' + ludoMatches.map(formatLudoMatch).join('\n\n'));
+        if (matches.length) blocks.push(matches.map(m => `📅 ${m.dateLabel}\n${m.text}`).join('\n\n'));
+        answerEl.textContent = blocks.length
+          ? blocks.join('\n\n' + '─'.repeat(28) + '\n\n')
+          : "Je n'ai rien trouvé de correspondant. Essaie avec d'autres mots-clés, ou ouvre le 📖 Journal / 📚 Ludothèque pour parcourir toi-même.";
         input.value = '';
         return;
       }
 
       try {
-        const context = matches.map(m => `[${m.dateLabel}]\n${m.text}`).join('\n\n');
+        const journalCtx = matches.map(m => `[${m.dateLabel}]\n${m.text}`).join('\n\n');
+        const ludoCtx = ludoMatches.length ? '\n\n[Ludothèque]\n' + ludoMatches.map(formatLudoMatch).join('\n\n') : '';
+        const context = journalCtx + ludoCtx;
         const res = await fetch(GROQ_PROXY_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1316,8 +1652,11 @@
         answerEl.textContent = data.answer || "Pas de réponse reçue.";
       } catch (e) {
         console.warn('Erreur assistant IA:', e);
-        answerEl.textContent = "Le lien avec l'IA a échoué, voici ce que j'ai trouvé dans le journal à la place :\n\n" +
-          (matches.length ? matches.map(m => `📅 ${m.dateLabel}\n${m.text}`).join('\n\n') : "Rien trouvé.");
+        const blocks = [];
+        if (ludoMatches.length) blocks.push(ludoMatches.map(formatLudoMatch).join('\n\n'));
+        if (matches.length) blocks.push(matches.map(m => `📅 ${m.dateLabel}\n${m.text}`).join('\n\n'));
+        answerEl.textContent = "Le lien avec l'IA a échoué, voici ce que j'ai trouvé à la place :\n\n" +
+          (blocks.length ? blocks.join('\n\n') : "Rien trouvé.");
       }
       input.value = '';
     }
@@ -1325,6 +1664,7 @@
     // ── Init ──────────────────────────────────────────────────
     renderPlanning();
     renderTodos();
+    loadLoisirsList().then(() => { if (currentMode === 'detente') renderLoisirs(); });
     switchMode(currentMode);
     initCompanion();
   </script>
