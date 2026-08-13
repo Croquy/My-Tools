@@ -1182,7 +1182,7 @@ function printCartes() {
 }
 
 // ═══════════════════════════════════════════
-// CARNET DE L'AVENTURE (impression, format livret A5)
+// CARNET DE L'AVENTURE (impression, format A4)
 // ═══════════════════════════════════════════
 function printCarnet(avId) {
   const data = getData();
@@ -1191,10 +1191,10 @@ function printCarnet(avId) {
 
   const donjons = [...av.donjons].sort((a, b) => a.num - b.num);
 
-  const donjonsHtml = donjons.map(dj => {
+  const donjonsHtml = donjons.map((dj, i) => {
     const c1 = dj.c1 || {}, c2 = dj.c2 || {}, c3 = dj.c3 || {};
     return `
-      <div class="carnet-donjon">
+      <div class="carnet-donjon"${i > 0 ? ' style="page-break-before:always;"' : ''}>
         <div class="carnet-dj-head">
           <span class="carnet-dj-num">Donjon ${dj.num}</span>
           <span class="carnet-dj-titre">${dj.titre || ''}</span>
@@ -1206,6 +1206,10 @@ function printCarnet(avId) {
         <div class="carnet-chap">
           <div class="carnet-chap-label combat">⚔️ Combat${c1.nom ? ' — ' + c1.nom : ''}</div>
           ${c1.narration ? `<div class="carnet-txt">${c1.narration}</div>` : ''}
+          <div class="carnet-stats">
+            <div class="carnet-stat-box"><span class="carnet-stat-val">${5 + dj.num}</span><span class="carnet-stat-label">PV</span></div>
+            <div class="carnet-stat-box"><span class="carnet-stat-val">1d6</span><span class="carnet-stat-label">Attaque</span></div>
+          </div>
           ${c1.apres ? `<div class="carnet-txt carnet-apres">${c1.apres}</div>` : ''}
         </div>
 
@@ -1257,43 +1261,47 @@ function printCarnet(avId) {
   const win = window.open('', '_blank');
   win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Carnet — ${av.nom}</title>
   <style>
-    @page{size:A5 portrait;margin:1cm;}
+    @page{size:A4 portrait;margin:1.5cm;}
     *{box-sizing:border-box;}
-    body{background:white;font-family:'Nunito',sans-serif;color:#222;font-size:9.5px;line-height:1.45;}
-    .carnet-print-note{background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:10px 14px;margin:12px auto;max-width:420px;font-size:11px;line-height:1.6;}
-    .carnet-cover{text-align:center;padding:50px 16px 30px;page-break-after:always;}
-    .carnet-cover h1{font-family:'Quicksand',sans-serif;font-size:20px;margin-bottom:6px;}
-    .carnet-cover h2{font-size:13px;font-weight:400;color:#666;margin-bottom:20px;}
-    .carnet-cover p{max-width:380px;margin:0 auto;font-size:11px;color:#444;line-height:1.7;}
-    .carnet-donjon{border-bottom:1px dashed #ccc;padding:12px 0;page-break-inside:avoid;}
-    .carnet-dj-head{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-bottom:2px;}
-    .carnet-dj-num{font-family:'Quicksand',sans-serif;font-weight:700;font-size:11.5px;color:#c2185b;}
-    .carnet-dj-titre{font-family:'Quicksand',sans-serif;font-weight:700;font-size:11.5px;}
-    .carnet-dj-conte{font-size:9px;font-style:italic;color:#888;}
-    .carnet-dj-theme{font-size:9px;color:#7b1fa2;margin-bottom:5px;}
-    .carnet-txt{margin-bottom:5px;white-space:pre-line;}
+    body{background:white;font-family:'Nunito',sans-serif;color:#222;font-size:12px;line-height:1.5;}
+    .carnet-print-note{background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:10px 14px;margin:12px auto;max-width:480px;font-size:12px;line-height:1.6;}
+    .carnet-cover{text-align:center;padding:60px 16px 30px;page-break-after:always;}
+    .carnet-cover h1{font-family:'Quicksand',sans-serif;font-size:26px;margin-bottom:8px;}
+    .carnet-cover h2{font-size:16px;font-weight:400;color:#666;margin-bottom:24px;}
+    .carnet-cover p{max-width:440px;margin:0 auto;font-size:13px;color:#444;line-height:1.7;}
+    .carnet-donjon{padding:12px 0;page-break-inside:avoid;}
+    .carnet-dj-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+    .carnet-dj-num{font-family:'Quicksand',sans-serif;font-weight:700;font-size:15px;color:#c2185b;}
+    .carnet-dj-titre{font-family:'Quicksand',sans-serif;font-weight:700;font-size:15px;}
+    .carnet-dj-conte{font-size:11px;font-style:italic;color:#888;}
+    .carnet-dj-theme{font-size:11px;color:#7b1fa2;margin-bottom:6px;}
+    .carnet-txt{margin-bottom:6px;white-space:pre-line;}
     .carnet-apres{color:#555;font-style:italic;}
-    .carnet-chap{margin:6px 0;}
-    .carnet-chap-label{font-weight:700;font-size:9.5px;text-transform:uppercase;letter-spacing:.02em;margin-bottom:3px;}
+    .carnet-chap{margin:8px 0;}
+    .carnet-chap-label{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.02em;margin-bottom:4px;}
     .carnet-chap-label.combat{color:#ff5555;}
     .carnet-chap-label.enigme{color:#0097a7;}
     .carnet-chap-label.narratif{color:#7b1fa2;}
-    .carnet-enigme{border:1px solid #0097a7;border-radius:8px;padding:7px 9px;background:#f2fbfc;white-space:pre-line;margin-bottom:4px;}
-    .carnet-fin{font-size:9px;font-style:italic;color:#999;margin-top:5px;}
+    .carnet-stats{display:flex;gap:10px;margin-bottom:6px;}
+    .carnet-stat-box{display:flex;align-items:baseline;gap:5px;border:1px solid #ff5555;border-radius:8px;padding:4px 10px;background:#fff5f5;}
+    .carnet-stat-val{font-family:'Quicksand',sans-serif;font-weight:700;font-size:13px;color:#ff5555;}
+    .carnet-stat-label{font-size:10px;text-transform:uppercase;color:#888;}
+    .carnet-enigme{border:1px solid #0097a7;border-radius:8px;padding:9px 11px;background:#f2fbfc;white-space:pre-line;margin-bottom:5px;}
+    .carnet-fin{font-size:11px;font-style:italic;color:#999;margin-top:6px;}
     .carnet-solutions{page-break-before:always;padding-top:8px;}
-    .carnet-solutions h2{font-family:'Quicksand',sans-serif;font-size:15px;margin-bottom:12px;text-align:center;}
-    .carnet-sol-item{border-bottom:1px solid #eee;padding:5px 0;}
-    .carnet-sol-num{font-weight:700;font-size:9.5px;margin-bottom:2px;}
-    .carnet-sol-line{font-size:9px;margin-bottom:2px;}
-    .carnet-phrase{margin-top:16px;padding:12px;border:2px solid #c2185b;border-radius:10px;text-align:center;}
-    .carnet-phrase-label{font-size:9px;font-weight:700;color:#c2185b;text-transform:uppercase;margin-bottom:6px;}
-    .carnet-phrase-txt{font-family:'Quicksand',sans-serif;font-size:13px;font-weight:700;}
+    .carnet-solutions h2{font-family:'Quicksand',sans-serif;font-size:18px;margin-bottom:14px;text-align:center;}
+    .carnet-sol-item{border-bottom:1px solid #eee;padding:6px 0;}
+    .carnet-sol-num{font-weight:700;font-size:12px;margin-bottom:2px;}
+    .carnet-sol-line{font-size:11px;margin-bottom:2px;}
+    .carnet-phrase{margin-top:18px;padding:14px;border:2px solid #c2185b;border-radius:10px;text-align:center;}
+    .carnet-phrase-label{font-size:11px;font-weight:700;color:#c2185b;text-transform:uppercase;margin-bottom:6px;}
+    .carnet-phrase-txt{font-family:'Quicksand',sans-serif;font-size:15px;font-weight:700;}
     @media print { .carnet-print-note{ display:none; } }
   </style>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700&family=Nunito&display=swap" rel="stylesheet">
   </head><body>
     <div class="carnet-print-note">
-      📎 Pour un vrai livret A5 plié : utilise "Enregistrer en PDF" dans la fenêtre d'impression, puis ouvre ce PDF et choisis l'option "Livret" / "Booklet" de ton lecteur PDF (Acrobat Reader ou Aperçu). Il réordonnera et imprimera 2 pages par feuille A4, prêtes à plier et agrafer.
+      🖨️ Pour 2 pages par feuille : dans la fenêtre d'impression, choisis l'option "Pages par feuille" (ou "Multi-pages") et sélectionne 2.
     </div>
     <div class="carnet-cover">
       <h1>📕 Carnet de l'Aventure</h1>
