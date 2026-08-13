@@ -931,6 +931,7 @@ function importLootsFile(input) {
 function importLoots() {
   const raw = document.getElementById('import-loots-input').value.trim();
   const fb  = document.getElementById('import-loots-feedback');
+  fb.style.whiteSpace = 'pre-line';
   if (!raw) { fb.textContent = '❌ Rien à importer.'; fb.style.color = 'var(--pink)'; return; }
 
   let loots;
@@ -938,36 +939,60 @@ function importLoots() {
     const parsed = JSON.parse(raw);
     loots = Array.isArray(parsed) ? parsed : [parsed];
   } catch(e) {
-    fb.textContent = '❌ JSON invalide : ' + e.message;
+    fb.textContent = '❌ JSON invalide : ' + describeJsonError(raw, e);
     fb.style.color = 'var(--pink)';
     return;
   }
 
-  // Validation basique
-  const invalid = loots.filter(l => !l.id || !l.nom || !l.cat);
-  if (invalid.length) {
-    fb.textContent = `❌ ${invalid.length} loot(s) sans "id", "nom" ou "cat".`;
-    fb.style.color = 'var(--pink)';
-    return;
-  }
+  const errors = [];
+  const valid = [];
+  loots.forEach((l, i) => {
+    const pos = `Élément ${i + 1}/${loots.length}`;
+    if (!l || typeof l !== 'object') { errors.push(`${pos} : ce n'est pas un objet loot valide.`); return; }
+    const label = l.nom || l.id || 'sans identifiant';
+    const missing = ['id', 'nom', 'cat'].filter(k => !l[k]);
+    if (missing.length) { errors.push(`${pos} (${label}) : champ(s) manquant(s) — ${missing.join(', ')}.`); return; }
+    valid.push(l);
+  });
 
   const data = getData();
   let added = 0, replaced = 0;
-  loots.forEach(l => {
+  valid.forEach(l => {
     const idx = data.loots.findIndex(x => x.id === l.id);
     if (idx !== -1) { data.loots[idx] = l; replaced++; }
     else            { data.loots.push(l); added++; }
   });
 
   saveData(data);
-  fb.textContent = `✅ ${added} ajouté(s), ${replaced} mis à jour.`;
-  fb.style.color = 'var(--mint)';
-  setTimeout(() => { closeModal('modal-import-loots'); renderCodex(); }, 1200);
+  const summary = `✅ ${added} ajouté(s), ${replaced} mis à jour.`;
+  if (errors.length) {
+    fb.textContent = `${summary}\n❌ ${errors.length} loot(s) ignoré(s) :\n` + errors.map(e => '• ' + e).join('\n');
+    fb.style.color = 'var(--pink)';
+  } else {
+    fb.textContent = summary;
+    fb.style.color = 'var(--mint)';
+  }
+  if (added + replaced > 0) {
+    setTimeout(() => { closeModal('modal-import-loots'); renderCodex(); }, errors.length ? 2400 : 1200);
+  }
 }
 
 // ═══════════════════════════════════════════
 // EXPORT / IMPORT
 // ═══════════════════════════════════════════
+
+// Décrit une erreur JSON.parse avec la ligne/colonne concernée quand possible.
+function describeJsonError(raw, err) {
+  if (/\bline \d+/i.test(err.message)) return err.message; // déjà inclus par le moteur JS
+  const m = /position (\d+)/.exec(err.message);
+  if (!m) return err.message;
+  const pos   = parseInt(m[1]);
+  const before = raw.slice(0, pos);
+  const line  = before.split('\n').length;
+  const col   = pos - before.lastIndexOf('\n');
+  return `${err.message} (ligne ${line}, colonne ${col})`;
+}
+
 function exportAventure() {
   const data = getData();
   const av = data.aventures.find(a => a.id === S.avId);
@@ -986,9 +1011,17 @@ function importAventureFile(input) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
+    const raw = e.target.result;
+    let av;
     try {
-      const av = JSON.parse(e.target.result);
-      if (!av.nom || !av.id) throw new Error('"nom" et "id" requis');
+      av = JSON.parse(raw);
+    } catch(err) {
+      alert('❌ JSON invalide : ' + describeJsonError(raw, err));
+      input.value = '';
+      return;
+    }
+    try {
+      if (!av.nom || !av.id) throw new Error('"nom" et "id" requis (fichier d\'aventure attendu, pas une liste de donjons)');
       const data = getData();
       const idx  = data.aventures.findIndex(a => a.id === av.id);
       if (idx !== -1) {
@@ -1000,7 +1033,7 @@ function importAventureFile(input) {
       saveData(data);
       alert(`✅ "${av.nom}" importée avec ${(av.donjons || []).length} donjon(s).`);
       showDonjons(av.id);
-    } catch(err) { alert('❌ JSON invalide : ' + err.message); }
+    } catch(err) { alert('❌ ' + err.message); }
     input.value = '';
   };
   reader.readAsText(file);
@@ -1027,21 +1060,32 @@ function importDonjonsFile(input) {
 function importDonjons() {
   const raw = document.getElementById('import-json-input').value.trim();
   const fb  = document.getElementById('import-feedback');
+  fb.style.whiteSpace = 'pre-line';
   if (!raw) { fb.textContent = '❌ Rien à importer.'; fb.style.color = 'var(--pink)'; return; }
 
-  let donjons;
+  let parsed;
   try {
-    const parsed = JSON.parse(raw);
-    donjons = Array.isArray(parsed) ? parsed : [parsed];
+    parsed = JSON.parse(raw);
   } catch(e) {
-    fb.textContent = '❌ JSON invalide : ' + e.message;
+    fb.textContent = '❌ JSON invalide : ' + describeJsonError(raw, e);
     fb.style.color = 'var(--pink)';
     return;
   }
 
-  const invalid = donjons.filter(d => !d.num || !d.titre);
-  if (invalid.length) {
-    fb.textContent = `❌ ${invalid.length} donjon(s) sans "num" ou "titre".`;
+  // Accepte : un tableau de donjons, un donjon seul, ou un fichier d'aventure
+  // entier (ex. exporté via "Sauvegarder") dont on extrait le tableau "donjons".
+  let donjons, notice = '';
+  if (Array.isArray(parsed)) {
+    donjons = parsed;
+  } else if (parsed && Array.isArray(parsed.donjons)) {
+    donjons = parsed.donjons;
+    notice = `ℹ️ Fichier d'aventure détecté ("${parsed.nom || '?'}") — ${donjons.length} donjon(s) extrait(s).\n`;
+  } else {
+    donjons = [parsed];
+  }
+
+  if (!donjons.length) {
+    fb.textContent = '❌ Aucun donjon trouvé dans le JSON fourni.';
     fb.style.color = 'var(--pink)';
     return;
   }
@@ -1051,12 +1095,28 @@ function importDonjons() {
   if (!av) { fb.textContent = '❌ Aventure introuvable.'; fb.style.color = 'var(--pink)'; return; }
   if (!av.donjons) av.donjons = [];
 
+  const errors = [];
   let added = 0, replaced = 0;
-  donjons.forEach(dj => {
+
+  donjons.forEach((dj, i) => {
+    const pos = `Élément ${i + 1}/${donjons.length}`;
+    if (!dj || typeof dj !== 'object') {
+      errors.push(`${pos} : ce n'est pas un objet donjon valide.`);
+      return;
+    }
+    const label = dj.titre ? `"${dj.titre}"` : (dj.num !== undefined ? `num ${JSON.stringify(dj.num)}` : 'sans identifiant');
     const num = parseInt(dj.num);
+    const numOk   = dj.num !== undefined && dj.num !== null && dj.num !== '' && !isNaN(num);
+    const titre   = typeof dj.titre === 'string' ? dj.titre.trim() : '';
+    const titreOk = titre.length > 0;
+
+    if (!numOk && !titreOk) { errors.push(`${pos} (${label}) : "num" et "titre" manquants ou invalides.`); return; }
+    if (!numOk)   { errors.push(`${pos} (${label}) : "num" manquant ou invalide (reçu ${JSON.stringify(dj.num)}).`); return; }
+    if (!titreOk) { errors.push(`${pos} (num ${num}) : "titre" manquant ou vide.`); return; }
+
     const idx = av.donjons.findIndex(d => d.num === num);
     const clean = {
-      num, titre: dj.titre||'', conte: dj.conte||'', theme: dj.theme||'', intro: dj.intro||'',
+      num, titre, conte: dj.conte||'', theme: dj.theme||'', intro: dj.intro||'',
       c1: {nom:dj.c1?.nom||'', narration:dj.c1?.narration||'', apres:dj.c1?.apres||'', piochage:dj.c1?.piochage||1},
       c2: {nom:dj.c2?.nom||'', narration:dj.c2?.narration||'', enigme:dj.c2?.enigme||'', reponse:dj.c2?.reponse||'', apres:dj.c2?.apres||'', piochage:dj.c2?.piochage||1},
       c3: {nom:dj.c3?.nom||'', narration:dj.c3?.narration||'', verite:dj.c3?.verite||'', apres:dj.c3?.apres||''},
@@ -1067,9 +1127,19 @@ function importDonjons() {
 
   av.donjons.sort((a, b) => a.num - b.num);
   saveData(data);
-  fb.textContent = `✅ ${added} ajouté(s), ${replaced} écrasé(s).`;
-  fb.style.color = 'var(--mint)';
-  setTimeout(() => { closeModal('modal-import'); showDonjons(S.avId); }, 1200);
+
+  const summary = `${notice}✅ ${added} ajouté(s), ${replaced} écrasé(s).`;
+  if (errors.length) {
+    fb.textContent = `${summary}\n❌ ${errors.length} donjon(s) ignoré(s) :\n` + errors.map(e => '• ' + e).join('\n');
+    fb.style.color = 'var(--pink)';
+  } else {
+    fb.textContent = summary;
+    fb.style.color = 'var(--mint)';
+  }
+
+  if (added + replaced > 0) {
+    setTimeout(() => { closeModal('modal-import'); showDonjons(S.avId); }, errors.length ? 2400 : 1200);
+  }
 }
 
 // ═══════════════════════════════════════════
