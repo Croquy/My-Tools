@@ -156,7 +156,7 @@ function buildDefaultRules() {
   return [
     {id:'principe',    titre:'🎯 Principe du jeu',      corps:"Vous êtes des agents du FBI envoyés enquêter dans le Royaume des Contes de Fée.\nLe MJ (toi) gère l'application, les enfants ont leurs fiches de personnage en main."},
     {id:'persos',      titre:'👤 Personnages joueurs',   corps:"Chaque joueur a une fiche avec :\n- Force : combats (1–5)\n- Intelligence : énigmes (1–5)\n- 10 PV de départ\n- 1 arme max, 3 pièces d'armure (corps, mains, pieds)"},
-    {id:'combat',      titre:'⚔️ Combat',                corps:"Attaque joueur = 1d6 + Force + 1d6 si arme\nDéfense = -1 dégât par pièce d'armure\n\nPNJ : PV = 5 + n° donjon, Attaque = 1d6\nTour par tour, pions 1–6 dans une pochette."},
+    {id:'combat',      titre:'⚔️ Combat',                corps:"Attaque joueur = 1d6 +  1d6 si arme\nDéfense = -1 dégât par pièce d'armure\n\nPNJ : PV du PNJ = (n° donjon − 1) × 2 + (nombre de joueurs × 3), Attaque = 1d6\nTour par tour, pions 1–6 dans une pochette."},
     {id:'enigmes',     titre:'🧩 Énigmes',               corps:"Le MJ lit l'énigme à voix haute. Les joueurs proposent une réponse.\nLe bouton spoil permet au MJ de vérifier discrètement."},
     {id:'narratif',    titre:'📖 Narratif',              corps:"Les PNJ narratifs donnent des informations ou révèlent une vérité.\nLe MJ dialogue jusqu'à ce que les joueurs arrivent à la vérité (visible MJ seulement)."},
     {id:'progression', titre:'🗺️ Progression',          corps:"- D1–5 : Libres. Lootent un objet de quête.\n- D6–10 : 1 objet requis.\n- D11–19 : 2 objets requis. Lootent des fragments de phrase.\n- D20 : Boss final. La phrase révèle le coupable."},
@@ -441,8 +441,8 @@ function showDonjon(avId, num) {
           <div class="stat-box pv-table-box">
             <div class="stat-label">PV du PNJ selon le nombre de joueurs</div>
             <table class="pv-table">
-              <tr>${[1,2,3,4,5,6].map(j => `<th>${j}j</th>`).join('')}</tr>
-              <tr>${[1,2,3,4,5,6].map(j => `<td>${5 + num + 4 * (j - 1)}</td>`).join('')}</tr>
+              <tr>${[1,2,3,4].map(j => `<th>${j}j</th>`).join('')}</tr>
+              <tr>${[1,2,3,4].map(j => `<td>${( num -1)*2+ 3 * j}</td>`).join('')}</tr>
             </table>
           </div>
           <div class="stat-box"><div class="stat-val">1d6</div><div class="stat-label">Attaque (par joueur)</div></div>
@@ -1287,7 +1287,7 @@ function printCarnet(avId) {
               <span class="carnet-stat-label">PV selon nb. joueurs</span>
               <table class="carnet-pv-table">
                 <tr>${[1,2,3,4].map(j => `<th>${j}j</th>`).join('')}</tr>
-                <tr>${[1,2,3,4].map(j => `<td>${5 + dj.num + 4 * (j - 1)}</td>`).join('')}</tr>
+                <tr>${[1,2,3,4].map(j => `<td>${( dj.num -1)*2+ 3 * j }</td>`).join('')}</tr>
               </table>
             </div>
             <div class="carnet-stat-box"><span class="carnet-stat-val">1d6</span><span class="carnet-stat-label">Attaque (par joueur)</span></div>
@@ -1367,6 +1367,10 @@ function printCarnet(avId) {
     .carnet-stats{display:flex;gap:10px;margin-bottom:6px;}
     .carnet-stat-box{display:flex;align-items:baseline;gap:5px;border:1px solid #ff5555;border-radius:8px;padding:4px 10px;background:#fff5f5;}
     .carnet-stat-val{font-family:'Quicksand',sans-serif;font-weight:700;font-size:13px;color:#ff5555;}
+    .carnet-pv-table-box { text-align: left; }
+.carnet-pv-table { border-collapse: collapse; width: 100%; margin-top: 4px; }
+.carnet-pv-table th { font-size: 9px; font-weight: 700; padding: 2px 5px; text-align: center; }
+.carnet-pv-table td { font-family: 'Quicksand', sans-serif; font-size: 14px; font-weight: 700; text-align: center; padding: 2px 5px; border-top: 1px solid rgba(0,0,0,.15); }
     .carnet-stat-label{font-size:10px;text-transform:uppercase;color:#888;}
     .carnet-enigme{border:1px solid #0097a7;border-radius:8px;padding:9px 11px;background:#f2fbfc;white-space:pre-line;margin-bottom:5px;}
     .carnet-fin{font-size:11px;font-style:italic;color:#999;margin-top:6px;}
