@@ -1182,6 +1182,136 @@ function printCartes() {
 }
 
 // ═══════════════════════════════════════════
+// CARNET DE L'AVENTURE (impression, format livret A5)
+// ═══════════════════════════════════════════
+function printCarnet(avId) {
+  const data = getData();
+  const av = data.aventures.find(a => a.id === avId);
+  if (!av || !av.donjons || !av.donjons.length) return alert("Aucun donjon dans cette aventure.");
+
+  const donjons = [...av.donjons].sort((a, b) => a.num - b.num);
+
+  const donjonsHtml = donjons.map(dj => {
+    const c1 = dj.c1 || {}, c2 = dj.c2 || {}, c3 = dj.c3 || {};
+    return `
+      <div class="carnet-donjon">
+        <div class="carnet-dj-head">
+          <span class="carnet-dj-num">Donjon ${dj.num}</span>
+          <span class="carnet-dj-titre">${dj.titre || ''}</span>
+          ${dj.conte ? `<span class="carnet-dj-conte">${dj.conte}</span>` : ''}
+        </div>
+        ${dj.theme ? `<div class="carnet-dj-theme">💡 ${dj.theme}</div>` : ''}
+        ${dj.intro ? `<div class="carnet-txt">${dj.intro}</div>` : ''}
+
+        <div class="carnet-chap">
+          <div class="carnet-chap-label combat">⚔️ Combat${c1.nom ? ' — ' + c1.nom : ''}</div>
+          ${c1.narration ? `<div class="carnet-txt">${c1.narration}</div>` : ''}
+          ${c1.apres ? `<div class="carnet-txt carnet-apres">${c1.apres}</div>` : ''}
+        </div>
+
+        <div class="carnet-chap">
+          <div class="carnet-chap-label enigme">🧩 Énigme${c2.nom ? ' — ' + c2.nom : ''}</div>
+          ${c2.narration ? `<div class="carnet-txt">${c2.narration}</div>` : ''}
+          ${c2.enigme ? `<div class="carnet-enigme">${c2.enigme}</div>` : ''}
+        </div>
+
+        <div class="carnet-chap">
+          <div class="carnet-chap-label narratif">📖 Narratif${c3.nom ? ' — ' + c3.nom : ''}</div>
+          ${c3.narration ? `<div class="carnet-txt">${c3.narration}</div>` : ''}
+          ${c3.apres ? `<div class="carnet-txt carnet-apres">${c3.apres}</div>` : ''}
+        </div>
+
+        ${dj.fin ? `<div class="carnet-fin">${dj.fin}</div>` : ''}
+      </div>`;
+  }).join('');
+
+  // ── Solutions : réponses d'énigmes, vérités, fragments ──
+  const solutionsHtml = donjons.map(dj => {
+    const c2 = dj.c2 || {}, c3 = dj.c3 || {};
+    const fragIdx = FRAGMENT_MAP[dj.num] || null;
+    const fragLoot = fragIdx ? data.loots.find(l => l.id === 'fragment_' + fragIdx) : null;
+    if (!c2.reponse && !c3.verite && !fragLoot) return '';
+    return `
+      <div class="carnet-sol-item">
+        <div class="carnet-sol-num">Donjon ${dj.num} — ${dj.titre || ''}</div>
+        ${c2.reponse ? `<div class="carnet-sol-line">🧩 Réponse : <strong>${c2.reponse}</strong></div>` : ''}
+        ${c3.verite  ? `<div class="carnet-sol-line">🔒 Vérité : ${c3.verite}</div>` : ''}
+        ${fragLoot   ? `<div class="carnet-sol-line">🧩 Fragment : « ${fragLoot.desc} »</div>` : ''}
+      </div>`;
+  }).join('');
+
+  // ── Phrase finale reconstituée à partir des 10 fragments ──
+  const fragmentsOrdonnes = [];
+  for (let i = 1; i <= 10; i++) {
+    const f = data.loots.find(l => l.id === 'fragment_' + i);
+    if (f) fragmentsOrdonnes.push(f.desc);
+  }
+  const phraseFinale = fragmentsOrdonnes.join(' ');
+  const phraseHtml = fragmentsOrdonnes.length === 10
+    ? `<div class="carnet-phrase">
+        <div class="carnet-phrase-label">🐘 Phrase complète (donjon 20)</div>
+        <div class="carnet-phrase-txt">${phraseFinale}</div>
+      </div>`
+    : '';
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Carnet — ${av.nom}</title>
+  <style>
+    @page{size:A5 portrait;margin:1cm;}
+    *{box-sizing:border-box;}
+    body{background:white;font-family:'Nunito',sans-serif;color:#222;font-size:9.5px;line-height:1.45;}
+    .carnet-print-note{background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:10px 14px;margin:12px auto;max-width:420px;font-size:11px;line-height:1.6;}
+    .carnet-cover{text-align:center;padding:50px 16px 30px;page-break-after:always;}
+    .carnet-cover h1{font-family:'Quicksand',sans-serif;font-size:20px;margin-bottom:6px;}
+    .carnet-cover h2{font-size:13px;font-weight:400;color:#666;margin-bottom:20px;}
+    .carnet-cover p{max-width:380px;margin:0 auto;font-size:11px;color:#444;line-height:1.7;}
+    .carnet-donjon{border-bottom:1px dashed #ccc;padding:12px 0;page-break-inside:avoid;}
+    .carnet-dj-head{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-bottom:2px;}
+    .carnet-dj-num{font-family:'Quicksand',sans-serif;font-weight:700;font-size:11.5px;color:#c2185b;}
+    .carnet-dj-titre{font-family:'Quicksand',sans-serif;font-weight:700;font-size:11.5px;}
+    .carnet-dj-conte{font-size:9px;font-style:italic;color:#888;}
+    .carnet-dj-theme{font-size:9px;color:#7b1fa2;margin-bottom:5px;}
+    .carnet-txt{margin-bottom:5px;white-space:pre-line;}
+    .carnet-apres{color:#555;font-style:italic;}
+    .carnet-chap{margin:6px 0;}
+    .carnet-chap-label{font-weight:700;font-size:9.5px;text-transform:uppercase;letter-spacing:.02em;margin-bottom:3px;}
+    .carnet-chap-label.combat{color:#ff5555;}
+    .carnet-chap-label.enigme{color:#0097a7;}
+    .carnet-chap-label.narratif{color:#7b1fa2;}
+    .carnet-enigme{border:1px solid #0097a7;border-radius:8px;padding:7px 9px;background:#f2fbfc;white-space:pre-line;margin-bottom:4px;}
+    .carnet-fin{font-size:9px;font-style:italic;color:#999;margin-top:5px;}
+    .carnet-solutions{page-break-before:always;padding-top:8px;}
+    .carnet-solutions h2{font-family:'Quicksand',sans-serif;font-size:15px;margin-bottom:12px;text-align:center;}
+    .carnet-sol-item{border-bottom:1px solid #eee;padding:5px 0;}
+    .carnet-sol-num{font-weight:700;font-size:9.5px;margin-bottom:2px;}
+    .carnet-sol-line{font-size:9px;margin-bottom:2px;}
+    .carnet-phrase{margin-top:16px;padding:12px;border:2px solid #c2185b;border-radius:10px;text-align:center;}
+    .carnet-phrase-label{font-size:9px;font-weight:700;color:#c2185b;text-transform:uppercase;margin-bottom:6px;}
+    .carnet-phrase-txt{font-family:'Quicksand',sans-serif;font-size:13px;font-weight:700;}
+    @media print { .carnet-print-note{ display:none; } }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700&family=Nunito&display=swap" rel="stylesheet">
+  </head><body>
+    <div class="carnet-print-note">
+      📎 Pour un vrai livret A5 plié : utilise "Enregistrer en PDF" dans la fenêtre d'impression, puis ouvre ce PDF et choisis l'option "Livret" / "Booklet" de ton lecteur PDF (Acrobat Reader ou Aperçu). Il réordonnera et imprimera 2 pages par feuille A4, prêtes à plier et agrafer.
+    </div>
+    <div class="carnet-cover">
+      <h1>📕 Carnet de l'Aventure</h1>
+      <h2>${av.nom}</h2>
+      ${av.scenario ? `<p>${av.scenario}</p>` : ''}
+    </div>
+    ${donjonsHtml}
+    <div class="carnet-solutions">
+      <h2>🔑 Solutions &amp; Vérités</h2>
+      ${solutionsHtml}
+      ${phraseHtml}
+    </div>
+    <script>window.onload = () => window.print();<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+// ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
 (async () => {
