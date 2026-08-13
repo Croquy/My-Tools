@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════
-// AVENTURE — app.js
+// AVENTURE - app.js
 // Logique, données et rendu des contenus dynamiques
 // ════════════════════════════════════════════════════════
 
@@ -30,10 +30,10 @@ const CAT_COLORS = {
 };
 
 const PROGRESSION = [
-  {label:'Niveau 1 — Libres',          nums:[1,2,3,4,5],                    req:[null,null,null,null,null]},
-  {label:'Niveau 2 — 1 objet requis',  nums:[6,7,8,9,10],                   req:[[2],[3],[4],[5],[2]]},
-  {label:'Niveau 3 — 2 objets requis', nums:[11,12,13,14,15,16,17,18,19],   req:[[2,9],[1,7],[4,7],[2,8],[3,10],[1,6],[10,9],[7,6],[4,8]]},
-  {label:'Niveau 4 — Boss final 🏆',   nums:[20],                           req:[null]}
+  {label:'Niveau 1 - Libres',          nums:[1,2,3,4,5],                    req:[null,null,null,null,null]},
+  {label:'Niveau 2 - 1 objet requis',  nums:[6,7,8,9,10],                   req:[[2],[3],[4],[5],[2]]},
+  {label:'Niveau 3 - 2 objets requis', nums:[11,12,13,14,15,16,17,18,19],   req:[[2,9],[1,7],[4,7],[2,8],[3,10],[1,6],[10,9],[7,6],[4,8]]},
+  {label:'Niveau 4 - Boss final 🏆',   nums:[20],                           req:[null]}
 ];
 
 // ═══════════════════════════════════════════
@@ -60,7 +60,7 @@ function buildDefault() {
           nom: 'Bûcheron fatigué',
           narration: "Après ce combat, les aventuriers restent troublés par les paroles de la jeune fille. La forêt paraît encore plus silencieuse qu'avant. En avançant, ils découvrent une clairière où un vieux bûcheron abat inlassablement le même arbre. À chaque coup de hache, le tronc repousse lentement.\n\nLe bûcheron semble épuisé. Il explique que la forêt est déboussolée, comme si les règles des contes avaient disparu.\n\n« Les histoires possèdent des règles. Quand les règles meurent… les royaumes se transforment. »\n\nIl accepte d'aider uniquement s'ils prouvent qu'ils comprennent comment fonctionnent les histoires.",
           enigme: "Dans une histoire, il y a toujours un héros, un méchant et une leçon. Le Petit Chaperon Rouge a peur du loup. Mais dans cette forêt, de qui le loup a-t-il peur ?",
-          reponse: "De lui-même — il a peur de son propre rôle dans l'histoire, d'être condamné à être le méchant pour toujours.",
+          reponse: "De lui-même - il a peur de son propre rôle dans l'histoire, d'être condamné à être le méchant pour toujours.",
           apres: '', piochage: 1
         },
         c3: {
@@ -83,7 +83,7 @@ function buildDefaultLoots() {
     {id:'fil_narratif',     nom:'Fil narratif',       cat:'quete', bonus:'', desc:"Un fil d'or qui relie les contes entre eux.",                              from:1,  unlock:[12,16]},
     {id:'boussole_mondes',  nom:'Boussole des mondes', cat:'quete', bonus:'', desc:"Indique les portails entre les histoires.",                               from:2,  unlock:[6,10,11,14]},
     {id:'cristal_gele',     nom:'Cristal gelé',        cat:'quete', bonus:'', desc:"Emprisonne un fragment de conte incomplet.",                              from:3,  unlock:[7,15]},
-    {id:'montre_gousset',   nom:'Montre à gousset',    cat:'quete', bonus:'', desc:"Tourne à l'envers — le temps des contes n'est pas le nôtre.",             from:4,  unlock:[8,13,19]},
+    {id:'montre_gousset',   nom:'Montre à gousset',    cat:'quete', bonus:'', desc:"Tourne à l'envers - le temps des contes n'est pas le nôtre.",             from:4,  unlock:[8,13,19]},
     {id:'engrais_magique',  nom:'Engrais magique',     cat:'quete', bonus:'', desc:"Poudre qui fait pousser les histoires comme des graines.",                from:5,  unlock:[9,11]},
     {id:'cristal_memoire',  nom:'Cristal mémoire',     cat:'quete', bonus:'', desc:"Contient les souvenirs effacés d'un personnage.",                         from:6,  unlock:[16,18]},
     {id:'miroir_verites',   nom:'Miroir des vérités',  cat:'quete', bonus:'', desc:"Ne montre pas le reflet mais la vérité cachée.",                          from:7,  unlock:[12,13,18]},
@@ -112,17 +112,17 @@ function buildDefaultLoots() {
     {id:'fouet_liane',         nom:'Fouet de liane',           cat:'arme', bonus:'+1d6 attaque', desc:"Souple et redoutable, tressé par les elfes."},
     {id:'hache_glace',         nom:'Hache de glace',           cat:'arme', bonus:'+1d6 attaque', desc:"Tranche même le temps par grand froid."},
     {id:'dague_ombre',         nom:"Dague d'ombre",            cat:'arme', bonus:'+1d6 attaque', desc:"Invisible à la lumière, mortelle dans l'obscurité."},
-    // Armures — corps
+    // Armures - corps
     {id:'cape_ombre',          nom:"Cape d'ombre",             cat:'armure', subcat:'corps', bonus:'-1 dégât', desc:"Taillée dans la nuit, absorbe les impacts."},
     {id:'armure_ecorce',       nom:"Armure d'écorce",          cat:'armure', subcat:'corps', bonus:'-1 dégât', desc:"Cuirasse de bois vivant qui repousse les coups."},
     {id:'plastron_cristal',    nom:'Plastron de cristal',      cat:'armure', subcat:'corps', bonus:'-1 dégât', desc:"Renvoie une partie de la force des attaques."},
     {id:'manteau_plumes',      nom:'Manteau de plumes',        cat:'armure', subcat:'corps', bonus:'-1 dégât', desc:"Léger et résistant, cadeau d'un oiseau-phénix."},
-    // Armures — mains
+    // Armures - mains
     {id:'gant_isolant',        nom:'Gant isolant',             cat:'armure', subcat:'mains', bonus:'-1 dégât', desc:"Protège des coups et de la magie."},
     {id:'gant_alchimique',     nom:'Gant alchimique',          cat:'armure', subcat:'mains', bonus:'-1 dégât', desc:"Transforme l'énergie des coups reçus."},
     {id:'gant_renforce',       nom:'Gant renforcé',            cat:'armure', subcat:'mains', bonus:'-1 dégât', desc:"Forgé dans l'acier des nains."},
     {id:'gant_soie',           nom:'Gant de soie enchantée',   cat:'armure', subcat:'mains', bonus:'-1 dégât', desc:"Doux comme un nuage, dur comme du roc."},
-    // Armures — pieds
+    // Armures - pieds
     {id:'chaussures_silencieuses', nom:'Chaussures silencieuses', cat:'armure', subcat:'pieds', bonus:'-1 dégât', desc:"Amortissent autant les sons que les impacts."},
     {id:'chaussures_trace',    nom:'Chaussures de trace',      cat:'armure', subcat:'pieds', bonus:'-1 dégât', desc:"Laissent des empreintes lumineuses, absorbent les chocs."},
     {id:'bottes_roc',          nom:'Bottes de roc',            cat:'armure', subcat:'pieds', bonus:'-1 dégât', desc:"Lourdes mais indestructibles."},
@@ -135,18 +135,18 @@ function buildDefaultLoots() {
     {id:'carte_tresor',        nom:'Carte au trésor',          cat:'objet', bonus:'Aide narrative', desc:"Indique toujours ce qui est caché à proximité."},
     {id:'boussole_pirate',     nom:'Boussole pirate',          cat:'objet', bonus:'Aide narrative', desc:"Pointe vers ce que l'on désire vraiment."},
     {id:'medaillon_sacre',     nom:'Médaillon sacré',          cat:'objet', bonus:'Aide narrative', desc:"Protège des illusions et des mensonges."},
-// Consommables — force
+// Consommables - force
     {id:'elixir_titan',    nom:'Élixir de titan',          cat:'consommable', subcat:'force', bonus:'+2 à un jet', desc:"Transforme brièvement celui qui le boit en titan."},
     {id:'potion_focus',    nom:'Potion focus',             cat:'consommable', subcat:'force', bonus:'+2 à un jet', desc:"Concentre l'esprit et le corps en un instant."},
     {id:'pomme_boost',     nom:'Pomme boost',              cat:'consommable', subcat:'force', bonus:'+2 à un jet', desc:"Une bouchée et la force décuple."},
-    // Consommables — chance
-    {id:'des_truques',     nom:'Dés truqués',              cat:'consommable', subcat:'chance', bonus:'Relance un dé', desc:"Un seul usage — après ça, ils redeviennent normaux."},
+    // Consommables - chance
+    {id:'des_truques',     nom:'Dés truqués',              cat:'consommable', subcat:'chance', bonus:'Relance un dé', desc:"Un seul usage - après ça, ils redeviennent normaux."},
     {id:'trefle_quatre',   nom:'Trèfle à quatre feuilles', cat:'consommable', subcat:'chance', bonus:'Relance un dé', desc:"Impossible à trouver, impossible de rater."},
     {id:'encre_magique',   nom:'Encre magique',            cat:'consommable', subcat:'chance', bonus:'Relance un dé', desc:"Réécrit le destin d'un seul trait."},
-    // Consommables — soin
-    {id:'cookie_enchante', nom:'Cookie enchanté',          cat:'consommable', subcat:'soin', bonus:'Récupère tous ses PV', desc:"Un cookie doré aux pépites de lune — redonne toutes ses forces."},
+    // Consommables - soin
+    {id:'cookie_enchante', nom:'Cookie enchanté',          cat:'consommable', subcat:'soin', bonus:'Récupère tous ses PV', desc:"Un cookie doré aux pépites de lune - redonne toutes ses forces."},
     {id:'gateau_arc_en_ciel', nom:'Gâteau arc-en-ciel',   cat:'consommable', subcat:'soin', bonus:'Récupère tous ses PV', desc:"Chaque couche d'une couleur différente, chacune guérit un peu plus."},
-    // Consommables — indice
+    // Consommables - indice
     {id:'oeil_verite',     nom:'Œil de vérité',            cat:'consommable', subcat:'indice', bonus:'Aide sur une énigme', desc:"Voit à travers les apparences."},
     {id:'encens_revelateur', nom:'Encens révélateur',      cat:'consommable', subcat:'indice', bonus:'Aide sur une énigme', desc:"Ses volutes dessinent la réponse."},
   ];
@@ -383,7 +383,7 @@ function showDonjon(avId, num) {
   const bc2 = document.getElementById('bc-av2');
   const bcDj = document.getElementById('bc-dj');
   if (bc2)  bc2.textContent = av.nom;
-  if (bcDj) bcDj.textContent = `Donjon ${num} — ${dj.titre}`;
+  if (bcDj) bcDj.textContent = `Donjon ${num} - ${dj.titre}`;
 
   // Prérequis
   let reqNums = null;
@@ -427,36 +427,42 @@ function showDonjon(avId, num) {
       <button class="btn-danger-sm" onclick="askDel('donjon',${num})">🗑️ Supprimer</button>
     </div>` : ''}
 
-    <!-- Chapitre 1 — Combat -->
+    <!-- Chapitre 1 - Combat -->
     <div class="chapter">
       <div class="chapter-header combat">
         <span class="chapter-icon">⚔️</span>
-        <span class="chapter-title combat">Chapitre 1 — Combat</span>
+        <span class="chapter-title combat">Chapitre 1 - Combat</span>
         ${c1.nom ? `<span class="chapter-pnj">${c1.nom}</span>` : ''}
       </div>
       <div class="chapter-body combat">
         ${c1.narration ? `<div class="chapter-narration">${c1.narration}</div>` : ''}
         ${c1.nom ? `<div class="chapter-pnj-name">${c1.nom}</div>` : ''}
-        <div class="combat-stats">
-          <div class="stat-box"><div class="stat-val">${5 + num}</div><div class="stat-label">PV</div></div>
-          <div class="stat-box"><div class="stat-val">1d6</div><div class="stat-label">Attaque</div></div>
+     <div class="combat-stats">
+          <div class="stat-box pv-table-box">
+            <div class="stat-label">PV du PNJ selon le nombre de joueurs</div>
+            <table class="pv-table">
+              <tr>${[1,2,3,4,5,6].map(j => `<th>${j}j</th>`).join('')}</tr>
+              <tr>${[1,2,3,4,5,6].map(j => `<td>${5 + num + 4 * (j - 1)}</td>`).join('')}</tr>
+            </table>
+          </div>
+          <div class="stat-box"><div class="stat-val">1d6</div><div class="stat-label">Attaque (par joueur)</div></div>
         </div>
         <div class="piochage-box combat-piochage">
           <span class="piochage-icon">🎒</span>
           <span>Piocher ${c1.piochage || 1} équipement${(c1.piochage || 1) > 1 ? 's' : ''} dans l'enveloppe</span>
         </div>
         ${c1.apres ? `<div class="chapitre-apres">
-          <div class="chapitre-apres-label">— Après le combat —</div>
+          <div class="chapitre-apres-label">- Après le combat -</div>
           <div class="chapter-narration">${c1.apres}</div>
         </div>` : ''}
       </div>
     </div>
 
-    <!-- Chapitre 2 — Énigme -->
+    <!-- Chapitre 2 - Énigme -->
     <div class="chapter">
       <div class="chapter-header enigme">
         <span class="chapter-icon">🧩</span>
-        <span class="chapter-title enigme">Chapitre 2 — Énigme</span>
+        <span class="chapter-title enigme">Chapitre 2 - Énigme</span>
         ${c2.nom ? `<span class="chapter-pnj">${c2.nom}</span>` : ''}
       </div>
       <div class="chapter-body enigme">
@@ -473,17 +479,17 @@ function showDonjon(avId, num) {
           <span>Piocher ${c2.piochage || 1} consommable${(c2.piochage || 1) > 1 ? 's' : ''} dans l'enveloppe</span>
         </div>
         ${c2.apres ? `<div class="chapitre-apres">
-          <div class="chapitre-apres-label">— Après l'énigme —</div>
+          <div class="chapitre-apres-label">- Après l'énigme -</div>
           <div class="chapter-narration">${c2.apres}</div>
         </div>` : ''}
       </div>
     </div>
 
-    <!-- Chapitre 3 — Narratif -->
+    <!-- Chapitre 3 - Narratif -->
     <div class="chapter">
       <div class="chapter-header narratif">
         <span class="chapter-icon">📖</span>
-        <span class="chapter-title narratif">Chapitre 3 — Narratif</span>
+        <span class="chapter-title narratif">Chapitre 3 - Narratif</span>
         ${c3.nom ? `<span class="chapter-pnj">${c3.nom}</span>` : ''}
       </div>
       <div class="chapter-body narratif">
@@ -495,7 +501,7 @@ function showDonjon(avId, num) {
           <div class="spoil-answer verite-spoil-answer">${c3.verite}</div>
         </div>` : ''}
         ${c3.apres ? `<div class="chapitre-apres">
-          <div class="chapitre-apres-label">— Après la découverte —</div>
+          <div class="chapitre-apres-label">- Après la découverte -</div>
           <div class="chapter-narration">${c3.apres}</div>
         </div>` : ''}
         ${fragLoot ? `<div class="loot-fragment">
@@ -532,7 +538,7 @@ function toggleSpoil(btn) {
 function selectDice(s) {
   S.diceSides = s;
   document.querySelectorAll('.dice-btn').forEach(b => b.classList.toggle('selected', +b.dataset.sides === s));
-  document.getElementById('dice-lbl').textContent = `d${s} — clique pour lancer`;
+  document.getElementById('dice-lbl').textContent = `d${s} - clique pour lancer`;
 }
 
 function rollDice() {
@@ -556,8 +562,8 @@ function rollDice() {
 
 function resetDice() {
   S.diceRolls = [];
-  document.getElementById('dice-num').textContent = '—';
-  document.getElementById('dice-lbl').textContent = `d${S.diceSides} — clique pour lancer`;
+  document.getElementById('dice-num').textContent = '-';
+  document.getElementById('dice-lbl').textContent = `d${S.diceSides} - clique pour lancer`;
   const w = document.getElementById('dice-cumul-wrap');
   if (w) w.style.display = 'none';
 }
@@ -951,7 +957,7 @@ function importLoots() {
     if (!l || typeof l !== 'object') { errors.push(`${pos} : ce n'est pas un objet loot valide.`); return; }
     const label = l.nom || l.id || 'sans identifiant';
     const missing = ['id', 'nom', 'cat'].filter(k => !l[k]);
-    if (missing.length) { errors.push(`${pos} (${label}) : champ(s) manquant(s) — ${missing.join(', ')}.`); return; }
+    if (missing.length) { errors.push(`${pos} (${label}) : champ(s) manquant(s) - ${missing.join(', ')}.`); return; }
     valid.push(l);
   });
 
@@ -1079,7 +1085,7 @@ function importDonjons() {
     donjons = parsed;
   } else if (parsed && Array.isArray(parsed.donjons)) {
     donjons = parsed.donjons;
-    notice = `ℹ️ Fichier d'aventure détecté ("${parsed.nom || '?'}") — ${donjons.length} donjon(s) extrait(s).\n`;
+    notice = `ℹ️ Fichier d'aventure détecté ("${parsed.nom || '?'}") - ${donjons.length} donjon(s) extrait(s).\n`;
   } else {
     donjons = [parsed];
   }
@@ -1274,7 +1280,7 @@ function printCarnet(avId) {
         ${dj.intro ? `<div class="carnet-txt">${dj.intro}</div>` : ''}
 
         <div class="carnet-chap">
-          <div class="carnet-chap-label combat">⚔️ Combat${c1.nom ? ' — ' + c1.nom : ''}</div>
+          <div class="carnet-chap-label combat">⚔️ Combat${c1.nom ? ' - ' + c1.nom : ''}</div>
           ${c1.narration ? `<div class="carnet-txt">${c1.narration}</div>` : ''}
           <div class="carnet-stats">
             <div class="carnet-stat-box"><span class="carnet-stat-val">${5 + dj.num}</span><span class="carnet-stat-label">PV</span></div>
@@ -1284,13 +1290,13 @@ function printCarnet(avId) {
         </div>
 
         <div class="carnet-chap">
-          <div class="carnet-chap-label enigme">🧩 Énigme${c2.nom ? ' — ' + c2.nom : ''}</div>
+          <div class="carnet-chap-label enigme">🧩 Énigme${c2.nom ? ' - ' + c2.nom : ''}</div>
           ${c2.narration ? `<div class="carnet-txt">${c2.narration}</div>` : ''}
           ${c2.enigme ? `<div class="carnet-enigme">${c2.enigme}</div>` : ''}
         </div>
 
         <div class="carnet-chap">
-          <div class="carnet-chap-label narratif">📖 Narratif${c3.nom ? ' — ' + c3.nom : ''}</div>
+          <div class="carnet-chap-label narratif">📖 Narratif${c3.nom ? ' - ' + c3.nom : ''}</div>
           ${c3.narration ? `<div class="carnet-txt">${c3.narration}</div>` : ''}
           ${c3.apres ? `<div class="carnet-txt carnet-apres">${c3.apres}</div>` : ''}
         </div>
@@ -1307,7 +1313,7 @@ function printCarnet(avId) {
     if (!c2.reponse && !c3.verite && !fragLoot) return '';
     return `
       <div class="carnet-sol-item">
-        <div class="carnet-sol-num">Donjon ${dj.num} — ${dj.titre || ''}</div>
+        <div class="carnet-sol-num">Donjon ${dj.num} - ${dj.titre || ''}</div>
         ${c2.reponse ? `<div class="carnet-sol-line">🧩 Réponse : <strong>${c2.reponse}</strong></div>` : ''}
         ${c3.verite  ? `<div class="carnet-sol-line">🔒 Vérité : ${c3.verite}</div>` : ''}
         ${fragLoot   ? `<div class="carnet-sol-line">🧩 Fragment : « ${fragLoot.desc} »</div>` : ''}
@@ -1329,7 +1335,7 @@ function printCarnet(avId) {
     : '';
 
   const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Carnet — ${av.nom}</title>
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Carnet - ${av.nom}</title>
   <style>
     @page{size:A4 portrait;margin:1.5cm;}
     *{box-sizing:border-box;}
