@@ -86,7 +86,12 @@
 .stat-box { background:rgba(255,85,85,.08); border:1px solid rgba(255,85,85,.2); border-radius:10px; padding:8px 14px; text-align:center; }
 .stat-val { font-family:'Quicksand',sans-serif; font-size:22px; font-weight:700; color:#ff5555; }
 .stat-label { font-size:10px; color:var(--text-dim); margin-top:2px; }
-
+/* ── Tableau PV multijoueur ── */
+.pv-table-box { flex: 1; text-align: left; padding: 10px 14px; }
+.pv-table-box .stat-label { margin-bottom: 6px; }
+.pv-table { border-collapse: collapse; width: 100%; }
+.pv-table th { font-size: 10px; color: var(--text-dim); font-weight: 700; padding: 2px 6px; text-align: center; }
+.pv-table td { font-family: 'Quicksand', sans-serif; font-size: 16px; font-weight: 700; color: #ff5555; text-align: center; padding: 2px 6px; border-top: 1px solid rgba(255,85,85,.2); }
 /* ── Piochage ── */
 .piochage-box { display:flex; align-items:center; gap:10px; border-radius:10px; padding:10px 14px; margin-top:8px; font-size:13px; font-weight:700; }
 .combat-piochage { background:rgba(255,85,85,.06); border:1px solid rgba(255,85,85,.2); color:#ff7777; }
