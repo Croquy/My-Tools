@@ -92,6 +92,10 @@
 .pv-table { border-collapse: collapse; width: 100%; }
 .pv-table th { font-size: 10px; color: var(--text-dim); font-weight: 700; padding: 2px 6px; text-align: center; }
 .pv-table td { font-family: 'Quicksand', sans-serif; font-size: 16px; font-weight: 700; color: #ff5555; text-align: center; padding: 2px 6px; border-top: 1px solid rgba(255,85,85,.2); }
+.carnet-pv-table-box { text-align: left; }
+.carnet-pv-table { border-collapse: collapse; width: 100%; margin-top: 4px; }
+.carnet-pv-table th { font-size: 9px; font-weight: 700; padding: 2px 5px; text-align: center; }
+.carnet-pv-table td { font-family: 'Quicksand', sans-serif; font-size: 14px; font-weight: 700; text-align: center; padding: 2px 5px; border-top: 1px solid rgba(0,0,0,.15); }
 /* ── Piochage ── */
 .piochage-box { display:flex; align-items:center; gap:10px; border-radius:10px; padding:10px 14px; margin-top:8px; font-size:13px; font-weight:700; }
 .combat-piochage { background:rgba(255,85,85,.06); border:1px solid rgba(255,85,85,.2); color:#ff7777; }
