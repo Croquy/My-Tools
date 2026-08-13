@@ -1283,8 +1283,14 @@ function printCarnet(avId) {
           <div class="carnet-chap-label combat">⚔️ Combat${c1.nom ? ' - ' + c1.nom : ''}</div>
           ${c1.narration ? `<div class="carnet-txt">${c1.narration}</div>` : ''}
           <div class="carnet-stats">
-            <div class="carnet-stat-box"><span class="carnet-stat-val">${5 + dj.num}</span><span class="carnet-stat-label">PV</span></div>
-            <div class="carnet-stat-box"><span class="carnet-stat-val">1d6</span><span class="carnet-stat-label">Attaque</span></div>
+            <div class="carnet-stat-box carnet-pv-table-box">
+              <span class="carnet-stat-label">PV selon nb. joueurs</span>
+              <table class="carnet-pv-table">
+                <tr>${[1,2,3,4].map(j => `<th>${j}j</th>`).join('')}</tr>
+                <tr>${[1,2,3,4].map(j => `<td>${5 + dj.num + 4 * (j - 1)}</td>`).join('')}</tr>
+              </table>
+            </div>
+            <div class="carnet-stat-box"><span class="carnet-stat-val">1d6</span><span class="carnet-stat-label">Attaque (par joueur)</span></div>
           </div>
           ${c1.apres ? `<div class="carnet-txt carnet-apres">${c1.apres}</div>` : ''}
         </div>
