@@ -276,6 +276,8 @@
   .stats-table th{ background:var(--accent-soft); font-size:.72rem; text-transform:uppercase; letter-spacing:.03em; }
   .stats-table td.num{ text-align:center; }
   .stats-table .swatch{ display:inline-block; width:12px; height:12px; border-radius:4px; border:1px solid rgba(0,0,0,.15); margin-right:6px; vertical-align:-1px; }
+  .stats-table .swatch + .swatch{ margin-left:-2px; }
+  .stats-table tr.combo td{ border-top:2px solid var(--accent); font-weight:600; }
   .modal-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:6px; }
 
   @media (max-width:640px){
@@ -1204,6 +1206,18 @@
       rows += "<tr><td><span class=\"swatch\" style=\"background:" + color + "\"></span>" +
         label + "</td><td class=\"num\">" + s.total + "</td><td class=\"num\">" + s.weekend + "</td></tr>";
     });
+
+    function sumRow(labelHTML, keys){
+      const total = keys.reduce((n, k) => n + stats[k].total, 0);
+      const weekend = keys.reduce((n, k) => n + stats[k].weekend, 0);
+      return "<tr class=\"combo\"><td>" + labelHTML + "</td><td class=\"num\">" + total + "</td><td class=\"num\">" + weekend + "</td></tr>";
+    }
+    function comboSwatch(key){
+      return "<span class=\"swatch\" style=\"background:" + settings[key].color + "\"></span>";
+    }
+    rows += sumRow(comboSwatch("pink") + comboSwatch("blue") + settings.pink.label + " + " + settings.blue.label, ["pink","blue"]);
+    rows += sumRow(comboSwatch("pink") + comboSwatch("violet") + settings.pink.label + " + " + settings.violet.label, ["pink","violet"]);
+
     document.getElementById("statsPanel").innerHTML =
       "<p class=\"stats-period\">Période : du " + formatFR(startISO) + " au " + formatFR(endISO) + "</p>" +
       "<table class=\"stats-table\"><thead><tr><th>Catégorie</th><th>Jours totaux</th><th>dont week-ends</th></tr></thead>" +
