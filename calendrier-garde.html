@@ -325,12 +325,12 @@
     #printRoot .p-legend .chip{ width:2.6mm; height:2.6mm; display:inline-block; border:.2mm solid #999; margin-right:1.2mm; vertical-align:-.3mm; }
 
     /* Mode complet : toute la période, 4 mois par ligne */
-    #printRoot.mode-full .p-months{ display:grid; grid-template-columns:repeat(4,1fr); gap:1.2mm; }
-    #printRoot.mode-full .p-month{ border:.2mm solid #bbb; border-radius:1mm; padding:1mm; break-inside:avoid; }
-    #printRoot.mode-full .p-month h3{ margin:0 0 .6mm; font-size:6.5pt; text-align:center; text-transform:capitalize; }
-    #printRoot.mode-full .p-wd{ display:grid; grid-template-columns:repeat(7,1fr); font-size:4pt; text-align:center; color:#777; margin-bottom:.3mm; }
-    #printRoot.mode-full .p-days{ display:grid; grid-template-columns:repeat(7,1fr); gap:.25mm; }
-    #printRoot.mode-full .p-day{ height:5.4mm; font-size:4.5pt; display:flex; align-items:center; justify-content:center; border:.15mm solid #ddd; border-radius:.4mm; }
+    #printRoot.mode-full .p-months{ display:grid; grid-template-columns:repeat(4,1fr); gap:1.6mm; }
+    #printRoot.mode-full .p-month{ border:.2mm solid #bbb; border-radius:1.2mm; padding:1.4mm; break-inside:avoid; }
+    #printRoot.mode-full .p-month h3{ margin:0 0 1mm; font-size:8.5pt; text-align:center; text-transform:capitalize; }
+    #printRoot.mode-full .p-wd{ display:grid; grid-template-columns:repeat(7,1fr); font-size:5.5pt; text-align:center; color:#777; margin-bottom:.5mm; }
+    #printRoot.mode-full .p-days{ display:grid; grid-template-columns:repeat(7,1fr); gap:.35mm; }
+    #printRoot.mode-full .p-day{ height:8mm; font-size:6pt; display:flex; align-items:center; justify-content:center; border:.15mm solid #ddd; border-radius:.5mm; }
     #printRoot.mode-full .p-day.empty{ border:none; }
     #printRoot.mode-full .p-day.ferie{ color:#c0392b; font-weight:700; }
     #printRoot.mode-full .p-day.vacances{ color:#c9821c; }
@@ -801,7 +801,8 @@
     const stats = {
       pink:   { total:0, weekend:0 },
       blue:   { total:0, weekend:0 },
-      violet: { total:0, weekend:0 }
+      violet: { total:0, weekend:0 },
+      white:  { total:0, weekend:0 }
     };
     eachDateInRange(startISO, endISO, (dateStr) => {
       const color = getEffectiveColor(dateStr, zone);
@@ -1196,10 +1197,12 @@
     const stats = computeFullStats(startISO, endISO, zone);
 
     let rows = "";
-    ["pink","blue","violet"].forEach(key => {
+    ["pink","blue","violet","white"].forEach(key => {
       const s = stats[key];
-      rows += "<tr><td><span class=\"swatch\" style=\"background:" + settings[key].color + "\"></span>" +
-        settings[key].label + "</td><td class=\"num\">" + s.total + "</td><td class=\"num\">" + s.weekend + "</td></tr>";
+      const color = key === "white" ? "#ffffff" : settings[key].color;
+      const label = key === "white" ? "Blanc (aucun)" : settings[key].label;
+      rows += "<tr><td><span class=\"swatch\" style=\"background:" + color + "\"></span>" +
+        label + "</td><td class=\"num\">" + s.total + "</td><td class=\"num\">" + s.weekend + "</td></tr>";
     });
     document.getElementById("statsPanel").innerHTML =
       "<p class=\"stats-period\">Période : du " + formatFR(startISO) + " au " + formatFR(endISO) + "</p>" +
