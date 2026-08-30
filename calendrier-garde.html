@@ -438,7 +438,7 @@
 
     <div class="modal-section">
       <h4>Statistiques</h4>
-      <p class="sub">Nombre de jours (et de jours de week-end) par catégorie, sur la période Du/Au affichée.</p>
+      <p class="sub">Nombre de jours (samedis et dimanches inclus) et nombre de week-ends (1 samedi + 1 dimanche = 1) par catégorie, sur la période Du/Au affichée.</p>
       <div id="statsPanel"></div>
     </div>
 
@@ -798,7 +798,9 @@
     });
     return counts;
   }
-  // Comme computeStats, mais distingue aussi le nombre de jours tombant un week-end (sam./dim.)
+  // Comme computeStats, mais distingue aussi le nombre de week-ends (un week-end = 1
+  // samedi + 1 dimanche ; chaque jour de week-end compte pour une demi-unité, donc un
+  // samedi et un dimanche de la même catégorie totalisent bien 1, pas 2)
   function computeFullStats(startISO, endISO, zone){
     const stats = {
       pink:   { total:0, weekend:0 },
@@ -811,7 +813,7 @@
       if (!stats[color]) return;
       stats[color].total++;
       const weekday = parseISO(dateStr).getDay(); // 0=dimanche, 6=samedi
-      if (weekday === 0 || weekday === 6) stats[color].weekend++;
+      if (weekday === 0 || weekday === 6) stats[color].weekend += 0.5;
     });
     return stats;
   }
@@ -1198,19 +1200,21 @@
     const zone = zoneSelect.value;
     const stats = computeFullStats(startISO, endISO, zone);
 
+    function fmtNum(n){ return Number.isInteger(n) ? String(n) : n.toFixed(1); }
+
     let rows = "";
     ["pink","blue","violet","white"].forEach(key => {
       const s = stats[key];
       const color = key === "white" ? "#ffffff" : settings[key].color;
       const label = key === "white" ? "Blanc (aucun)" : settings[key].label;
       rows += "<tr><td><span class=\"swatch\" style=\"background:" + color + "\"></span>" +
-        label + "</td><td class=\"num\">" + s.total + "</td><td class=\"num\">" + s.weekend + "</td></tr>";
+        label + "</td><td class=\"num\">" + s.total + "</td><td class=\"num\">" + fmtNum(s.weekend) + "</td></tr>";
     });
 
     function sumRow(labelHTML, keys){
       const total = keys.reduce((n, k) => n + stats[k].total, 0);
       const weekend = keys.reduce((n, k) => n + stats[k].weekend, 0);
-      return "<tr class=\"combo\"><td>" + labelHTML + "</td><td class=\"num\">" + total + "</td><td class=\"num\">" + weekend + "</td></tr>";
+      return "<tr class=\"combo\"><td>" + labelHTML + "</td><td class=\"num\">" + total + "</td><td class=\"num\">" + fmtNum(weekend) + "</td></tr>";
     }
     function comboSwatch(key){
       return "<span class=\"swatch\" style=\"background:" + settings[key].color + "\"></span>";
