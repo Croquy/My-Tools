@@ -183,36 +183,63 @@
   body.edit-mode .day:not(.empty):hover{ box-shadow:inset 0 0 0 2px var(--accent); }
   body:not(.edit-mode) .day{ cursor:default; }
 
-  /* ---------- Calendrier : vue semaine ---------- */
-  .week-grid{
-    display:grid;
-    grid-template-columns:repeat(7,1fr);
-    gap:12px;
-  }
-  .week-day{
+  /* ---------- Calendrier : vue mois ---------- */
+  .month-view-wrap{ max-width:920px; margin:0 auto; }
+  .month-big{
     background:var(--panel);
     border:1px solid var(--border);
     border-radius:12px;
-    min-height:150px;
-    padding:12px;
-    display:flex; flex-direction:column; gap:6px;
+    padding:16px 18px 20px;
   }
-  .week-day .wd-name{ font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); }
-  .week-day .wd-num{ font-size:1.6rem; font-weight:800; }
-  .week-day.ferie .wd-num{ color:var(--ferie); }
-  .week-day.vacances .wd-num{ color:var(--vacances); }
-  .week-day.ferie.vacances .wd-num{ color:var(--ferie); }
-  .week-day .wd-tag{ font-size:.68rem; color:var(--ink-soft); }
-  .week-day.today{ outline:3px solid var(--accent); outline-offset:-3px; }
-  body.edit-mode .week-day{ cursor:pointer; }
-  body.edit-mode .week-day:hover{ box-shadow:inset 0 0 0 2px var(--accent); }
-
-  @media (max-width:760px){
-    .week-grid{ grid-template-columns:repeat(2,1fr); }
+  .month-big h2{
+    margin:0 0 12px;
+    font-size:1.2rem;
+    text-transform:capitalize;
+    color:var(--accent);
+    font-weight:700;
+    text-align:center;
   }
+  .weekdays-big{
+    display:grid; grid-template-columns:repeat(7,1fr);
+    gap:6px; margin-bottom:6px;
+  }
+  .weekdays-big span{
+    font-size:.72rem; text-align:center; color:var(--ink-soft);
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .days-big{
+    display:grid; grid-template-columns:repeat(7,1fr);
+    gap:6px;
+  }
+  .day-big{
+    position:relative;
+    min-height:92px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--c-white);
+    display:flex; flex-direction:column;
+    padding:5px 6px;
+    font-size:.8rem;
+  }
+  .day-big.empty{ border:none; background:transparent; }
+  .day-big .num{ font-weight:600; flex-shrink:0; }
+  .day-big.ferie .num{ color:var(--ferie); font-weight:800; }
+  .day-big.vacances .num{ color:var(--vacances); }
+  .day-big.ferie.vacances .num{ color:var(--ferie); }
+  .day-big.today{ outline:3px solid var(--accent); outline-offset:-3px; }
+  .day-big .note{
+    flex:1; width:100%; margin-top:2px;
+    border:none; background:transparent; resize:none; outline:none;
+    font:inherit; font-size:.7rem; color:var(--ink); line-height:1.25;
+  }
+  .day-big .note::placeholder{ color:transparent; }
+  body.edit-mode .day-big .note::placeholder{ color:rgba(0,0,0,.25); }
+  body:not(.edit-mode) .day-big .note{ pointer-events:none; }
+  body.edit-mode .day-big:not(.empty){ cursor:pointer; }
+  body.edit-mode .day-big:not(.empty):hover{ box-shadow:inset 0 0 0 2px var(--accent); }
 
-  footer.hint{
-    padding:8px 18px 24px; font-size:.75rem; color:var(--ink-soft); max-width:800px;
+  @media (max-width:640px){
+    .day-big{ min-height:72px; }
   }
 
   /* ---------- Modale paramètres ---------- */
@@ -277,22 +304,22 @@
   #printRoot{ display:none; }
 
   @media print{
-    @page{ size:A4 landscape; margin:8mm; }
-    .toolbar, .legend, footer.hint, .wrap{ display:none !important; }
+    @page{ size:A4 landscape; margin:7mm; }
+    .toolbar, .legend, .wrap{ display:none !important; }
     body{ background:#fff; }
     #printRoot{ display:block !important; color:#111; }
 
-    #printRoot .p-title{ text-align:center; font-size:13pt; font-weight:700; margin:0 0 2mm; color:#111; }
-    #printRoot .p-legend{ display:flex; justify-content:center; gap:6mm; font-size:7.5pt; margin-bottom:4mm; flex-wrap:wrap; }
-    #printRoot .p-legend .chip{ width:3mm; height:3mm; display:inline-block; border:.2mm solid #999; margin-right:1.5mm; vertical-align:-.4mm; }
+    #printRoot .p-title{ text-align:center; font-size:12pt; font-weight:700; margin:0 0 1.5mm; color:#111; }
+    #printRoot .p-legend{ display:flex; justify-content:center; gap:5mm; font-size:7pt; margin-bottom:3mm; flex-wrap:wrap; }
+    #printRoot .p-legend .chip{ width:2.6mm; height:2.6mm; display:inline-block; border:.2mm solid #999; margin-right:1.2mm; vertical-align:-.3mm; }
 
     /* Mode complet : toute la période, 4 mois par ligne */
-    #printRoot.mode-full .p-months{ display:grid; grid-template-columns:repeat(4,1fr); gap:2mm; }
-    #printRoot.mode-full .p-month{ border:.2mm solid #bbb; border-radius:1mm; padding:1.5mm; break-inside:avoid; }
-    #printRoot.mode-full .p-month h3{ margin:0 0 1mm; font-size:7.5pt; text-align:center; text-transform:capitalize; }
-    #printRoot.mode-full .p-wd{ display:grid; grid-template-columns:repeat(7,1fr); font-size:5pt; text-align:center; color:#777; margin-bottom:.5mm; }
-    #printRoot.mode-full .p-days{ display:grid; grid-template-columns:repeat(7,1fr); gap:.4mm; }
-    #printRoot.mode-full .p-day{ aspect-ratio:1/1; font-size:5.5pt; display:flex; align-items:center; justify-content:center; border:.15mm solid #ddd; border-radius:.5mm; }
+    #printRoot.mode-full .p-months{ display:grid; grid-template-columns:repeat(4,1fr); gap:1.5mm; }
+    #printRoot.mode-full .p-month{ border:.2mm solid #bbb; border-radius:1mm; padding:1.2mm; break-inside:avoid; }
+    #printRoot.mode-full .p-month h3{ margin:0 0 .8mm; font-size:7pt; text-align:center; text-transform:capitalize; }
+    #printRoot.mode-full .p-wd{ display:grid; grid-template-columns:repeat(7,1fr); font-size:4.5pt; text-align:center; color:#777; margin-bottom:.4mm; }
+    #printRoot.mode-full .p-days{ display:grid; grid-template-columns:repeat(7,1fr); gap:.3mm; }
+    #printRoot.mode-full .p-day{ aspect-ratio:1/1; font-size:5pt; display:flex; align-items:center; justify-content:center; border:.15mm solid #ddd; border-radius:.5mm; }
     #printRoot.mode-full .p-day.empty{ border:none; }
     #printRoot.mode-full .p-day.ferie{ color:#c0392b; font-weight:700; }
     #printRoot.mode-full .p-day.vacances{ color:#c9821c; }
@@ -331,37 +358,29 @@
   <div id="toolbarControls">
     <div class="view-switch">
       <button id="viewYearBtn" class="active">Année</button>
-      <button id="viewWeekBtn">Semaine</button>
+      <button id="viewMonthBtn">Mois</button>
     </div>
 
     <div class="range-row" id="rangeRow">
       <div class="field">
-        <label for="startDate">Du</label>
-        <input type="date" id="startDate">
+        <label for="startDate">Du mois</label>
+        <input type="month" id="startDate">
       </div>
       <div class="field">
-        <label for="endDate">Au</label>
-        <input type="date" id="endDate">
+        <label for="endDate">Au mois</label>
+        <input type="month" id="endDate">
       </div>
       <button class="btn secondary" id="applyRangeBtn">Appliquer</button>
     </div>
 
-    <div class="week-nav" id="weekNav" style="display:none;">
-      <button class="btn secondary icon" id="prevWeekBtn">‹</button>
-      <span class="week-label" id="weekLabel"></span>
-      <button class="btn secondary icon" id="nextWeekBtn">›</button>
-      <button class="btn secondary" id="todayWeekBtn">Aujourd'hui</button>
+    <div class="week-nav" id="monthNav" style="display:none;">
+      <button class="btn secondary icon" id="prevMonthBtn">‹</button>
+      <span class="week-label" id="monthLabel"></span>
+      <button class="btn secondary icon" id="nextMonthBtn">›</button>
+      <button class="btn secondary" id="todayMonthBtn">Aujourd'hui</button>
     </div>
 
     <div class="controls-right">
-      <div class="field">
-        <label for="zoneSelect">Zone scolaire</label>
-        <select id="zoneSelect">
-          <option value="A">Zone A</option>
-          <option value="B">Zone B</option>
-          <option value="C">Zone C</option>
-        </select>
-      </div>
       <button class="btn secondary icon" id="settingsBtn" title="Paramètres">⚙️ Paramètres</button>
       <div class="field">
         <label for="printModeSelect">Impression</label>
@@ -380,26 +399,28 @@
 
 <div class="wrap">
   <div class="calendar-grid" id="calendarGrid"></div>
-  <div class="week-grid" id="weekGrid" style="display:none;"></div>
+  <div class="month-view-wrap" id="monthViewWrap" style="display:none;">
+    <div class="month-big">
+      <h2 id="monthBigTitle"></h2>
+      <div class="weekdays-big" id="monthBigWeekdays"></div>
+      <div class="days-big" id="monthBigDays"></div>
+    </div>
+  </div>
 </div>
-
-<footer class="hint">
-  Par défaut, hors vacances scolaires, les lundis/mardis/jeudis/vendredis sont en couleur 1 (rose) et les mercredis
-  en couleur 3 (violet) ; vous pouvez forcer n'importe quel jour à une autre couleur, y compris blanc, en mode
-  modification (clic pour faire tourner blanc → couleur 1 → couleur 2 → couleur 3 → blanc, en partant de la couleur
-  affichée). Les données sont enregistrées automatiquement dans ce navigateur (stockage local) et synchronisées en
-  tâche de fond avec Firebase (icône ☁️ en haut = synchronisé, 💾 = local uniquement, ⚠️ = Firebase indisponible).
-  Les vacances scolaires
-  affichées couvrent les années 2025-2026 et 2026-2027 pour la zone choisie (dernier jour de vacances = veille de la
-  reprise) ; complétez le tableau <code>SCHOOL_HOLIDAYS</code> dans le code lorsque les dates de l'année suivante
-  seront publiées. Utilisez le bouton ⚙️ pour changer les couleurs et les libellés de la légende.
-</footer>
 
 <!-- ---------- Modale paramètres ---------- -->
 <div class="modal-overlay" id="settingsOverlay">
   <div class="modal">
     <h3>Paramètres</h3>
-    <p class="sub">Choisissez la couleur et le libellé de chaque état (le blanc reste la couleur par défaut, non définie).</p>
+    <p class="sub">Zone scolaire, couleurs et libellés de la légende (le blanc reste la couleur par défaut, non définie).</p>
+    <div class="setting-row">
+      <span class="fixed-label">Zone</span>
+      <select id="zoneSelect" style="flex:1;padding:7px 9px;border:1px solid var(--border);border-radius:6px;">
+        <option value="A">Zone A</option>
+        <option value="B">Zone B</option>
+        <option value="C">Zone C</option>
+      </select>
+    </div>
     <div id="settingsRows"></div>
     <div class="modal-actions">
       <button class="btn secondary" id="settingsCancelBtn">Annuler</button>
@@ -421,15 +442,17 @@
   // Stockage local
   // ---------------------------------------------------------------
   const LS_DAYS     = "familyCal_days";     // { "2025-09-01": "pink" }
+  const LS_NOTES    = "familyCal_notes";    // { "2025-09-01": "texte libre" }
   const LS_ZONE     = "familyCal_zone";
   const LS_START    = "familyCal_start";
   const LS_END      = "familyCal_end";
   const LS_SETTINGS = "familyCal_settings";
 
   let dayColors = JSON.parse(localStorage.getItem(LS_DAYS) || "{}");
+  let dayNotes = JSON.parse(localStorage.getItem(LS_NOTES) || "{}");
   let editMode = false;
-  let currentView = "year"; // "year" | "week"
-  let weekRefDate = new Date();
+  let currentView = "year"; // "year" | "month"
+  let monthRefDate = new Date();
 
   const DEFAULT_SETTINGS = {
     pink:   { color:"#f6c9dd", label:"Tom, Noé, Timéo & Zoé" },
@@ -439,6 +462,7 @@
   let settings = Object.assign({}, DEFAULT_SETTINGS, JSON.parse(localStorage.getItem(LS_SETTINGS) || "{}"));
 
   function saveDays(){ localStorage.setItem(LS_DAYS, JSON.stringify(dayColors)); pushDaysToCloud(); }
+  function saveNotes(){ localStorage.setItem(LS_NOTES, JSON.stringify(dayNotes)); pushNotesToCloud(); }
   function saveSettings(){ localStorage.setItem(LS_SETTINGS, JSON.stringify(settings)); pushSettingsToCloud(); }
 
   // ---------------------------------------------------------------
@@ -451,6 +475,7 @@
   const CLOUD_DOC = "data";
   let cloudReady = false;
   let cloudDaysTimer = null;
+  let cloudNotesTimer = null;
 
   function setCloudStatus(mode){
     const el = document.getElementById("cloudStatus");
@@ -468,6 +493,14 @@
         .catch(e => console.warn("Sync cloud (jours) impossible :", e));
     }, 400);
   }
+  function pushNotesToCloud(){
+    if (!cloudReady) return;
+    clearTimeout(cloudNotesTimer);
+    cloudNotesTimer = setTimeout(() => {
+      FirestoreService.setDoc(CLOUD_COLLECTION, CLOUD_DOC, { notes: dayNotes, updatedAt: new Date().toISOString() })
+        .catch(e => console.warn("Sync cloud (notes) impossible :", e));
+    }, 400);
+  }
   function pushSettingsToCloud(){
     if (!cloudReady) return;
     FirestoreService.setDoc(CLOUD_COLLECTION, CLOUD_DOC, { settings: settings, updatedAt: new Date().toISOString() })
@@ -483,9 +516,9 @@
       if (!snap.exists){
         // Rien sur le cloud pour l'instant : on y envoie les données locales existantes
         // (utile la toute première fois qu'on branche Firebase sur cet outil).
-        const hasLocalData = Object.keys(dayColors).length > 0 || JSON.stringify(settings) !== JSON.stringify(DEFAULT_SETTINGS);
+        const hasLocalData = Object.keys(dayColors).length > 0 || Object.keys(dayNotes).length > 0 || JSON.stringify(settings) !== JSON.stringify(DEFAULT_SETTINGS);
         if (hasLocalData){
-          FirestoreService.setDoc(CLOUD_COLLECTION, CLOUD_DOC, { days: dayColors, settings: settings, updatedAt: new Date().toISOString() })
+          FirestoreService.setDoc(CLOUD_COLLECTION, CLOUD_DOC, { days: dayColors, notes: dayNotes, settings: settings, updatedAt: new Date().toISOString() })
             .catch(e => console.warn("Sync cloud (initialisation) impossible :", e));
         }
         setCloudStatus("synced");
@@ -494,9 +527,11 @@
       const data = snap.data();
       let changed = false;
       if (data.days){ dayColors = data.days; changed = true; }
+      if (data.notes){ dayNotes = data.notes; changed = true; }
       if (data.settings){ settings = Object.assign({}, DEFAULT_SETTINGS, data.settings); changed = true; }
       if (changed){
         localStorage.setItem(LS_DAYS, JSON.stringify(dayColors));
+        localStorage.setItem(LS_NOTES, JSON.stringify(dayNotes));
         localStorage.setItem(LS_SETTINGS, JSON.stringify(settings));
         applySettingsToCSS();
         renderLegend();
@@ -527,7 +562,14 @@
   }
   const MONTH_NAMES = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
   const WEEKDAYS = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
-  const WEEKDAYS_FULL = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+
+  function monthStr(y, m){ return y + "-" + pad(m+1); } // m: 0-indexed
+  function monthStrToISOStart(mStr){ return mStr + "-01"; }
+  function monthStrToISOEnd(mStr){
+    const [y, m] = mStr.split("-").map(Number); // m: 1-indexed ici
+    const lastDay = new Date(y, m, 0).getDate();
+    return iso(y, m-1, lastDay);
+  }
 
   function defaultRange(){
     const today = new Date();
@@ -536,17 +578,9 @@
     // À partir de juillet, on considère qu'on est déjà tourné vers l'année scolaire suivante.
     let startYear = m >= 6 ? y : y - 1;
     return {
-      start: iso(startYear, 8, 1),          // 1er septembre
-      end: iso(startYear + 1, 7, 31)         // 31 août
+      start: monthStr(startYear, 8),        // septembre
+      end: monthStr(startYear + 1, 7)       // août
     };
-  }
-
-  function startOfWeek(date){
-    const d = new Date(date);
-    const offset = (d.getDay() + 6) % 7; // 0 = lundi
-    d.setDate(d.getDate() - offset);
-    d.setHours(0,0,0,0);
-    return d;
   }
 
   // ---------------------------------------------------------------
@@ -686,13 +720,13 @@
   // Éléments DOM
   // ---------------------------------------------------------------
   const grid = document.getElementById("calendarGrid");
-  const weekGrid = document.getElementById("weekGrid");
+  const monthViewWrap = document.getElementById("monthViewWrap");
   const startInput = document.getElementById("startDate");
   const endInput = document.getElementById("endDate");
   const zoneSelect = document.getElementById("zoneSelect");
   const rangeRow = document.getElementById("rangeRow");
-  const weekNav = document.getElementById("weekNav");
-  const weekLabel = document.getElementById("weekLabel");
+  const monthNav = document.getElementById("monthNav");
+  const monthLabel = document.getElementById("monthLabel");
 
   function formatFR(dateStr){
     const d = parseISO(dateStr);
@@ -711,10 +745,6 @@
       span.innerHTML = '<span class="chip" style="background:' + settings[key].color + '"></span>' + settings[key].label;
       container.appendChild(span);
     });
-    const white = document.createElement("span");
-    white.className = "swatch";
-    white.innerHTML = '<span class="chip" style="background:var(--c-white)"></span>Blanc — non défini';
-    container.appendChild(white);
     const note = document.createElement("span");
     note.className = "note";
     note.innerHTML = 'Chiffre <span style="color:var(--ferie);font-weight:800;">rouge</span> = jour férié · <span style="color:var(--vacances);">orange</span> = vacances scolaires';
@@ -766,8 +796,8 @@
   }
 
   function renderYear(){
-    const startISO = startInput.value;
-    const endISO = endInput.value;
+    const startISO = monthStrToISOStart(startInput.value);
+    const endISO = monthStrToISOEnd(endInput.value);
     const zone = zoneSelect.value;
     const todayISO = isoFromDate(new Date());
 
@@ -844,71 +874,79 @@
   }
 
   // ---------------------------------------------------------------
-  // Rendu — vue Semaine
+  // Rendu — vue Mois
   // ---------------------------------------------------------------
-  function renderWeek(){
+  function renderMonthView(){
     const zone = zoneSelect.value;
-    const monday = startOfWeek(weekRefDate);
+    const year = monthRefDate.getFullYear();
+    const month = monthRefDate.getMonth();
     const todayISO = isoFromDate(new Date());
 
-    const days = [];
-    for (let i=0; i<7; i++){
-      days.push(addDays(monday, i));
-    }
-    const startISO = isoFromDate(days[0]);
-    const endISO = isoFromDate(days[6]);
-    weekLabel.textContent = "Semaine du " + formatFR(startISO) + " au " + formatFR(endISO);
+    monthLabel.textContent = MONTH_NAMES[month] + " " + year;
+    document.getElementById("monthBigTitle").textContent = MONTH_NAMES[month] + " " + year;
 
-    weekGrid.innerHTML = "";
-    days.forEach((d, idx) => {
-      const dateStr = isoFromDate(d);
+    const wdRow = document.getElementById("monthBigWeekdays");
+    wdRow.innerHTML = "";
+    WEEKDAYS.forEach(w => {
+      const s = document.createElement("span");
+      s.textContent = w;
+      wdRow.appendChild(s);
+    });
+
+    const daysEl = document.getElementById("monthBigDays");
+    daysEl.innerHTML = "";
+
+    const firstOfMonth = new Date(year, month, 1);
+    const offset = (firstOfMonth.getDay() + 6) % 7;
+    for (let i=0; i<offset; i++){
+      const empty = document.createElement("div");
+      empty.className = "day-big empty";
+      daysEl.appendChild(empty);
+    }
+
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    for (let d=1; d<=daysInMonth; d++){
+      const dateStr = iso(year, month, d);
       const color = getEffectiveColor(dateStr, zone);
       const cell = document.createElement("div");
-      cell.className = "week-day";
+      cell.className = "day-big";
       cell.style.background = cellBackground(color);
 
       const ferie = getPublicHoliday(dateStr);
       const vac = getSchoolHoliday(dateStr, zone);
-      if (ferie) cell.classList.add("ferie");
-      if (vac) cell.classList.add("vacances");
+      let titleParts = [];
+      if (ferie){ cell.classList.add("ferie"); titleParts.push(ferie); }
+      if (vac){ cell.classList.add("vacances"); titleParts.push(vac); }
+      if (titleParts.length) cell.title = titleParts.join(" · ");
       if (dateStr === todayISO) cell.classList.add("today");
 
-      const nameEl = document.createElement("div");
-      nameEl.className = "wd-name";
-      nameEl.textContent = WEEKDAYS_FULL[idx] + " " + pad(d.getDate()) + " " + MONTH_NAMES[d.getMonth()];
-      cell.appendChild(nameEl);
+      const num = document.createElement("span");
+      num.className = "num";
+      num.textContent = d;
+      cell.appendChild(num);
 
-      const numEl = document.createElement("div");
-      numEl.className = "wd-num";
-      numEl.textContent = d.getDate();
-      cell.appendChild(numEl);
-
-      const tagEl = document.createElement("div");
-      tagEl.className = "wd-tag";
-      const tags = [];
-      if (ferie) tags.push("🔴 " + ferie);
-      if (vac) tags.push("🟠 " + vac);
-      tagEl.textContent = tags.join(" · ");
-      cell.appendChild(tagEl);
-
-      const garde = document.createElement("div");
-      garde.className = "wd-tag";
-      garde.textContent = color === "white" ? "" : "👤 " + colorLabel(color);
-      cell.appendChild(garde);
+      const note = document.createElement("textarea");
+      note.className = "note";
+      note.placeholder = "Note…";
+      note.value = dayNotes[dateStr] || "";
+      note.addEventListener("mousedown", (e) => e.stopPropagation());
+      note.addEventListener("click", (e) => e.stopPropagation());
+      note.addEventListener("input", () => {
+        if (note.value.trim()) dayNotes[dateStr] = note.value; else delete dayNotes[dateStr];
+        saveNotes();
+      });
+      cell.appendChild(note);
 
       cell.addEventListener("click", () => {
-        cycleDay(dateStr, zone, (nxt) => {
-          cell.style.background = cellBackground(nxt);
-          garde.textContent = nxt === "white" ? "" : "👤 " + colorLabel(nxt);
-        });
+        cycleDay(dateStr, zone, (nxt) => { cell.style.background = cellBackground(nxt); });
       });
 
-      weekGrid.appendChild(cell);
-    });
+      daysEl.appendChild(cell);
+    }
   }
 
   function render(){
-    if (currentView === "year") renderYear(); else renderWeek();
+    if (currentView === "year") renderYear(); else renderMonthView();
     updateTodayIndicator();
   }
 
@@ -946,32 +984,32 @@
   // Contrôles — vue Année / Semaine
   // ---------------------------------------------------------------
   const viewYearBtn = document.getElementById("viewYearBtn");
-  const viewWeekBtn = document.getElementById("viewWeekBtn");
+  const viewMonthBtn = document.getElementById("viewMonthBtn");
 
   function setView(view){
     currentView = view;
     viewYearBtn.classList.toggle("active", view === "year");
-    viewWeekBtn.classList.toggle("active", view === "week");
+    viewMonthBtn.classList.toggle("active", view === "month");
     rangeRow.style.display = view === "year" ? "flex" : "none";
-    weekNav.style.display = view === "week" ? "flex" : "none";
+    monthNav.style.display = view === "month" ? "flex" : "none";
     grid.style.display = view === "year" ? "grid" : "none";
-    weekGrid.style.display = view === "week" ? "grid" : "none";
+    monthViewWrap.style.display = view === "month" ? "block" : "none";
     render();
   }
   viewYearBtn.addEventListener("click", () => { setView("year"); toolbarEl.classList.remove("menu-open"); });
-  viewWeekBtn.addEventListener("click", () => { setView("week"); toolbarEl.classList.remove("menu-open"); });
+  viewMonthBtn.addEventListener("click", () => { setView("month"); toolbarEl.classList.remove("menu-open"); });
 
-  document.getElementById("prevWeekBtn").addEventListener("click", () => {
-    weekRefDate = addDays(startOfWeek(weekRefDate), -7);
-    renderWeek(); updateTodayIndicator();
+  document.getElementById("prevMonthBtn").addEventListener("click", () => {
+    monthRefDate = new Date(monthRefDate.getFullYear(), monthRefDate.getMonth()-1, 1);
+    renderMonthView(); updateTodayIndicator();
   });
-  document.getElementById("nextWeekBtn").addEventListener("click", () => {
-    weekRefDate = addDays(startOfWeek(weekRefDate), 7);
-    renderWeek(); updateTodayIndicator();
+  document.getElementById("nextMonthBtn").addEventListener("click", () => {
+    monthRefDate = new Date(monthRefDate.getFullYear(), monthRefDate.getMonth()+1, 1);
+    renderMonthView(); updateTodayIndicator();
   });
-  document.getElementById("todayWeekBtn").addEventListener("click", () => {
-    weekRefDate = new Date();
-    renderWeek(); updateTodayIndicator();
+  document.getElementById("todayMonthBtn").addEventListener("click", () => {
+    monthRefDate = new Date();
+    renderMonthView(); updateTodayIndicator();
   });
 
   document.getElementById("applyRangeBtn").addEventListener("click", () => {
@@ -996,8 +1034,8 @@
   // pour pouvoir tenir sur une page A4, avec 2 modes)
   // ---------------------------------------------------------------
   function buildPrintContent(mode){
-    const startISO = startInput.value;
-    const endISO = endInput.value;
+    const startISO = monthStrToISOStart(startInput.value);
+    const endISO = monthStrToISOEnd(endInput.value);
     const zone = zoneSelect.value;
 
     const root = document.getElementById("printRoot");
