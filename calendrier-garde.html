@@ -312,20 +312,29 @@
     #printRoot{ display:block !important; color:#111; }
 
     #printRoot .p-title{ text-align:center; font-size:12pt; font-weight:700; margin:0 0 1.5mm; color:#111; }
-    #printRoot .p-legend{ display:flex; justify-content:center; gap:5mm; font-size:7pt; margin-bottom:3mm; flex-wrap:wrap; }
+    #printRoot .p-legend{ display:flex; justify-content:center; gap:5mm; font-size:7pt; margin-bottom:2.5mm; flex-wrap:wrap; }
     #printRoot .p-legend .chip{ width:2.6mm; height:2.6mm; display:inline-block; border:.2mm solid #999; margin-right:1.2mm; vertical-align:-.3mm; }
 
     /* Mode complet : toute la période, 4 mois par ligne */
-    #printRoot.mode-full .p-months{ display:grid; grid-template-columns:repeat(4,1fr); gap:1.5mm; }
-    #printRoot.mode-full .p-month{ border:.2mm solid #bbb; border-radius:1mm; padding:1.2mm; break-inside:avoid; }
-    #printRoot.mode-full .p-month h3{ margin:0 0 .8mm; font-size:7pt; text-align:center; text-transform:capitalize; }
-    #printRoot.mode-full .p-wd{ display:grid; grid-template-columns:repeat(7,1fr); font-size:4.5pt; text-align:center; color:#777; margin-bottom:.4mm; }
-    #printRoot.mode-full .p-days{ display:grid; grid-template-columns:repeat(7,1fr); gap:.3mm; }
-    #printRoot.mode-full .p-day{ aspect-ratio:1/1; font-size:5pt; display:flex; align-items:center; justify-content:center; border:.15mm solid #ddd; border-radius:.5mm; }
+    #printRoot.mode-full .p-months{ display:grid; grid-template-columns:repeat(4,1fr); gap:1.2mm; }
+    #printRoot.mode-full .p-month{ border:.2mm solid #bbb; border-radius:1mm; padding:1mm; break-inside:avoid; }
+    #printRoot.mode-full .p-month h3{ margin:0 0 .6mm; font-size:6.5pt; text-align:center; text-transform:capitalize; }
+    #printRoot.mode-full .p-wd{ display:grid; grid-template-columns:repeat(7,1fr); font-size:4pt; text-align:center; color:#777; margin-bottom:.3mm; }
+    #printRoot.mode-full .p-days{ display:grid; grid-template-columns:repeat(7,1fr); gap:.25mm; }
+    #printRoot.mode-full .p-day{ height:5.4mm; font-size:4.5pt; display:flex; align-items:center; justify-content:center; border:.15mm solid #ddd; border-radius:.4mm; }
     #printRoot.mode-full .p-day.empty{ border:none; }
     #printRoot.mode-full .p-day.ferie{ color:#c0392b; font-weight:700; }
     #printRoot.mode-full .p-day.vacances{ color:#c9821c; }
     #printRoot.mode-full .p-day.ferie.vacances{ color:#c0392b; }
+
+    /* Page de statistiques (toujours sur une page à part) */
+    #printRoot .p-stats{ page-break-before:always; padding-top:4mm; }
+    #printRoot .p-stats h3{ text-align:center; font-size:12pt; font-weight:700; margin:0 0 5mm; color:#111; }
+    #printRoot .p-stats table{ width:100%; max-width:150mm; margin:0 auto; border-collapse:collapse; font-size:9.5pt; }
+    #printRoot .p-stats th, #printRoot .p-stats td{ border:.2mm solid #ccc; padding:2.5mm 4mm; text-align:left; }
+    #printRoot .p-stats th{ background:#f2f0ec; }
+    #printRoot .p-stats td.num{ text-align:center; }
+    #printRoot .p-stats .swatch{ display:inline-block; width:3mm; height:3mm; border-radius:.8mm; border:.2mm solid #999; margin-right:2.5mm; vertical-align:-.4mm; }
 
     /* Mode mini : uniquement les week-ends, en colonnes */
     #printRoot.mode-mini .p-months{ column-count:3; column-gap:8mm; }
@@ -346,6 +355,7 @@
   <div class="p-title" id="pTitle"></div>
   <div class="p-legend" id="pLegend"></div>
   <div class="p-months" id="pMonths"></div>
+  <div class="p-stats" id="pStats"></div>
 </div>
 
 <div class="toolbar">
@@ -775,6 +785,22 @@
     });
     return counts;
   }
+  // Comme computeStats, mais distingue aussi le nombre de jours tombant un week-end (sam./dim.)
+  function computeFullStats(startISO, endISO, zone){
+    const stats = {
+      pink:   { total:0, weekend:0 },
+      blue:   { total:0, weekend:0 },
+      violet: { total:0, weekend:0 }
+    };
+    eachDateInRange(startISO, endISO, (dateStr) => {
+      const color = getEffectiveColor(dateStr, zone);
+      if (!stats[color]) return;
+      stats[color].total++;
+      const weekday = parseISO(dateStr).getDay(); // 0=dimanche, 6=samedi
+      if (weekday === 0 || weekday === 6) stats[color].weekend++;
+    });
+    return stats;
+  }
   function updateLegendStats(){
     if (!startInput.value || !endInput.value) return;
     const startISO = monthStrToISOStart(startInput.value);
@@ -1145,6 +1171,23 @@
         : buildPrintFullMonth(year, month, startISO, endISO, zone);
       if (el) monthsWrap.appendChild(el);
     });
+
+    buildPrintStats(startISO, endISO, zone);
+  }
+
+  function buildPrintStats(startISO, endISO, zone){
+    const stats = computeFullStats(startISO, endISO, zone);
+    const statsEl = document.getElementById("pStats");
+    let rows = "";
+    ["pink","blue","violet"].forEach(key => {
+      const s = stats[key];
+      rows += "<tr><td><span class=\"swatch\" style=\"background:" + settings[key].color + "\"></span>" +
+        settings[key].label + "</td><td class=\"num\">" + s.total + "</td><td class=\"num\">" + s.weekend + "</td></tr>";
+    });
+    statsEl.innerHTML =
+      "<h3>Statistiques — du " + formatFR(startISO) + " au " + formatFR(endISO) + "</h3>" +
+      "<table><thead><tr><th>Catégorie</th><th>Jours totaux</th><th>dont week-ends</th></tr></thead>" +
+      "<tbody>" + rows + "</tbody></table>";
   }
 
   function buildPrintFullMonth(year, month, startISO, endISO, zone){
