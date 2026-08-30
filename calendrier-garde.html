@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendrier de garde</title>
+<style>
+  :root{
+    --bg:#f2f0ec;
+    --panel:#ffffff;
+    --ink:#2c2a28;
+    --ink-soft:#6b6660;
+    --accent:#5c4270;
+    --accent-soft:#efe9f4;
+    --border:#ddd7cc;
+    --c-white:#ffffff;
+    --c-pink:#f6c9dd;
+    --c-blue:#bfe0f6;
+    --c-violet:#d9c6f0;
+    --ferie:#c0392b;
+    --vacances:#c9821c;
+    --today-color:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  h1{
+    font-size:1.3rem;
+    letter-spacing:0.02em;
+    margin:0;
+    color:var(--accent);
+  }
+  .print-header{ display:none; }
+
+  /* ---------- Barre de contrôle ---------- */
+  .toolbar{
+    position:sticky; top:0; z-index:10;
+    background:var(--panel);
+    border-bottom:1px solid var(--border);
+    border-top:6px solid var(--today-color);
+    padding:14px 18px;
+    display:flex; flex-wrap:wrap; align-items:center; gap:14px;
+  }
+  .toolbar .title-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .badge{
+    font-size:.7rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    padding:3px 9px; border-radius:20px;
+  }
+  .badge.lecture{ background:#eef0e8; color:#4a5c33; }
+  .badge.modif{ background:#fbe7e2; color:#a1401f; }
+
+  .today-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:.75rem; color:var(--ink-soft);
+    background:var(--accent-soft);
+    padding:4px 10px; border-radius:20px;
+  }
+  .today-chip .dot{
+    width:11px; height:11px; border-radius:50%;
+    background:var(--today-color);
+    border:1px solid rgba(0,0,0,.2);
+  }
+  .cloud-status{
+    font-size:1rem; cursor:default; line-height:1;
+  }
+
+  .view-switch{
+    display:flex; border:1px solid var(--accent); border-radius:8px; overflow:hidden;
+  }
+  .view-switch button{
+    border:none; background:#fff; color:var(--accent);
+    padding:7px 12px; cursor:pointer; font-weight:600; font-size:.8rem;
+  }
+  .view-switch button.active{ background:var(--accent); color:#fff; }
+
+  button, select, input[type=date]{
+    font-family:inherit; font-size:.85rem;
+  }
+  .btn{
+    border:1px solid var(--accent);
+    background:var(--accent);
+    color:#fff;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+    transition:opacity .15s;
+    white-space:nowrap;
+  }
+  .btn:hover{ opacity:.88; }
+  .btn.secondary{
+    background:#fff; color:var(--accent);
+  }
+  .btn.icon{ padding:8px 10px; }
+  .field{
+    display:flex; flex-direction:column; gap:3px;
+  }
+  .field label{ font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); }
+  .field input, .field select{
+    padding:6px 8px; border:1px solid var(--border); border-radius:6px; background:#fff; color:var(--ink);
+  }
+  .range-row, .week-nav{ display:flex; align-items:flex-end; gap:8px; flex-wrap:wrap; }
+  .week-nav{ align-items:center; }
+  .week-nav .week-label{ font-weight:700; color:var(--accent); font-size:.85rem; min-width:190px; text-align:center; }
+  .controls-right{ display:flex; align-items:center; gap:10px; margin-left:auto; flex-wrap:wrap; }
+
+  #toolbarControls{ display:contents; }
+  .menu-toggle{
+    display:none;
+    border:1px solid var(--accent); background:#fff; color:var(--accent);
+    padding:7px 11px; border-radius:8px; cursor:pointer; font-size:1.05rem;
+    margin-left:auto; flex-shrink:0;
+  }
+
+  /* ---------- Légende ---------- */
+  .legend{
+    display:flex; flex-wrap:wrap; gap:10px 20px;
+    padding:12px 18px;
+    background:var(--accent-soft);
+    border-bottom:1px solid var(--border);
+    font-size:.82rem;
+    align-items:center;
+  }
+  .legend .swatch{ display:inline-flex; align-items:center; gap:7px; }
+  .legend .chip{ width:16px; height:16px; border-radius:5px; border:1px solid rgba(0,0,0,.15); flex-shrink:0; }
+  .legend .note{ color:var(--ink-soft); font-size:.75rem; }
+
+  /* ---------- Calendrier : vue année ---------- */
+  .wrap{ padding:18px; }
+  .calendar-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:16px;
+  }
+  .month{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px 14px 16px;
+  }
+  .month h2{
+    margin:0 0 10px;
+    font-size:1rem;
+    text-transform:capitalize;
+    color:var(--accent);
+    font-weight:700;
+  }
+  .weekdays{
+    display:grid; grid-template-columns:repeat(7,1fr);
+    gap:4px; margin-bottom:4px;
+  }
+  .weekdays span{
+    font-size:.65rem; text-align:center; color:var(--ink-soft);
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .days{
+    display:grid; grid-template-columns:repeat(7,1fr);
+    gap:4px;
+  }
+  .day{
+    position:relative;
+    aspect-ratio:1/1;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:var(--c-white);
+    display:flex; align-items:flex-start; justify-content:flex-start;
+    padding:4px 5px;
+    font-size:.78rem;
+    user-select:none;
+  }
+  .day.empty{ border:none; background:transparent; }
+  .day .num{ font-weight:600; }
+  .day.ferie .num{ color:var(--ferie); font-weight:800; }
+  .day.vacances .num{ color:var(--vacances); }
+  .day.ferie.vacances .num{ color:var(--ferie); }
+  .day.today{ outline:3px solid var(--accent); outline-offset:-3px; }
+
+  body.edit-mode .day:not(.empty){ cursor:pointer; }
+  body.edit-mode .day:not(.empty):hover{ box-shadow:inset 0 0 0 2px var(--accent); }
+  body:not(.edit-mode) .day{ cursor:default; }
+
+  /* ---------- Calendrier : vue semaine ---------- */
+  .week-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:12px;
+  }
+  .week-day{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    min-height:150px;
+    padding:12px;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .week-day .wd-name{ font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); }
+  .week-day .wd-num{ font-size:1.6rem; font-weight:800; }
+  .week-day.ferie .wd-num{ color:var(--ferie); }
+  .week-day.vacances .wd-num{ color:var(--vacances); }
+  .week-day.ferie.vacances .wd-num{ color:var(--ferie); }
+  .week-day .wd-tag{ font-size:.68rem; color:var(--ink-soft); }
+  .week-day.today{ outline:3px solid var(--accent); outline-offset:-3px; }
+  body.edit-mode .week-day{ cursor:pointer; }
+  body.edit-mode .week-day:hover{ box-shadow:inset 0 0 0 2px var(--accent); }
+
+  @media (max-width:760px){
+    .week-grid{ grid-template-columns:repeat(2,1fr); }
+  }
+
+  footer.hint{
+    padding:8px 18px 24px; font-size:.75rem; color:var(--ink-soft); max-width:800px;
+  }
+
+  /* ---------- Modale paramètres ---------- */
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(30,25,35,.45);
+    align-items:center; justify-content:center; z-index:100; padding:16px;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal{
+    background:#fff; border-radius:14px; padding:22px 24px; max-width:440px; width:100%;
+    max-height:88vh; overflow:auto;
+  }
+  .modal h3{ margin:0 0 4px; color:var(--accent); }
+  .modal p.sub{ margin:0 0 16px; font-size:.8rem; color:var(--ink-soft); }
+  .setting-row{
+    display:flex; align-items:center; gap:10px; margin-bottom:12px;
+    padding:10px; border:1px solid var(--border); border-radius:10px;
+  }
+  .setting-row input[type=color]{
+    width:38px; height:38px; border:none; border-radius:8px; padding:0; cursor:pointer; flex-shrink:0;
+  }
+  .setting-row input[type=text]{
+    flex:1; padding:7px 9px; border:1px solid var(--border); border-radius:6px; font-size:.85rem;
+  }
+  .setting-row .fixed-label{ width:60px; font-weight:700; font-size:.8rem; color:var(--ink); flex-shrink:0; }
+  .modal-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:6px; }
+
+  @media (max-width:640px){
+    .toolbar{ flex-direction:column; align-items:stretch; padding:12px 14px; }
+    .title-row{ width:100%; justify-content:space-between; flex-wrap:nowrap; }
+    .title-row h1{ font-size:1.08rem; }
+    .today-chip{ display:none; } /* la barre colorée en haut suffit sur mobile, on gagne de la place */
+    .menu-toggle{ display:inline-flex; }
+
+    #toolbarControls{
+      display:none;
+      flex-direction:column;
+      align-items:stretch;
+      gap:12px;
+      width:100%;
+      margin-top:12px;
+      padding-top:12px;
+      border-top:1px solid var(--border);
+    }
+    .toolbar.menu-open #toolbarControls{ display:flex; }
+
+    .view-switch{ width:100%; }
+    .view-switch button{ flex:1; }
+    .range-row{ flex-direction:column; align-items:stretch; width:100%; }
+    .range-row .field{ width:100%; }
+    .range-row input{ width:100%; }
+    .week-nav{ width:100%; justify-content:space-between; flex-wrap:wrap; }
+    .week-nav .week-label{ min-width:100%; order:-1; margin-bottom:4px; }
+    .controls-right{ margin-left:0; width:100%; flex-direction:column; align-items:stretch; }
+    .controls-right .field{ width:100%; }
+    .controls-right select{ width:100%; }
+    .controls-right .btn{ width:100%; text-align:center; }
+    .controls-right #settingsBtn{ width:auto; align-self:flex-start; }
+  }
+
+  /* ---------- Impression ---------- */
+  #printRoot{ display:none; }
+
+  @media print{
+    @page{ size:A4 landscape; margin:8mm; }
+    .toolbar, .legend, footer.hint, .wrap{ display:none !important; }
+    body{ background:#fff; }
+    #printRoot{ display:block !important; color:#111; }
+
+    #printRoot .p-title{ text-align:center; font-size:13pt; font-weight:700; margin:0 0 2mm; color:#111; }
+    #printRoot .p-legend{ display:flex; justify-content:center; gap:6mm; font-size:7.5pt; margin-bottom:4mm; flex-wrap:wrap; }
+    #printRoot .p-legend .chip{ width:3mm; height:3mm; display:inline-block; border:.2mm solid #999; margin-right:1.5mm; vertical-align:-.4mm; }
+
+    /* Mode complet : toute la période, 4 mois par ligne */
+    #printRoot.mode-full .p-months{ display:grid; grid-template-columns:repeat(4,1fr); gap:2mm; }
+    #printRoot.mode-full .p-month{ border:.2mm solid #bbb; border-radius:1mm; padding:1.5mm; break-inside:avoid; }
+    #printRoot.mode-full .p-month h3{ margin:0 0 1mm; font-size:7.5pt; text-align:center; text-transform:capitalize; }
+    #printRoot.mode-full .p-wd{ display:grid; grid-template-columns:repeat(7,1fr); font-size:5pt; text-align:center; color:#777; margin-bottom:.5mm; }
+    #printRoot.mode-full .p-days{ display:grid; grid-template-columns:repeat(7,1fr); gap:.4mm; }
+    #printRoot.mode-full .p-day{ aspect-ratio:1/1; font-size:5.5pt; display:flex; align-items:center; justify-content:center; border:.15mm solid #ddd; border-radius:.5mm; }
+    #printRoot.mode-full .p-day.empty{ border:none; }
+    #printRoot.mode-full .p-day.ferie{ color:#c0392b; font-weight:700; }
+    #printRoot.mode-full .p-day.vacances{ color:#c9821c; }
+    #printRoot.mode-full .p-day.ferie.vacances{ color:#c0392b; }
+
+    /* Mode mini : uniquement les week-ends, en colonnes */
+    #printRoot.mode-mini .p-months{ column-count:3; column-gap:8mm; }
+    #printRoot.mode-mini .p-month{ break-inside:avoid; margin-bottom:4mm; }
+    #printRoot.mode-mini .p-month h3{ margin:0 0 1.5mm; font-size:8.5pt; text-transform:capitalize; border-bottom:.2mm solid #ccc; padding-bottom:.5mm; }
+    #printRoot.mode-mini .p-weekend-row{ display:flex; gap:1.5mm; margin-bottom:1mm; }
+    #printRoot.mode-mini .p-we-cell{ flex:1; padding:1mm; border:.15mm solid #ccc; border-radius:.8mm; text-align:center; font-size:7.5pt; }
+    #printRoot.mode-mini .p-we-cell.ferie{ color:#c0392b; font-weight:700; }
+    #printRoot.mode-mini .p-we-cell.vacances{ color:#c9821c; }
+
+    * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
+</style>
+</head>
+<body>
+
+<div id="printRoot">
+  <div class="p-title" id="pTitle"></div>
+  <div class="p-legend" id="pLegend"></div>
+  <div class="p-months" id="pMonths"></div>
+</div>
+
+<div class="toolbar">
+  <div class="title-row">
+    <h1>📅 Calendrier de garde</h1>
+    <span id="modeBadge" class="badge lecture">Lecture</span>
+    <span class="today-chip" id="todayChip"><span class="dot"></span><span id="todayChipText"></span></span>
+    <span class="cloud-status" id="cloudStatus" title="Stockage local uniquement">💾</span>
+    <button class="menu-toggle" id="menuToggleBtn" title="Filtres et options" aria-label="Filtres et options">☰</button>
+  </div>
+
+  <div id="toolbarControls">
+    <div class="view-switch">
+      <button id="viewYearBtn" class="active">Année</button>
+      <button id="viewWeekBtn">Semaine</button>
+    </div>
+
+    <div class="range-row" id="rangeRow">
+      <div class="field">
+        <label for="startDate">Du</label>
+        <input type="date" id="startDate">
+      </div>
+      <div class="field">
+        <label for="endDate">Au</label>
+        <input type="date" id="endDate">
+      </div>
+      <button class="btn secondary" id="applyRangeBtn">Appliquer</button>
+    </div>
+
+    <div class="week-nav" id="weekNav" style="display:none;">
+      <button class="btn secondary icon" id="prevWeekBtn">‹</button>
+      <span class="week-label" id="weekLabel"></span>
+      <button class="btn secondary icon" id="nextWeekBtn">›</button>
+      <button class="btn secondary" id="todayWeekBtn">Aujourd'hui</button>
+    </div>
+
+    <div class="controls-right">
+      <div class="field">
+        <label for="zoneSelect">Zone scolaire</label>
+        <select id="zoneSelect">
+          <option value="A">Zone A</option>
+          <option value="B">Zone B</option>
+          <option value="C">Zone C</option>
+        </select>
+      </div>
+      <button class="btn secondary icon" id="settingsBtn" title="Paramètres">⚙️ Paramètres</button>
+      <div class="field">
+        <label for="printModeSelect">Impression</label>
+        <select id="printModeSelect">
+          <option value="full">Complet (1 page A4)</option>
+          <option value="mini">Week-ends uniquement</option>
+        </select>
+      </div>
+      <button class="btn secondary" id="printBtn">🖨️ Imprimer</button>
+      <button class="btn" id="modeToggleBtn">✏️ Passer en modification</button>
+    </div>
+  </div>
+</div>
+
+<div class="legend" id="legendContainer"></div>
+
+<div class="wrap">
+  <div class="calendar-grid" id="calendarGrid"></div>
+  <div class="week-grid" id="weekGrid" style="display:none;"></div>
+</div>
+
+<footer class="hint">
+  Par défaut, hors vacances scolaires, les lundis/mardis/jeudis/vendredis sont en couleur 1 (rose) et les mercredis
+  en couleur 3 (violet) ; vous pouvez forcer n'importe quel jour à une autre couleur, y compris blanc, en mode
+  modification (clic pour faire tourner blanc → couleur 1 → couleur 2 → couleur 3 → blanc, en partant de la couleur
+  affichée). Les données sont enregistrées automatiquement dans ce navigateur (stockage local) et synchronisées en
+  tâche de fond avec Firebase (icône ☁️ en haut = synchronisé, 💾 = local uniquement, ⚠️ = Firebase indisponible).
+  Les vacances scolaires
+  affichées couvrent les années 2025-2026 et 2026-2027 pour la zone choisie (dernier jour de vacances = veille de la
+  reprise) ; complétez le tableau <code>SCHOOL_HOLIDAYS</code> dans le code lorsque les dates de l'année suivante
+  seront publiées. Utilisez le bouton ⚙️ pour changer les couleurs et les libellés de la légende.
+</footer>
+
+<!-- ---------- Modale paramètres ---------- -->
+<div class="modal-overlay" id="settingsOverlay">
+  <div class="modal">
+    <h3>Paramètres</h3>
+    <p class="sub">Choisissez la couleur et le libellé de chaque état (le blanc reste la couleur par défaut, non définie).</p>
+    <div id="settingsRows"></div>
+    <div class="modal-actions">
+      <button class="btn secondary" id="settingsCancelBtn">Annuler</button>
+      <button class="btn" id="settingsSaveBtn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+  <!-- ══ Firebase (persistance partagée, cf. tools/firebase-service.js) ══ -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="tools/firebase-service.js"></script>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------------------------------------------------------------
+  // Stockage local
+  // ---------------------------------------------------------------
+  const LS_DAYS     = "familyCal_days";     // { "2025-09-01": "pink" }
+  const LS_ZONE     = "familyCal_zone";
+  const LS_START    = "familyCal_start";
+  const LS_END      = "familyCal_end";
+  const LS_SETTINGS = "familyCal_settings";
+
+  let dayColors = JSON.parse(localStorage.getItem(LS_DAYS) || "{}");
+  let editMode = false;
+  let currentView = "year"; // "year" | "week"
+  let weekRefDate = new Date();
+
+  const DEFAULT_SETTINGS = {
+    pink:   { color:"#f6c9dd", label:"Tom, Noé, Timéo & Zoé" },
+    blue:   { color:"#bfe0f6", label:"Tom & Noé" },
+    violet: { color:"#d9c6f0", label:"Timéo & Zoé" }
+  };
+  let settings = Object.assign({}, DEFAULT_SETTINGS, JSON.parse(localStorage.getItem(LS_SETTINGS) || "{}"));
+
+  function saveDays(){ localStorage.setItem(LS_DAYS, JSON.stringify(dayColors)); pushDaysToCloud(); }
+  function saveSettings(){ localStorage.setItem(LS_SETTINGS, JSON.stringify(settings)); pushSettingsToCloud(); }
+
+  // ---------------------------------------------------------------
+  // Synchronisation Firebase (facultative — voir tools/firebase-service.js)
+  // Le stockage local reste la source instantanée (aucune latence à l'écran) ;
+  // Firestore sert de sauvegarde partagée entre appareils, en tâche de fond.
+  // Collection : garde_calendar · document : data · champs : days, settings.
+  // ---------------------------------------------------------------
+  const CLOUD_COLLECTION = "garde_calendar";
+  const CLOUD_DOC = "data";
+  let cloudReady = false;
+  let cloudDaysTimer = null;
+
+  function setCloudStatus(mode){
+    const el = document.getElementById("cloudStatus");
+    if (!el) return;
+    if (mode === "synced"){ el.textContent = "☁️"; el.title = "Synchronisé avec Firebase"; }
+    else if (mode === "error"){ el.textContent = "⚠️"; el.title = "Firebase indisponible — données locales uniquement"; }
+    else { el.textContent = "💾"; el.title = "Stockage local uniquement (Firebase non configuré)"; }
+  }
+
+  function pushDaysToCloud(){
+    if (!cloudReady) return;
+    clearTimeout(cloudDaysTimer);
+    cloudDaysTimer = setTimeout(() => {
+      FirestoreService.setDoc(CLOUD_COLLECTION, CLOUD_DOC, { days: dayColors, updatedAt: new Date().toISOString() })
+        .catch(e => console.warn("Sync cloud (jours) impossible :", e));
+    }, 400);
+  }
+  function pushSettingsToCloud(){
+    if (!cloudReady) return;
+    FirestoreService.setDoc(CLOUD_COLLECTION, CLOUD_DOC, { settings: settings, updatedAt: new Date().toISOString() })
+      .catch(e => console.warn("Sync cloud (paramètres) impossible :", e));
+  }
+
+  function initCloudSync(){
+    if (!window.firebaseConfig || !window.FirestoreService){ setCloudStatus("local"); return; }
+    try { FirestoreService.init(window.firebaseConfig); } catch (e) { console.warn("Firebase init:", e); setCloudStatus("error"); return; }
+
+    FirestoreService.db.collection(CLOUD_COLLECTION).doc(CLOUD_DOC).onSnapshot((snap) => {
+      cloudReady = true;
+      if (!snap.exists){
+        // Rien sur le cloud pour l'instant : on y envoie les données locales existantes
+        // (utile la toute première fois qu'on branche Firebase sur cet outil).
+        const hasLocalData = Object.keys(dayColors).length > 0 || JSON.stringify(settings) !== JSON.stringify(DEFAULT_SETTINGS);
+        if (hasLocalData){
+          FirestoreService.setDoc(CLOUD_COLLECTION, CLOUD_DOC, { days: dayColors, settings: settings, updatedAt: new Date().toISOString() })
+            .catch(e => console.warn("Sync cloud (initialisation) impossible :", e));
+        }
+        setCloudStatus("synced");
+        return;
+      }
+      const data = snap.data();
+      let changed = false;
+      if (data.days){ dayColors = data.days; changed = true; }
+      if (data.settings){ settings = Object.assign({}, DEFAULT_SETTINGS, data.settings); changed = true; }
+      if (changed){
+        localStorage.setItem(LS_DAYS, JSON.stringify(dayColors));
+        localStorage.setItem(LS_SETTINGS, JSON.stringify(settings));
+        applySettingsToCSS();
+        renderLegend();
+        render();
+      }
+      setCloudStatus("synced");
+    }, (err) => {
+      console.warn("Synchronisation temps réel indisponible :", err);
+      setCloudStatus("error");
+    });
+  }
+
+  function applySettingsToCSS(){
+    document.documentElement.style.setProperty("--c-pink", settings.pink.color);
+    document.documentElement.style.setProperty("--c-blue", settings.blue.color);
+    document.documentElement.style.setProperty("--c-violet", settings.violet.color);
+  }
+
+  // ---------------------------------------------------------------
+  // Utilitaires dates
+  // ---------------------------------------------------------------
+  function pad(n){ return n<10 ? "0"+n : ""+n; }
+  function iso(y,m,d){ return y+"-"+pad(m+1)+"-"+pad(d); } // m: 0-indexed month
+  function isoFromDate(dt){ return iso(dt.getFullYear(), dt.getMonth(), dt.getDate()); }
+  function parseISO(s){
+    const [y,m,d] = s.split("-").map(Number);
+    return new Date(y, m-1, d);
+  }
+  const MONTH_NAMES = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  const WEEKDAYS = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+  const WEEKDAYS_FULL = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+
+  function defaultRange(){
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = today.getMonth(); // 0-indexed, Sept = 8
+    // À partir de juillet, on considère qu'on est déjà tourné vers l'année scolaire suivante.
+    let startYear = m >= 6 ? y : y - 1;
+    return {
+      start: iso(startYear, 8, 1),          // 1er septembre
+      end: iso(startYear + 1, 7, 31)         // 31 août
+    };
+  }
+
+  function startOfWeek(date){
+    const d = new Date(date);
+    const offset = (d.getDay() + 6) % 7; // 0 = lundi
+    d.setDate(d.getDate() - offset);
+    d.setHours(0,0,0,0);
+    return d;
+  }
+
+  // ---------------------------------------------------------------
+  // Jours fériés (calcul générique, valable pour toute année)
+  // ---------------------------------------------------------------
+  function easterDate(year){
+    const a = year % 19;
+    const b = Math.floor(year / 100);
+    const c = year % 100;
+    const d = Math.floor(b / 4);
+    const e = b % 4;
+    const f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3);
+    const h = (19*a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4);
+    const k = c % 4;
+    const l = (32 + 2*e + 2*i - h - k) % 7;
+    const m = Math.floor((a + 11*h + 22*l) / 451);
+    const month = Math.floor((h + l - 7*m + 114) / 31);
+    const day = ((h + l - 7*m + 114) % 31) + 1;
+    return new Date(year, month - 1, day);
+  }
+  function addDays(dt, n){ const d = new Date(dt); d.setDate(d.getDate()+n); return d; }
+
+  const publicHolidayCache = {};
+  function publicHolidaysForYear(year){
+    if (publicHolidayCache[year]) return publicHolidayCache[year];
+    const easter = easterDate(year);
+    const map = {};
+    map[iso(year,0,1)]  = "Jour de l'an";
+    map[isoFromDate(addDays(easter,1))] = "Lundi de Pâques";
+    map[iso(year,4,1)]  = "Fête du Travail";
+    map[iso(year,4,8)]  = "Victoire 1945";
+    map[isoFromDate(addDays(easter,39))] = "Ascension";
+    map[isoFromDate(addDays(easter,50))] = "Lundi de Pentecôte";
+    map[iso(year,6,14)] = "Fête nationale";
+    map[iso(year,7,15)] = "Assomption";
+    map[iso(year,10,1)] = "Toussaint";
+    map[iso(year,10,11)] = "Armistice 1918";
+    map[iso(year,11,25)] = "Noël";
+    publicHolidayCache[year] = map;
+    return map;
+  }
+  function getPublicHoliday(dateStr){
+    const year = parseInt(dateStr.slice(0,4),10);
+    return publicHolidaysForYear(year)[dateStr] || null;
+  }
+
+  // ---------------------------------------------------------------
+  // Vacances scolaires — dates officielles 2025-2026 et 2026-2027
+  // Source : ministère de l'Éducation nationale. À compléter pour
+  // les années suivantes lorsque les dates seront publiées.
+  // ---------------------------------------------------------------
+  // Les dates officielles publient toujours la date de reprise (un lundi) comme
+  // "fin" de la période. Ce lundi est un jour de classe : il n'est donc pas inclus
+  // ici (dernier jour de vacances = la veille, dimanche).
+  const SCHOOL_HOLIDAYS = {
+    A: [
+      {name:"Vacances de la Toussaint", start:"2025-10-18", end:"2025-11-02"},
+      {name:"Vacances de Noël",         start:"2025-12-20", end:"2026-01-04"},
+      {name:"Vacances d'hiver",         start:"2026-02-07", end:"2026-02-22"},
+      {name:"Vacances de printemps",    start:"2026-04-04", end:"2026-04-19"},
+      {name:"Vacances d'été",           start:"2026-07-04", end:"2026-08-31"},
+      {name:"Vacances de la Toussaint", start:"2026-10-17", end:"2026-11-01"},
+      {name:"Vacances de Noël",         start:"2026-12-19", end:"2027-01-03"},
+      {name:"Vacances d'hiver",         start:"2027-02-13", end:"2027-02-28"},
+      {name:"Vacances de printemps",    start:"2027-04-10", end:"2027-04-25"},
+      {name:"Vacances d'été",           start:"2027-07-03", end:"2027-08-31"}
+    ],
+    B: [
+      {name:"Vacances de la Toussaint", start:"2025-10-18", end:"2025-11-02"},
+      {name:"Vacances de Noël",         start:"2025-12-20", end:"2026-01-04"},
+      {name:"Vacances d'hiver",         start:"2026-02-14", end:"2026-03-01"},
+      {name:"Vacances de printemps",    start:"2026-04-11", end:"2026-04-26"},
+      {name:"Vacances d'été",           start:"2026-07-04", end:"2026-08-31"},
+      {name:"Vacances de la Toussaint", start:"2026-10-17", end:"2026-11-01"},
+      {name:"Vacances de Noël",         start:"2026-12-19", end:"2027-01-03"},
+      {name:"Vacances d'hiver",         start:"2027-02-20", end:"2027-03-07"},
+      {name:"Vacances de printemps",    start:"2027-04-17", end:"2027-05-02"},
+      {name:"Vacances d'été",           start:"2027-07-03", end:"2027-08-31"}
+    ],
+    C: [
+      {name:"Vacances de la Toussaint", start:"2025-10-18", end:"2025-11-02"},
+      {name:"Vacances de Noël",         start:"2025-12-20", end:"2026-01-04"},
+      {name:"Vacances d'hiver",         start:"2026-02-21", end:"2026-03-08"},
+      {name:"Vacances de printemps",    start:"2026-04-18", end:"2026-05-03"},
+      {name:"Vacances d'été",           start:"2026-07-04", end:"2026-08-31"},
+      {name:"Vacances de la Toussaint", start:"2026-10-17", end:"2026-11-01"},
+      {name:"Vacances de Noël",         start:"2026-12-19", end:"2027-01-03"},
+      {name:"Vacances d'hiver",         start:"2027-02-06", end:"2027-02-21"},
+      {name:"Vacances de printemps",    start:"2027-04-03", end:"2027-04-18"},
+      {name:"Vacances d'été",           start:"2027-07-03", end:"2027-08-31"}
+    ]
+  };
+
+  function getSchoolHoliday(dateStr, zone){
+    const list = SCHOOL_HOLIDAYS[zone] || [];
+    for (const period of list){
+      if (dateStr >= period.start && dateStr <= period.end) return period.name;
+    }
+    return null;
+  }
+
+  // ---------------------------------------------------------------
+  // Couleur par défaut (planning type), appliquée uniquement si l'utilisateur
+  // n'a jamais défini explicitement une couleur pour ce jour, et hors vacances
+  // scolaires : lundi, mardi, jeudi, vendredi -> couleur 1 (rose) ;
+  // mercredi -> couleur 3 (violet) ; week-end -> pas de valeur par défaut.
+  // ---------------------------------------------------------------
+  function computeDefaultColor(dateStr, zone){
+    if (getSchoolHoliday(dateStr, zone)) return "white";
+    const weekday = parseISO(dateStr).getDay(); // 0=dimanche ... 6=samedi
+    if (weekday === 3) return "violet";
+    if (weekday === 1 || weekday === 2 || weekday === 4 || weekday === 5) return "pink";
+    return "white";
+  }
+  function getEffectiveColor(dateStr, zone){
+    return Object.prototype.hasOwnProperty.call(dayColors, dateStr)
+      ? dayColors[dateStr]
+      : computeDefaultColor(dateStr, zone);
+  }
+
+  // ---------------------------------------------------------------
+  // Couleurs de garde
+  // ---------------------------------------------------------------
+  const COLOR_CYCLE = ["white","pink","blue","violet"];
+  function nextColor(c){
+    const idx = COLOR_CYCLE.indexOf(c || "white");
+    return COLOR_CYCLE[(idx + 1) % COLOR_CYCLE.length];
+  }
+  function colorLabel(key){
+    if (key === "white") return "Non défini";
+    return settings[key] ? settings[key].label : key;
+  }
+
+  // ---------------------------------------------------------------
+  // Éléments DOM
+  // ---------------------------------------------------------------
+  const grid = document.getElementById("calendarGrid");
+  const weekGrid = document.getElementById("weekGrid");
+  const startInput = document.getElementById("startDate");
+  const endInput = document.getElementById("endDate");
+  const zoneSelect = document.getElementById("zoneSelect");
+  const rangeRow = document.getElementById("rangeRow");
+  const weekNav = document.getElementById("weekNav");
+  const weekLabel = document.getElementById("weekLabel");
+
+  function formatFR(dateStr){
+    const d = parseISO(dateStr);
+    return pad(d.getDate()) + " " + MONTH_NAMES[d.getMonth()] + " " + d.getFullYear();
+  }
+
+  // ---------------------------------------------------------------
+  // Légende (générée dynamiquement à partir des paramètres)
+  // ---------------------------------------------------------------
+  function renderLegend(){
+    const container = document.getElementById("legendContainer");
+    container.innerHTML = "";
+    ["pink","blue","violet"].forEach(key => {
+      const span = document.createElement("span");
+      span.className = "swatch";
+      span.innerHTML = '<span class="chip" style="background:' + settings[key].color + '"></span>' + settings[key].label;
+      container.appendChild(span);
+    });
+    const white = document.createElement("span");
+    white.className = "swatch";
+    white.innerHTML = '<span class="chip" style="background:var(--c-white)"></span>Blanc — non défini';
+    container.appendChild(white);
+    const note = document.createElement("span");
+    note.className = "note";
+    note.innerHTML = 'Chiffre <span style="color:var(--ferie);font-weight:800;">rouge</span> = jour férié · <span style="color:var(--vacances);">orange</span> = vacances scolaires';
+    container.appendChild(note);
+  }
+
+  // ---------------------------------------------------------------
+  // Indicateur du jour en cours
+  // ---------------------------------------------------------------
+  function updateTodayIndicator(){
+    const todayISO = isoFromDate(new Date());
+    const color = getEffectiveColor(todayISO, zoneSelect.value);
+    const hex = color === "white" ? "#ffffff" : settings[color].color;
+    document.documentElement.style.setProperty("--today-color", hex);
+    document.getElementById("todayChipText").textContent =
+      "Aujourd'hui (" + formatFR(todayISO) + ") : " + colorLabel(color);
+  }
+
+  // ---------------------------------------------------------------
+  // Cycle de couleur au clic
+  // ---------------------------------------------------------------
+  function cycleDay(dateStr, zone, applyFn){
+    if (!editMode) return;
+    const current = getEffectiveColor(dateStr, zone);
+    const nxt = nextColor(current);
+    dayColors[dateStr] = nxt; // toujours mémorisé explicitement, y compris "white" (permet de forcer un jour à blanc même si le planning type propose une autre couleur)
+    saveDays();
+    applyFn(nxt);
+    if (dateStr === isoFromDate(new Date())) updateTodayIndicator();
+  }
+
+  function cellBackground(colorKey){
+    return colorKey === "white" ? "var(--c-white)" : settings[colorKey].color;
+  }
+
+  // ---------------------------------------------------------------
+  // Rendu — vue Année
+  // ---------------------------------------------------------------
+  function monthsBetween(startISO, endISO){
+    const start = parseISO(startISO);
+    const end = parseISO(endISO);
+    const months = [];
+    let y = start.getFullYear(), m = start.getMonth();
+    while (y < end.getFullYear() || (y === end.getFullYear() && m <= end.getMonth())){
+      months.push({year:y, month:m});
+      m++; if (m > 11){ m = 0; y++; }
+    }
+    return months;
+  }
+
+  function renderYear(){
+    const startISO = startInput.value;
+    const endISO = endInput.value;
+    const zone = zoneSelect.value;
+    const todayISO = isoFromDate(new Date());
+
+    grid.innerHTML = "";
+    const months = monthsBetween(startISO, endISO);
+
+    months.forEach(({year, month}) => {
+      const monthEl = document.createElement("div");
+      monthEl.className = "month";
+
+      const h2 = document.createElement("h2");
+      h2.textContent = MONTH_NAMES[month] + " " + year;
+      monthEl.appendChild(h2);
+
+      const wdRow = document.createElement("div");
+      wdRow.className = "weekdays";
+      WEEKDAYS.forEach(w => {
+        const s = document.createElement("span");
+        s.textContent = w;
+        wdRow.appendChild(s);
+      });
+      monthEl.appendChild(wdRow);
+
+      const daysEl = document.createElement("div");
+      daysEl.className = "days";
+
+      const firstOfMonth = new Date(year, month, 1);
+      const offset = (firstOfMonth.getDay() + 6) % 7;
+      for (let i=0; i<offset; i++){
+        const empty = document.createElement("div");
+        empty.className = "day empty";
+        daysEl.appendChild(empty);
+      }
+
+      const daysInMonth = new Date(year, month+1, 0).getDate();
+      for (let d=1; d<=daysInMonth; d++){
+        const dateStr = iso(year, month, d);
+        const cell = document.createElement("div");
+
+        if (dateStr < startISO || dateStr > endISO){
+          cell.className = "day empty";
+          daysEl.appendChild(cell);
+          continue;
+        }
+
+        const color = getEffectiveColor(dateStr, zone);
+        cell.className = "day";
+        cell.style.background = cellBackground(color);
+        cell.dataset.date = dateStr;
+
+        const ferie = getPublicHoliday(dateStr);
+        const vac = getSchoolHoliday(dateStr, zone);
+        let titleParts = [];
+        if (ferie){ cell.classList.add("ferie"); titleParts.push(ferie); }
+        if (vac){ cell.classList.add("vacances"); titleParts.push(vac); }
+        if (titleParts.length) cell.title = titleParts.join(" · ");
+        if (dateStr === todayISO) cell.classList.add("today");
+
+        const num = document.createElement("span");
+        num.className = "num";
+        num.textContent = d;
+        cell.appendChild(num);
+
+        cell.addEventListener("click", () => {
+          cycleDay(dateStr, zone, (nxt) => { cell.style.background = cellBackground(nxt); });
+        });
+
+        daysEl.appendChild(cell);
+      }
+
+      monthEl.appendChild(daysEl);
+      grid.appendChild(monthEl);
+    });
+  }
+
+  // ---------------------------------------------------------------
+  // Rendu — vue Semaine
+  // ---------------------------------------------------------------
+  function renderWeek(){
+    const zone = zoneSelect.value;
+    const monday = startOfWeek(weekRefDate);
+    const todayISO = isoFromDate(new Date());
+
+    const days = [];
+    for (let i=0; i<7; i++){
+      days.push(addDays(monday, i));
+    }
+    const startISO = isoFromDate(days[0]);
+    const endISO = isoFromDate(days[6]);
+    weekLabel.textContent = "Semaine du " + formatFR(startISO) + " au " + formatFR(endISO);
+
+    weekGrid.innerHTML = "";
+    days.forEach((d, idx) => {
+      const dateStr = isoFromDate(d);
+      const color = getEffectiveColor(dateStr, zone);
+      const cell = document.createElement("div");
+      cell.className = "week-day";
+      cell.style.background = cellBackground(color);
+
+      const ferie = getPublicHoliday(dateStr);
+      const vac = getSchoolHoliday(dateStr, zone);
+      if (ferie) cell.classList.add("ferie");
+      if (vac) cell.classList.add("vacances");
+      if (dateStr === todayISO) cell.classList.add("today");
+
+      const nameEl = document.createElement("div");
+      nameEl.className = "wd-name";
+      nameEl.textContent = WEEKDAYS_FULL[idx] + " " + pad(d.getDate()) + " " + MONTH_NAMES[d.getMonth()];
+      cell.appendChild(nameEl);
+
+      const numEl = document.createElement("div");
+      numEl.className = "wd-num";
+      numEl.textContent = d.getDate();
+      cell.appendChild(numEl);
+
+      const tagEl = document.createElement("div");
+      tagEl.className = "wd-tag";
+      const tags = [];
+      if (ferie) tags.push("🔴 " + ferie);
+      if (vac) tags.push("🟠 " + vac);
+      tagEl.textContent = tags.join(" · ");
+      cell.appendChild(tagEl);
+
+      const garde = document.createElement("div");
+      garde.className = "wd-tag";
+      garde.textContent = color === "white" ? "" : "👤 " + colorLabel(color);
+      cell.appendChild(garde);
+
+      cell.addEventListener("click", () => {
+        cycleDay(dateStr, zone, (nxt) => {
+          cell.style.background = cellBackground(nxt);
+          garde.textContent = nxt === "white" ? "" : "👤 " + colorLabel(nxt);
+        });
+      });
+
+      weekGrid.appendChild(cell);
+    });
+  }
+
+  function render(){
+    if (currentView === "year") renderYear(); else renderWeek();
+    updateTodayIndicator();
+  }
+
+  // ---------------------------------------------------------------
+  // Contrôles — mode lecture / modification
+  // ---------------------------------------------------------------
+  const modeBtn = document.getElementById("modeToggleBtn");
+  const modeBadge = document.getElementById("modeBadge");
+
+  function setEditMode(on){
+    editMode = on;
+    document.body.classList.toggle("edit-mode", on);
+    modeBtn.textContent = on ? "🔒 Passer en lecture" : "✏️ Passer en modification";
+    modeBadge.textContent = on ? "Modification" : "Lecture";
+    modeBadge.className = "badge " + (on ? "modif" : "lecture");
+  }
+  modeBtn.addEventListener("click", () => setEditMode(!editMode));
+
+  // ---------------------------------------------------------------
+  // Contrôles — menu mobile (filtres/options repliables)
+  // ---------------------------------------------------------------
+  const toolbarEl = document.querySelector(".toolbar");
+  const menuToggleBtn = document.getElementById("menuToggleBtn");
+  menuToggleBtn.addEventListener("click", () => {
+    toolbarEl.classList.toggle("menu-open");
+  });
+  // Ferme le menu si on clique en dehors de la barre d'outils (utile après un choix sur mobile)
+  document.addEventListener("click", (e) => {
+    if (!toolbarEl.classList.contains("menu-open")) return;
+    if (toolbarEl.contains(e.target)) return;
+    toolbarEl.classList.remove("menu-open");
+  });
+
+  // ---------------------------------------------------------------
+  // Contrôles — vue Année / Semaine
+  // ---------------------------------------------------------------
+  const viewYearBtn = document.getElementById("viewYearBtn");
+  const viewWeekBtn = document.getElementById("viewWeekBtn");
+
+  function setView(view){
+    currentView = view;
+    viewYearBtn.classList.toggle("active", view === "year");
+    viewWeekBtn.classList.toggle("active", view === "week");
+    rangeRow.style.display = view === "year" ? "flex" : "none";
+    weekNav.style.display = view === "week" ? "flex" : "none";
+    grid.style.display = view === "year" ? "grid" : "none";
+    weekGrid.style.display = view === "week" ? "grid" : "none";
+    render();
+  }
+  viewYearBtn.addEventListener("click", () => { setView("year"); toolbarEl.classList.remove("menu-open"); });
+  viewWeekBtn.addEventListener("click", () => { setView("week"); toolbarEl.classList.remove("menu-open"); });
+
+  document.getElementById("prevWeekBtn").addEventListener("click", () => {
+    weekRefDate = addDays(startOfWeek(weekRefDate), -7);
+    renderWeek(); updateTodayIndicator();
+  });
+  document.getElementById("nextWeekBtn").addEventListener("click", () => {
+    weekRefDate = addDays(startOfWeek(weekRefDate), 7);
+    renderWeek(); updateTodayIndicator();
+  });
+  document.getElementById("todayWeekBtn").addEventListener("click", () => {
+    weekRefDate = new Date();
+    renderWeek(); updateTodayIndicator();
+  });
+
+  document.getElementById("applyRangeBtn").addEventListener("click", () => {
+    localStorage.setItem(LS_START, startInput.value);
+    localStorage.setItem(LS_END, endInput.value);
+    render();
+    toolbarEl.classList.remove("menu-open");
+  });
+  zoneSelect.addEventListener("change", () => {
+    localStorage.setItem(LS_ZONE, zoneSelect.value);
+    render();
+  });
+
+  document.getElementById("printBtn").addEventListener("click", () => {
+    const mode = document.getElementById("printModeSelect").value;
+    buildPrintContent(mode);
+    window.print();
+  });
+
+  // ---------------------------------------------------------------
+  // Génération du gabarit d'impression (séparé de l'affichage écran
+  // pour pouvoir tenir sur une page A4, avec 2 modes)
+  // ---------------------------------------------------------------
+  function buildPrintContent(mode){
+    const startISO = startInput.value;
+    const endISO = endInput.value;
+    const zone = zoneSelect.value;
+
+    const root = document.getElementById("printRoot");
+    root.className = mode === "mini" ? "mode-mini" : "mode-full";
+
+    document.getElementById("pTitle").textContent =
+      "Calendrier de garde" + (mode === "mini" ? " — week-ends" : "") +
+      " — du " + formatFR(startISO) + " au " + formatFR(endISO);
+
+    const legend = document.getElementById("pLegend");
+    legend.innerHTML = "";
+    ["pink","blue","violet"].forEach(key => {
+      legend.insertAdjacentHTML("beforeend",
+        '<span><span class="chip" style="background:' + settings[key].color + '"></span>' + settings[key].label + '</span>');
+    });
+
+    const monthsWrap = document.getElementById("pMonths");
+    monthsWrap.innerHTML = "";
+    const months = monthsBetween(startISO, endISO);
+    months.forEach(({year, month}) => {
+      const el = mode === "mini"
+        ? buildPrintMiniMonth(year, month, startISO, endISO, zone)
+        : buildPrintFullMonth(year, month, startISO, endISO, zone);
+      if (el) monthsWrap.appendChild(el);
+    });
+  }
+
+  function buildPrintFullMonth(year, month, startISO, endISO, zone){
+    const wrap = document.createElement("div");
+    wrap.className = "p-month";
+    const h3 = document.createElement("h3");
+    h3.textContent = MONTH_NAMES[month] + " " + year;
+    wrap.appendChild(h3);
+
+    const wd = document.createElement("div");
+    wd.className = "p-wd";
+    ["L","M","M","J","V","S","D"].forEach(l => {
+      const s = document.createElement("span"); s.textContent = l; wd.appendChild(s);
+    });
+    wrap.appendChild(wd);
+
+    const days = document.createElement("div");
+    days.className = "p-days";
+    const firstOfMonth = new Date(year, month, 1);
+    const offset = (firstOfMonth.getDay() + 6) % 7;
+    for (let i=0; i<offset; i++){
+      const e = document.createElement("div"); e.className = "p-day empty"; days.appendChild(e);
+    }
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    for (let d=1; d<=daysInMonth; d++){
+      const dateStr = iso(year, month, d);
+      const cell = document.createElement("div");
+      if (dateStr < startISO || dateStr > endISO){
+        cell.className = "p-day empty";
+        days.appendChild(cell);
+        continue;
+      }
+      const color = getEffectiveColor(dateStr, zone);
+      cell.className = "p-day";
+      cell.style.background = cellBackground(color);
+      if (getPublicHoliday(dateStr)) cell.classList.add("ferie");
+      if (getSchoolHoliday(dateStr, zone)) cell.classList.add("vacances");
+      cell.textContent = d;
+      days.appendChild(cell);
+    }
+    wrap.appendChild(days);
+    return wrap;
+  }
+
+  function buildPrintMiniMonth(year, month, startISO, endISO, zone){
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const rows = [];
+    for (let d=1; d<=daysInMonth; d++){
+      const dt = new Date(year, month, d);
+      if (dt.getDay() !== 6) continue; // on part de chaque samedi
+      const satDate = dt, sunDate = addDays(dt, 1);
+      const satStr = isoFromDate(satDate), sunStr = isoFromDate(sunDate);
+      const satIn = satStr >= startISO && satStr <= endISO;
+      const sunIn = sunStr >= startISO && sunStr <= endISO;
+      if (!satIn && !sunIn) continue;
+      rows.push({satDate, sunDate, satStr, sunStr, satIn, sunIn});
+    }
+    if (!rows.length) return null;
+
+    const wrap = document.createElement("div");
+    wrap.className = "p-month";
+    const h3 = document.createElement("h3");
+    h3.textContent = MONTH_NAMES[month] + " " + year;
+    wrap.appendChild(h3);
+
+    rows.forEach(r => {
+      const row = document.createElement("div");
+      row.className = "p-weekend-row";
+      [
+        {str:r.satStr, in:r.satIn, label:"Sam " + r.satDate.getDate()},
+        {str:r.sunStr, in:r.sunIn, label:"Dim " + r.sunDate.getDate()}
+      ].forEach(info => {
+        const cell = document.createElement("div");
+        cell.className = "p-we-cell";
+        if (!info.in){
+          cell.style.opacity = ".3";
+          cell.textContent = "–";
+        } else {
+          const color = getEffectiveColor(info.str, zone);
+          cell.style.background = cellBackground(color);
+          if (getPublicHoliday(info.str)) cell.classList.add("ferie");
+          if (getSchoolHoliday(info.str, zone)) cell.classList.add("vacances");
+          cell.textContent = info.label;
+        }
+        row.appendChild(cell);
+      });
+      wrap.appendChild(row);
+    });
+    return wrap;
+  }
+
+  // ---------------------------------------------------------------
+  // Contrôles — Paramètres
+  // ---------------------------------------------------------------
+  const settingsOverlay = document.getElementById("settingsOverlay");
+  const settingsRows = document.getElementById("settingsRows");
+
+  function buildSettingsForm(){
+    settingsRows.innerHTML = "";
+    const labels = { pink:"Couleur 1", blue:"Couleur 2", violet:"Couleur 3" };
+    ["pink","blue","violet"].forEach(key => {
+      const row = document.createElement("div");
+      row.className = "setting-row";
+      row.innerHTML =
+        '<span class="fixed-label">' + labels[key] + '</span>' +
+        '<input type="color" data-key="' + key + '" value="' + settings[key].color + '">' +
+        '<input type="text" data-key="' + key + '" value="' + settings[key].label + '" placeholder="Libellé (ex. Tom & Noé)">';
+      settingsRows.appendChild(row);
+    });
+  }
+
+  document.getElementById("settingsBtn").addEventListener("click", () => {
+    buildSettingsForm();
+    settingsOverlay.classList.add("open");
+  });
+  document.getElementById("settingsCancelBtn").addEventListener("click", () => {
+    settingsOverlay.classList.remove("open");
+  });
+  settingsOverlay.addEventListener("click", (e) => {
+    if (e.target === settingsOverlay) settingsOverlay.classList.remove("open");
+  });
+  document.getElementById("settingsSaveBtn").addEventListener("click", () => {
+    settingsRows.querySelectorAll("input[type=color]").forEach(inp => {
+      settings[inp.dataset.key].color = inp.value;
+    });
+    settingsRows.querySelectorAll("input[type=text]").forEach(inp => {
+      settings[inp.dataset.key].label = inp.value.trim() || settings[inp.dataset.key].label;
+    });
+    saveSettings();
+    applySettingsToCSS();
+    renderLegend();
+    render();
+    settingsOverlay.classList.remove("open");
+  });
+
+  // ---------------------------------------------------------------
+  // Initialisation
+  // ---------------------------------------------------------------
+  const def = defaultRange();
+  startInput.value = localStorage.getItem(LS_START) || def.start;
+  endInput.value = localStorage.getItem(LS_END) || def.end;
+  zoneSelect.value = localStorage.getItem(LS_ZONE) || "A";
+
+  applySettingsToCSS();
+  renderLegend();
+  setEditMode(false);
+  setView("year");
+  setCloudStatus("local");
+  initCloudSync();
+
+})();
+</script>
+
+</body>
+</html>
