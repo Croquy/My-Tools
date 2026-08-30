@@ -251,7 +251,7 @@
   }
   .modal-overlay.open{ display:flex; }
   .modal{
-    background:#fff; border-radius:14px; padding:22px 24px; max-width:440px; width:100%;
+    background:#fff; border-radius:14px; padding:22px 24px; max-width:480px; width:100%;
     max-height:88vh; overflow:auto;
   }
   .modal h3{ margin:0 0 4px; color:var(--accent); }
@@ -267,6 +267,15 @@
     flex:1; padding:7px 9px; border:1px solid var(--border); border-radius:6px; font-size:.85rem;
   }
   .setting-row .fixed-label{ width:60px; font-weight:700; font-size:.8rem; color:var(--ink); flex-shrink:0; }
+  .modal-section{ margin-top:18px; padding-top:16px; border-top:1px solid var(--border); }
+  .modal-section h4{ margin:0 0 4px; font-size:.85rem; color:var(--accent); }
+  .modal-section p.sub{ margin:0 0 10px; }
+  .stats-period{ font-size:.75rem; color:var(--ink-soft); margin:0 0 8px; }
+  .stats-table{ width:100%; border-collapse:collapse; font-size:.8rem; }
+  .stats-table th, .stats-table td{ border:1px solid var(--border); padding:6px 8px; text-align:left; }
+  .stats-table th{ background:var(--accent-soft); font-size:.72rem; text-transform:uppercase; letter-spacing:.03em; }
+  .stats-table td.num{ text-align:center; }
+  .stats-table .swatch{ display:inline-block; width:12px; height:12px; border-radius:4px; border:1px solid rgba(0,0,0,.15); margin-right:6px; vertical-align:-1px; }
   .modal-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:6px; }
 
   @media (max-width:640px){
@@ -327,15 +336,6 @@
     #printRoot.mode-full .p-day.vacances{ color:#c9821c; }
     #printRoot.mode-full .p-day.ferie.vacances{ color:#c0392b; }
 
-    /* Page de statistiques (toujours sur une page à part) */
-    #printRoot .p-stats{ page-break-before:always; padding-top:4mm; }
-    #printRoot .p-stats h3{ text-align:center; font-size:12pt; font-weight:700; margin:0 0 5mm; color:#111; }
-    #printRoot .p-stats table{ width:100%; max-width:150mm; margin:0 auto; border-collapse:collapse; font-size:9.5pt; }
-    #printRoot .p-stats th, #printRoot .p-stats td{ border:.2mm solid #ccc; padding:2.5mm 4mm; text-align:left; }
-    #printRoot .p-stats th{ background:#f2f0ec; }
-    #printRoot .p-stats td.num{ text-align:center; }
-    #printRoot .p-stats .swatch{ display:inline-block; width:3mm; height:3mm; border-radius:.8mm; border:.2mm solid #999; margin-right:2.5mm; vertical-align:-.4mm; }
-
     /* Mode mini : uniquement les week-ends, en colonnes */
     #printRoot.mode-mini .p-months{ column-count:3; column-gap:8mm; }
     #printRoot.mode-mini .p-month{ break-inside:avoid; margin-bottom:4mm; }
@@ -355,7 +355,6 @@
   <div class="p-title" id="pTitle"></div>
   <div class="p-legend" id="pLegend"></div>
   <div class="p-months" id="pMonths"></div>
-  <div class="p-stats" id="pStats"></div>
 </div>
 
 <div class="toolbar">
@@ -402,7 +401,6 @@
         </select>
       </div>
       <button class="btn secondary" id="printBtn">🖨️ Imprimer</button>
-      <button class="btn secondary" id="exportBtn" title="Exporter la période Du/Au en .ics (Google Calendar, Apple Calendar, Outlook…)">📤 Export</button>
       <button class="btn secondary icon" id="settingsBtn" title="Paramètres">⚙️ Paramètres</button>
     </div>
   </div>
@@ -435,6 +433,19 @@
       </select>
     </div>
     <div id="settingsRows"></div>
+
+    <div class="modal-section">
+      <h4>Statistiques</h4>
+      <p class="sub">Nombre de jours (et de jours de week-end) par catégorie, sur la période Du/Au affichée.</p>
+      <div id="statsPanel"></div>
+    </div>
+
+    <div class="modal-section">
+      <h4>Export</h4>
+      <p class="sub">Exporter la période Du/Au en .ics (Google Calendar, Apple Calendar, Outlook…).</p>
+      <button class="btn secondary" id="exportBtn">📤 Exporter en .ics</button>
+    </div>
+
     <div class="modal-actions">
       <button class="btn secondary" id="settingsCancelBtn">Annuler</button>
       <button class="btn" id="settingsSaveBtn">Enregistrer</button>
@@ -1011,6 +1022,7 @@
     if (currentView === "year") renderYear(); else renderMonthView();
     updateTodayIndicator();
     updateLegendStats();
+    renderStatsPanel();
   }
 
   // ---------------------------------------------------------------
@@ -1171,22 +1183,27 @@
         : buildPrintFullMonth(year, month, startISO, endISO, zone);
       if (el) monthsWrap.appendChild(el);
     });
-
-    buildPrintStats(startISO, endISO, zone);
   }
 
-  function buildPrintStats(startISO, endISO, zone){
+  // ---------------------------------------------------------------
+  // Statistiques (affichées dans la modale Paramètres, jamais imprimées)
+  // ---------------------------------------------------------------
+  function renderStatsPanel(){
+    if (!startInput.value || !endInput.value) return;
+    const startISO = monthStrToISOStart(startInput.value);
+    const endISO = monthStrToISOEnd(endInput.value);
+    const zone = zoneSelect.value;
     const stats = computeFullStats(startISO, endISO, zone);
-    const statsEl = document.getElementById("pStats");
+
     let rows = "";
     ["pink","blue","violet"].forEach(key => {
       const s = stats[key];
       rows += "<tr><td><span class=\"swatch\" style=\"background:" + settings[key].color + "\"></span>" +
         settings[key].label + "</td><td class=\"num\">" + s.total + "</td><td class=\"num\">" + s.weekend + "</td></tr>";
     });
-    statsEl.innerHTML =
-      "<h3>Statistiques — du " + formatFR(startISO) + " au " + formatFR(endISO) + "</h3>" +
-      "<table><thead><tr><th>Catégorie</th><th>Jours totaux</th><th>dont week-ends</th></tr></thead>" +
+    document.getElementById("statsPanel").innerHTML =
+      "<p class=\"stats-period\">Période : du " + formatFR(startISO) + " au " + formatFR(endISO) + "</p>" +
+      "<table class=\"stats-table\"><thead><tr><th>Catégorie</th><th>Jours totaux</th><th>dont week-ends</th></tr></thead>" +
       "<tbody>" + rows + "</tbody></table>";
   }
 
@@ -1301,6 +1318,7 @@
 
   document.getElementById("settingsBtn").addEventListener("click", () => {
     buildSettingsForm();
+    renderStatsPanel();
     settingsOverlay.classList.add("open");
   });
   document.getElementById("settingsCancelBtn").addEventListener("click", () => {
