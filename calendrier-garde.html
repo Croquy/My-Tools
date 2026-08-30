@@ -43,13 +43,14 @@
     border-bottom:1px solid var(--border);
     border-top:6px solid var(--today-color);
     padding:14px 18px;
-    display:flex; flex-wrap:wrap; align-items:center; gap:14px;
+    display:flex; flex-direction:column; align-items:stretch; gap:12px;
   }
   .toolbar .title-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .badge{
     font-size:.7rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-    padding:3px 9px; border-radius:20px;
+    padding:5px 11px; border-radius:20px; border:none; font-family:inherit; cursor:pointer;
   }
+  .badge:hover{ opacity:.85; }
   .badge.lecture{ background:#eef0e8; color:#4a5c33; }
   .badge.modif{ background:#fbe7e2; color:#a1401f; }
 
@@ -106,9 +107,9 @@
   .range-row, .week-nav{ display:flex; align-items:flex-end; gap:8px; flex-wrap:wrap; }
   .week-nav{ align-items:center; }
   .week-nav .week-label{ font-weight:700; color:var(--accent); font-size:.85rem; min-width:190px; text-align:center; }
-  .controls-right{ display:flex; align-items:center; gap:10px; margin-left:auto; flex-wrap:wrap; }
+  .controls-right{ display:flex; align-items:flex-end; gap:10px; margin-left:auto; flex-wrap:wrap; }
 
-  #toolbarControls{ display:contents; }
+  #toolbarControls{ display:flex; align-items:flex-end; flex-wrap:wrap; gap:14px; }
   .menu-toggle{
     display:none;
     border:1px solid var(--accent); background:#fff; color:var(--accent);
@@ -268,10 +269,9 @@
   .modal-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:6px; }
 
   @media (max-width:640px){
-    .toolbar{ flex-direction:column; align-items:stretch; padding:12px 14px; }
+    .toolbar{ padding:12px 14px; }
     .title-row{ width:100%; justify-content:space-between; flex-wrap:nowrap; }
     .title-row h1{ font-size:1.08rem; }
-    .today-chip{ display:none; } /* la barre colorée en haut suffit sur mobile, on gagne de la place */
     .menu-toggle{ display:inline-flex; }
 
     #toolbarControls{
@@ -288,6 +288,7 @@
 
     .view-switch{ width:100%; }
     .view-switch button{ flex:1; }
+    .today-chip{ width:100%; justify-content:center; }
     .range-row{ flex-direction:column; align-items:stretch; width:100%; }
     .range-row .field{ width:100%; }
     .range-row input{ width:100%; }
@@ -348,9 +349,8 @@
 
 <div class="toolbar">
   <div class="title-row">
-    <h1>📅 Calendrier de garde</h1>
-    <span id="modeBadge" class="badge lecture">Lecture</span>
-    <span class="today-chip" id="todayChip"><span class="dot"></span><span id="todayChipText"></span></span>
+    <h1>📅 Coeli calendrier</h1>
+    <button type="button" id="modeBadge" class="badge lecture" title="Cliquer pour passer en modification">Lecture</button>
     <span class="cloud-status" id="cloudStatus" title="Stockage local uniquement">💾</span>
     <button class="menu-toggle" id="menuToggleBtn" title="Filtres et options" aria-label="Filtres et options">☰</button>
   </div>
@@ -360,6 +360,8 @@
       <button id="viewYearBtn" class="active">Année</button>
       <button id="viewMonthBtn">Mois</button>
     </div>
+
+    <span class="today-chip" id="todayChip"><span class="dot"></span><span id="todayChipText"></span></span>
 
     <div class="range-row" id="rangeRow">
       <div class="field">
@@ -381,7 +383,6 @@
     </div>
 
     <div class="controls-right">
-      <button class="btn secondary icon" id="settingsBtn" title="Paramètres">⚙️ Paramètres</button>
       <div class="field">
         <label for="printModeSelect">Impression</label>
         <select id="printModeSelect">
@@ -390,7 +391,7 @@
         </select>
       </div>
       <button class="btn secondary" id="printBtn">🖨️ Imprimer</button>
-      <button class="btn" id="modeToggleBtn">✏️ Passer en modification</button>
+      <button class="btn secondary icon" id="settingsBtn" title="Paramètres">⚙️ Paramètres</button>
     </div>
   </div>
 </div>
@@ -953,17 +954,16 @@
   // ---------------------------------------------------------------
   // Contrôles — mode lecture / modification
   // ---------------------------------------------------------------
-  const modeBtn = document.getElementById("modeToggleBtn");
   const modeBadge = document.getElementById("modeBadge");
 
   function setEditMode(on){
     editMode = on;
     document.body.classList.toggle("edit-mode", on);
-    modeBtn.textContent = on ? "🔒 Passer en lecture" : "✏️ Passer en modification";
     modeBadge.textContent = on ? "Modification" : "Lecture";
     modeBadge.className = "badge " + (on ? "modif" : "lecture");
+    modeBadge.title = on ? "Cliquer pour repasser en lecture" : "Cliquer pour passer en modification";
   }
-  modeBtn.addEventListener("click", () => setEditMode(!editMode));
+  modeBadge.addEventListener("click", () => setEditMode(!editMode));
 
   // ---------------------------------------------------------------
   // Contrôles — menu mobile (filtres/options repliables)
