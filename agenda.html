@@ -114,7 +114,7 @@ button {
 
 /* ── Haut : calendrier + bloc Semaine ── */
 .top-section {
-  height: 20%;
+  height: 24%;
   display: flex;
   gap: 8px;
 }
@@ -124,7 +124,7 @@ button {
 
 /* ── Milieu : todo + thèmes (Orga & Équipe) ── */
 .middle-section {
-  height: 50%;
+  height: 46%;
   display: flex;
   gap: 8px;
 }
@@ -531,7 +531,7 @@ function updateTodo() {
   const lines = document.getElementById("todoInput").value.split("\n");
   const container = document.getElementById("todoLines");
   container.innerHTML = "";
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 8; i++) {
     const div = document.createElement("div");
     div.className = "todo-line";
     div.innerHTML = `<div class="checkbox"></div><div>${lines[i] || ""}</div>`;
@@ -672,8 +672,12 @@ async function generateCalendar(mondayDate) {
     "Juillet","Août","Septembre","Octobre","Novembre","Décembre"
   ];
 
-  const year       = mondayDate.getFullYear();
-  const month      = mondayDate.getMonth();
+  /* Le mois affiché est celui du jeudi de la semaine : c'est le mois
+     qui contient la majorité (4 jours ou plus) des jours de la semaine. */
+  const thursday   = new Date(mondayDate);
+  thursday.setDate(thursday.getDate() + 3);
+  const year       = thursday.getFullYear();
+  const month      = thursday.getMonth();
   const lastDay    = new Date(year, month + 1, 0);
   const startDay   = (new Date(year, month, 1).getDay() + 6) % 7;
   const activeWeek = getISOWeek(mondayDate);
@@ -682,8 +686,8 @@ async function generateCalendar(mondayDate) {
   const holidays  = new Set([...getHolidays(year), ...getHolidays(year + 1)]);
   const vacRanges = zone !== 'none' ? await fetchVacances(zone) : [];
 
-  document.getElementById("calendarTitle").textContent = `${months[month]} ${year}`;
-  document.getElementById("semaineNum").textContent    = `Semaine ${activeWeek}`;
+  document.getElementById("calendarTitle").textContent = months[month];
+  document.getElementById("semaineNum").textContent    = `Semaine ${activeWeek} ${thursday.getFullYear()}`;
 
   const cal = document.getElementById("calendar");
   cal.innerHTML = "";
