@@ -63,21 +63,15 @@ body {
 
 .controls .info { font-size: 12px; color: #888; flex-basis: 100%; line-height: 1.5; }
 
-/* ─── Page A4 paysage (commun aux 2 gabarits) ─── */
+/* ─── Page A5 portrait, une par une (pas de A4 paysage à 2 colonnes) ─── */
 .page {
-  width: 297mm;
+  width: 148.5mm;
   height: 210mm;
   background: white;
   margin: 0 auto 6mm;
-  display: flex;
+  padding: 10mm;
   overflow: hidden;
   position: relative;
-}
-
-.half {
-  width: 148.5mm;
-  height: 210mm;
-  padding: 10mm;
 }
 
 .block {
@@ -104,7 +98,6 @@ body {
   flex-direction: column;
   gap: 8px;
   height: 100%;
-  border-right: 1px dashed rgba(0,0,0,0.12);
 }
 
 .top-section { height: 24%; display: flex; gap: 8px; }
@@ -174,7 +167,7 @@ body {
 /* ══════════════════════════════════════
    GABARIT MOIS (repris d'agenda-mois.html)
 ══════════════════════════════════════ */
-.half-left { border-right: 1px dashed rgba(0,0,0,0.12); display: flex; flex-direction: column; }
+.half-left { display: flex; flex-direction: column; }
 .half-right { display: flex; flex-direction: column; }
 
 .month-title {
@@ -222,7 +215,7 @@ body {
   body { background: white; padding: 0; }
   .controls { display: none; }
   .page { margin: 0; page-break-after: always; }
-  @page { size: A4 landscape; margin: 0; }
+  @page { size: A5 portrait; margin: 0; }
 }
 </style>
 </head>
@@ -431,34 +424,15 @@ function applyMonthTheme(pageEl, month) {
 const BLOC_DEFAULTS = ["Films","Livres","Jeux","Médical","Dépenses"];
 const BLOC_ICONS    = ["🎬","📚","🎮","🏥","💸"];
 
-function buildMonthPage(year, month, zone, holidayMap, vacRanges) {
+function buildMonthCalendarPage(year, month, zone, holidayMap, vacRanges) {
   const page = document.createElement("div");
-  page.className = "page";
+  page.className = "page half-left";
   applyMonthTheme(page, month);
 
   const label = `${MONTHS_FR[month]} ${year}`;
   page.innerHTML = `
-    <div class="half half-left">
-      <div class="month-title">${label}</div>
-      <div class="cal-grid"></div>
-    </div>
-    <div class="half half-right">
-      <div class="notes-header">${label}</div>
-      <div class="notes-body">
-        <div class="notes-cols">
-          <div class="notes-col col-left">
-            <div class="bloc"><div class="bloc-title">${BLOC_ICONS[0]} ${localStorage.getItem("mois_titre1")||BLOC_DEFAULTS[0]}</div><div class="bloc-lines"></div></div>
-            <div class="bloc"><div class="bloc-title">${BLOC_ICONS[1]} ${localStorage.getItem("mois_titre2")||BLOC_DEFAULTS[1]}</div><div class="bloc-lines"></div></div>
-            <div class="bloc"><div class="bloc-title">${BLOC_ICONS[2]} ${localStorage.getItem("mois_titre3")||BLOC_DEFAULTS[2]}</div><div class="bloc-lines"></div></div>
-          </div>
-          <div class="notes-col col-right">
-            <div class="bloc"><div class="bloc-title">${BLOC_ICONS[3]} ${localStorage.getItem("mois_titre4")||BLOC_DEFAULTS[3]}</div></div>
-            <div class="bloc"><div class="bloc-title">${BLOC_ICONS[4]} ${localStorage.getItem("mois_titre5")||BLOC_DEFAULTS[4]}</div></div>
-          </div>
-        </div>
-        <div class="bloc bloc-notes"><div class="bloc-title">Notes</div><div class="bloc-lines"></div></div>
-      </div>
-    </div>`;
+    <div class="month-title">${label}</div>
+    <div class="cal-grid"></div>`;
 
   const grid = page.querySelector(".cal-grid");
   const firstDay = new Date(year, month, 1);
@@ -513,47 +487,70 @@ function buildMonthPage(year, month, zone, holidayMap, vacRanges) {
   return page;
 }
 
+function buildMonthNotesPage(year, month) {
+  const page = document.createElement("div");
+  page.className = "page half-right";
+  applyMonthTheme(page, month);
+
+  const label = `${MONTHS_FR[month]} ${year}`;
+  page.innerHTML = `
+    <div class="notes-header">${label}</div>
+    <div class="notes-body">
+      <div class="notes-cols">
+        <div class="notes-col col-left">
+          <div class="bloc"><div class="bloc-title">${BLOC_ICONS[0]} ${localStorage.getItem("mois_titre1")||BLOC_DEFAULTS[0]}</div><div class="bloc-lines"></div></div>
+          <div class="bloc"><div class="bloc-title">${BLOC_ICONS[1]} ${localStorage.getItem("mois_titre2")||BLOC_DEFAULTS[1]}</div><div class="bloc-lines"></div></div>
+          <div class="bloc"><div class="bloc-title">${BLOC_ICONS[2]} ${localStorage.getItem("mois_titre3")||BLOC_DEFAULTS[2]}</div><div class="bloc-lines"></div></div>
+        </div>
+        <div class="notes-col col-right">
+          <div class="bloc"><div class="bloc-title">${BLOC_ICONS[3]} ${localStorage.getItem("mois_titre4")||BLOC_DEFAULTS[3]}</div></div>
+          <div class="bloc"><div class="bloc-title">${BLOC_ICONS[4]} ${localStorage.getItem("mois_titre5")||BLOC_DEFAULTS[4]}</div></div>
+        </div>
+      </div>
+      <div class="bloc bloc-notes"><div class="bloc-title">Notes</div><div class="bloc-lines"></div></div>
+    </div>`;
+
+  return page;
+}
+
 /* ════════════════════════════════
    PAGE HEBDOMADAIRE (repris d'agenda.html)
 ════════════════════════════════ */
 const DAY_NAMES = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Weekend"];
 
-function buildWeekPage(monday, zone, holidayMap, vacRanges) {
+function buildWeekInfoPage(monday, zone, holidayMap, vacRanges) {
   const isoWeek = getISOWeek(monday);
   const page = document.createElement("div");
-  page.className = "page";
+  page.className = "page left-page";
   applyWeekTheme(page, isoWeek);
 
   const titre1 = localStorage.getItem("bloc_titre1") || "Orga";
   const titre2 = localStorage.getItem("bloc_titre2") || "Équipe";
 
   page.innerHTML = `
-    <div class="half left-page">
-      <div class="top-section">
-        <div class="block calendar-block">
-          <div class="block-title"></div>
-          <div class="week-cal"></div>
-        </div>
-        <div class="block semaine-block">
-          <div class="block-title"></div>
-          <div class="write-lines"></div>
-        </div>
+    <div class="top-section">
+      <div class="block calendar-block">
+        <div class="block-title"></div>
+        <div class="week-cal"></div>
       </div>
-      <div class="middle-section">
-        <div class="block todo-block">
-          <div class="block-title">Todo</div>
-          <div class="todo-lines">${Array.from({length:8}).map(() => `<div class="todo-line"><div class="checkbox"></div><div></div></div>`).join("")}</div>
-        </div>
-        <div class="themes-block">
-          <div class="block theme-box"><div class="block-title small-title">${titre1}</div><div class="write-lines"></div></div>
-          <div class="block theme-box"><div class="block-title small-title">${titre2}</div><div class="write-lines"></div></div>
-        </div>
-      </div>
-      <div class="bottom-section">
-        <div class="pensees"><div class="block-title">Pensées</div><div class="pensees-lines"></div></div>
+      <div class="block semaine-block">
+        <div class="block-title"></div>
+        <div class="write-lines"></div>
       </div>
     </div>
-    <div class="half right-page"></div>`;
+    <div class="middle-section">
+      <div class="block todo-block">
+        <div class="block-title">Todo</div>
+        <div class="todo-lines">${Array.from({length:8}).map(() => `<div class="todo-line"><div class="checkbox"></div><div></div></div>`).join("")}</div>
+      </div>
+      <div class="themes-block">
+        <div class="block theme-box"><div class="block-title small-title">${titre1}</div><div class="write-lines"></div></div>
+        <div class="block theme-box"><div class="block-title small-title">${titre2}</div><div class="write-lines"></div></div>
+      </div>
+    </div>
+    <div class="bottom-section">
+      <div class="pensees"><div class="block-title">Pensées</div><div class="pensees-lines"></div></div>
+    </div>`;
 
   /* Mini calendrier (mois du jeudi de la semaine) */
   const thursday = new Date(monday);
@@ -605,8 +602,15 @@ function buildWeekPage(monday, zone, holidayMap, vacRanges) {
     }
   }
 
-  /* Blocs jours */
-  const daysContainer = page.querySelector(".right-page");
+  return page;
+}
+
+function buildWeekDaysPage(monday) {
+  const isoWeek = getISOWeek(monday);
+  const page = document.createElement("div");
+  page.className = "page right-page";
+  applyWeekTheme(page, isoWeek);
+
   DAY_NAMES.forEach((name, i) => {
     const block = document.createElement("div");
     block.className = "block day-block";
@@ -631,7 +635,7 @@ function buildWeekPage(monday, zone, holidayMap, vacRanges) {
         <span class="date">${dateLabel}</span>
       </div>
       <div class="day-content"></div>`;
-    daysContainer.appendChild(block);
+    page.appendChild(block);
   });
 
   return page;
@@ -653,9 +657,11 @@ async function build() {
 
   const output = document.getElementById("output");
   output.innerHTML = "";
-  output.appendChild(buildMonthPage(year, month, zone, holidayMap, vacRanges));
+  output.appendChild(buildMonthCalendarPage(year, month, zone, holidayMap, vacRanges));
+  output.appendChild(buildMonthNotesPage(year, month));
   weeks.forEach(monday => {
-    output.appendChild(buildWeekPage(monday, zone, holidayMap, vacRanges));
+    output.appendChild(buildWeekInfoPage(monday, zone, holidayMap, vacRanges));
+    output.appendChild(buildWeekDaysPage(monday));
   });
 }
 
