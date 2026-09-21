@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Test format A6 plié</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Handlee&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ─── Variables (copiées d'agenda.html) ─── */
+:root {
+  --accent: #B8A1D9;
+  --pastel: #F3ECFF;
+  --text: #444;
+  --border: 1.5px solid var(--accent);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 20px;
+  background: #f3f3f3;
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+}
+
+.notice {
+  width: 297mm;
+  margin: 0 auto 16px;
+  background: white;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  border: 1px solid #ddd;
+}
+
+.notice b { color: var(--accent); }
+
+/* ─── Page A4 paysage ─── */
+.page {
+  width: 297mm;
+  height: 210mm;
+  background: white;
+  margin: 0 auto;
+  display: flex;
+  position: relative;
+}
+
+.page::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 50%;
+  width: 0; height: 100%;
+  border-left: 1px solid #000;
+  opacity: 0.4;
+}
+
+/* ─── Moitié A5 (148.5 x 210), coupée en 2 zones A6 pliables ─── */
+.half-a5 {
+  width: 148.5mm;
+  height: 210mm;
+  display: flex;
+  flex-direction: column;
+}
+
+.zone-a6 {
+  width: 148.5mm;
+  height: 105mm;
+  padding: 6mm;
+  overflow: hidden;
+  position: relative;
+}
+
+.zone-a6.verso { transform: rotate(180deg); }
+
+.fold-line { border-top: 1px dashed var(--accent); width: 100%; }
+
+.tag {
+  position: absolute;
+  top: 2px; left: 2px;
+  font-size: 7px;
+  color: #ccc;
+  font-family: monospace;
+  z-index: 10;
+}
+
+/* ══════════════════════════════════════
+   STYLES REPRIS TELS QUELS D'AGENDA.HTML
+   (bloc générique, titres, jour, calendrier)
+══════════════════════════════════════ */
+.block {
+  border: var(--border);
+  border-radius: 12px;
+  padding: 6px;
+  background: white;
+  height: 100%;
+}
+
+.block-title {
+  font-family: 'Handlee', cursive;
+  color: var(--accent);
+  text-align: center;
+  font-size: 16px;
+}
+
+.day-block { display: flex; flex-direction: column; height: 100%; }
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Handlee', cursive;
+  color: var(--accent);
+  font-size: 17px;
+  margin-bottom: 3px;
+}
+
+.day-ferie-lbl {
+  font-size: 8px;
+  font-family: 'Handlee', cursive;
+  color: var(--accent);
+  opacity: 0.65;
+  font-style: italic;
+  flex: 1;
+  text-align: center;
+}
+
+.day-content {
+  flex: 1;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent, transparent 15px,
+    rgba(0,0,0,0.08) 16px
+  );
+}
+
+.calendar {
+  display: grid;
+  grid-template-columns: min-content repeat(7, 1fr);
+  gap: 1px;
+  font-size: 7px;
+  text-align: center;
+}
+
+.calendar div { padding: 1px; border-radius: 4px; }
+
+.calendar .dow {
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 6px;
+  padding: 2px 0;
+}
+
+.calendar .week-num {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 6px;
+  text-align: center;
+  opacity: 0.85;
+  padding: 1px;
+}
+
+.calendar .weekday-last { border-right: 1px solid var(--accent); opacity: 0.9; }
+.active-week { background: var(--pastel); font-weight: bold; }
+.calendar .jour-ferie { background: var(--accent); color: white; font-weight: 700; border-radius: 3px; }
+.calendar .vacance { text-decoration: underline; text-decoration-color: var(--accent); font-style: italic; }
+
+.mini-cal-wrap { display: flex; flex-direction: column; height: 100%; }
+.week-title { font-family: 'Handlee', cursive; color: var(--accent); text-align: center; font-size: 15px; margin-top: 2px; }
+
+@media print {
+  body { background: white; padding: 0; }
+  .notice { display: none; }
+  .page { margin: 0; }
+  @page { size: A4 landscape; margin: 0; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="notice">
+  <b>Test physique (v2, vrais composants) :</b> même CSS/police/couleurs qu'agenda.html, à la vraie
+  taille A6 (148.5 × 105 mm). Coupe au trait vertical (2× A5), plie chaque A5 sur le trait pointillé
+  (impression vers l'extérieur). <b>Constat important :</b> le contenu actuel d'une semaine complète
+  (calendrier + semaine + todo + 2 thèmes + pensées + 6 blocs jours) remplit déjà tout un A4 paysage —
+  le faire tenir sur 4 faces A6 au lieu de 2 faces A5 veut dire soit répartir sur 2 feuilles A4 par
+  semaine (4 feuillets A6), soit réduire le contenu par feuillet. Ici je teste juste la lisibilité
+  réelle d'un bloc "jour" et du mini-calendrier à taille A6.
+</div>
+
+<div class="page">
+
+  <div class="half-a5">
+    <div class="zone-a6 recto">
+      <span class="tag">A5 #1 — recto : bloc "Lundi" réel</span>
+      <div class="block day-block">
+        <div class="day-header">
+          <span class="day-name">Lundi</span>
+          <span class="day-ferie-lbl"></span>
+          <span class="date">21/9</span>
+        </div>
+        <div class="day-content"></div>
+      </div>
+    </div>
+    <div class="fold-line"></div>
+    <div class="zone-a6 verso">
+      <span class="tag">A5 #1 — verso (tête-bêche) : bloc "Mardi" réel</span>
+      <div class="block day-block">
+        <div class="day-header">
+          <span class="day-name">Mardi</span>
+          <span class="day-ferie-lbl"></span>
+          <span class="date">22/9</span>
+        </div>
+        <div class="day-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="half-a5">
+    <div class="zone-a6 recto">
+      <span class="tag">A5 #2 — recto : mini calendrier + semaine réels</span>
+      <div class="mini-cal-wrap">
+        <div class="calendar" id="calendar"></div>
+        <div class="week-title" id="semaineNum"></div>
+      </div>
+    </div>
+    <div class="fold-line"></div>
+    <div class="zone-a6 verso">
+      <span class="tag">A5 #2 — verso (tête-bêche) : bloc "Todo" réel (8 lignes)</span>
+      <div class="block">
+        <div class="block-title">Todo</div>
+        <div id="todoLines" style="display:flex;flex-direction:column;justify-content:space-between;height:calc(100% - 20px);"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ─── Repris tel quel d'agenda.html : ISO week + mini calendrier ─── */
+function getISOWeek(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+  const week1 = new Date(d.getFullYear(), 0, 4);
+  return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+}
+
+function dateKey(y, m, d) {
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+function generateMiniCalendar(refDate) {
+  const year = refDate.getFullYear();
+  const month = refDate.getMonth();
+  const lastDay = new Date(year, month + 1, 0);
+  const startDay = (new Date(year, month, 1).getDay() + 6) % 7;
+  const activeWeek = getISOWeek(refDate);
+
+  document.getElementById("semaineNum").textContent = `Semaine ${activeWeek} ${year}`;
+
+  const cal = document.getElementById("calendar");
+  cal.innerHTML = "";
+  const emptyHeader = document.createElement("div");
+  emptyHeader.innerHTML = "&nbsp;";
+  cal.appendChild(emptyHeader);
+  ["L","M","M","J","V","S","D"].forEach((d, i) => {
+    const h = document.createElement("div");
+    h.className = "dow" + (i === 4 ? " weekday-last" : "");
+    h.textContent = d;
+    cal.appendChild(h);
+  });
+
+  let day = 1 - startDay;
+  while (day <= lastDay.getDate()) {
+    const refDay = day < 1 ? 1 : day;
+    const wNum = document.createElement("div");
+    wNum.className = "week-num";
+    wNum.textContent = getISOWeek(new Date(year, month, refDay));
+    cal.appendChild(wNum);
+
+    for (let col = 0; col < 7; col++, day++) {
+      const div = document.createElement("div");
+      if (day < 1 || day > lastDay.getDate()) {
+        div.innerHTML = "&nbsp;";
+      } else {
+        const current = new Date(year, month, day);
+        div.textContent = day;
+        if (getISOWeek(current) === activeWeek) div.classList.add("active-week");
+        if (col === 4) div.classList.add("weekday-last");
+      }
+      cal.appendChild(div);
+    }
+  }
+}
+
+function fillTodo() {
+  const container = document.getElementById("todoLines");
+  const lines = ["Appeler le plombier", "Acheter du pain", "Réviser le CV", "", "", "", "", ""];
+  for (let i = 0; i < 8; i++) {
+    const div = document.createElement("div");
+    div.style.cssText = "display:flex;align-items:center;gap:6px;font-size:10px;min-height:13px;";
+    div.innerHTML = `<div style="width:11px;height:11px;border:${getComputedStyle(document.documentElement).getPropertyValue('--border')};border-radius:3px;flex-shrink:0;"></div><div>${lines[i]}</div>`;
+    container.appendChild(div);
+  }
+}
+
+generateMiniCalendar(new Date());
+fillTodo();
+</script>
+
+</body>
+</html>
