@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Carnet du mois (A6 plié)</title>
+<title>Carnet du mois</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,8 +28,8 @@ body {
 }
 
 .controls {
-  width: 297mm;
-  margin: 0 auto 16px;
+  max-width: 700px;
+  margin: 0 auto 20px;
   background: white;
   border-radius: 14px;
   padding: 12px 16px;
@@ -59,204 +59,94 @@ body {
   font-family: inherit;
 }
 
-.controls .info { font-size: 12px; color: #888; flex-basis: 100%; }
+.controls .info {
+  font-size: 12px;
+  color: #888;
+  flex-basis: 100%;
+  line-height: 1.5;
+}
 
-/* ─── Feuille A4 paysage = 1 planche imprimable ─── */
-.sheet {
-  width: 297mm;
-  height: 210mm;
-  background: white;
-  margin: 0 auto 6mm;
+.controls .info b { color: var(--accent); }
+
+/* ─── Chaque page = 1 carte A6 (105 x 148.5mm), independante ─── */
+#pages {
   display: flex;
-  position: relative;
-  page-break-after: always;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
 }
 
-.sheet::after {
-  content: "";
-  position: absolute;
-  top: 0; left: 50%;
-  width: 0; height: 100%;
-  border-left: 1px solid #000;
-  opacity: 0.35;
-}
-
-.sheet .cut-tag {
-  position: absolute;
-  bottom: 2mm; left: 50%;
-  transform: translateX(-50%);
-  font-size: 7px;
-  color: #bbb;
-  font-family: monospace;
-}
-
-/* ─── Feuillet A5 (deviendra 1 leaflet A6 une fois plié) ─── */
-.leaf {
-  width: 148.5mm;
-  height: 210mm;
+.page {
+  width: 105mm;
+  height: 148.5mm;
+  background: white;
+  padding: 6mm;
   display: flex;
   flex-direction: column;
-  position: relative;
+  border: 1px solid #ddd;
+  border-radius: 4px;
 }
 
-.face {
-  width: 148.5mm;
-  height: 105mm;
-  padding: 6mm;
-  overflow: hidden;
-}
-
-.face.verso { transform: rotate(180deg); }
-
-.fold-line { border-top: 1px dashed var(--accent); width: 100%; }
-
-.leaf-tag {
-  position: absolute;
-  top: 1mm; left: 2mm;
-  font-size: 6.5px;
-  color: #cfcfcf;
+.page-tag {
+  font-size: 8px;
+  color: #ccc;
   font-family: monospace;
-  z-index: 5;
+  margin-bottom: 2px;
 }
 
-/* ─── Composants repris d'agenda.html / agenda-mois.html ─── */
 .block-title {
   font-family: 'Handlee', cursive;
   color: var(--accent);
   text-align: center;
-  font-size: 15px;
-  margin-bottom: 2px;
+  font-size: 18px;
+  margin-bottom: 4px;
 }
 
-.mini-days {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 3px;
-  height: 100%;
-}
-
-.day-card {
-  border: var(--border);
-  border-radius: 8px;
-  padding: 3px 4px;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.day-card .hdr {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  font-family: 'Handlee', cursive;
-  color: var(--accent);
-  font-size: 11px;
-  margin-bottom: 2px;
-}
-
-.day-card .hdr .date { font-size: 8px; opacity: 0.8; }
-
-.day-card .ferie {
-  font-size: 6px;
-  font-family: 'Handlee', cursive;
-  color: var(--accent);
-  opacity: 0.7;
-  font-style: italic;
-}
-
-.day-card .lines {
+.lines {
   flex: 1;
   background-image: repeating-linear-gradient(
-    to bottom, transparent, transparent 9px, rgba(0,0,0,0.09) 10px
+    to bottom, transparent, transparent 15px, rgba(0,0,0,0.08) 16px
   );
 }
 
-.mini-cal-wrap { display: flex; flex-direction: column; height: 100%; }
-
+/* ─── Mini calendrier ─── */
 .calendar {
   display: grid;
   grid-template-columns: min-content repeat(7, 1fr);
-  gap: 1px;
-  font-size: 7px;
+  gap: 2px;
+  font-size: 9px;
   text-align: center;
 }
-
-.calendar div { padding: 1px; border-radius: 3px; }
-.calendar .dow { font-weight: 600; color: var(--accent); font-size: 6px; padding: 2px 0; }
-.calendar .week-num { color: var(--accent); font-weight: 700; font-size: 6px; opacity: 0.85; padding: 1px; }
+.calendar div { padding: 2px; border-radius: 4px; }
+.calendar .dow { font-weight: 600; color: var(--accent); font-size: 8px; padding: 3px 0; }
+.calendar .week-num { color: var(--accent); font-weight: 700; font-size: 8px; opacity: 0.85; padding: 2px; }
 .calendar .weekday-last { border-right: 1px solid var(--accent); opacity: 0.9; }
 .active-week { background: var(--pastel); font-weight: bold; }
 .calendar .jour-ferie { background: var(--accent); color: white; font-weight: 700; border-radius: 3px; }
 
-.week-title {
-  font-family: 'Handlee', cursive;
-  color: var(--accent);
-  text-align: center;
-  font-size: 14px;
-  margin-top: 3px;
-}
-
+/* ─── Todo ─── */
 .todo-lines {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: calc(100% - 18px);
-}
-
-.todo-line {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 9px;
-  min-height: 12px;
-}
-
-.checkbox {
-  width: 10px; height: 10px;
-  border: var(--border);
-  border-radius: 3px;
-  flex-shrink: 0;
-}
-
-.cover-face { height: 100%; display: flex; flex-direction: column; }
-
-.cover-title {
-  font-family: 'Handlee', cursive;
-  color: var(--accent);
-  text-align: center;
-  font-size: 20px;
-  margin-bottom: 4px;
-}
-
-.month-grid {
   flex: 1;
-  display: grid;
-  grid-template-columns: 14px repeat(7, 1fr);
-  gap: 1px;
-  font-size: 7px;
 }
+.todo-line { display: flex; align-items: center; gap: 8px; font-size: 12px; min-height: 15px; }
+.checkbox { width: 13px; height: 13px; border: var(--border); border-radius: 4px; flex-shrink: 0; }
 
-.month-grid .cell {
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 3px;
-  padding: 1px 2px;
-  text-align: left;
-}
-.month-grid .cell.empty { border-color: transparent; }
-.month-grid .wn { display:flex; align-items:center; justify-content:center; color: var(--accent); font-weight:700; font-size:6px; }
-
-.notes-lines {
-  flex: 1;
-  background-image: repeating-linear-gradient(
-    to bottom, transparent, transparent 11px, rgba(0,0,0,0.08) 12px
-  );
-}
+/* ─── Notes ─── */
+.notes-blocks { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.notes-blocks .sub-block { flex: 1; border: var(--border); border-radius: 10px; padding: 4px 6px; display: flex; flex-direction: column; overflow: hidden; }
+.notes-blocks .sub-title { font-family: 'Handlee', cursive; color: var(--accent); font-size: 11px; text-align: center; margin-bottom: 2px; }
+.notes-blocks .sub-lines { flex: 1; background-image: repeating-linear-gradient(to bottom, transparent, transparent 11px, rgba(0,0,0,0.07) 12px); }
 
 @media print {
   body { background: white; padding: 0; }
   .controls { display: none; }
-  .sheet { margin: 0; }
-  @page { size: A4 landscape; margin: 0; }
+  #pages { gap: 0; }
+  .page { border: none; border-radius: 0; page-break-after: always; }
+  .page-tag { display: none; }
+  @page { size: 105mm 148.5mm; margin: 0; }
 }
 </style>
 </head>
@@ -272,18 +162,20 @@ body {
     <button onclick="window.print()">🖨️ Imprimer</button>
   </div>
   <div class="info">
-    Ordre d'impression et de reliure (anneaux/agrafe sur le bord, pas de piqûre à cheval) :
-    <b>Fiche du mois</b> → pour chaque semaine : <b>feuillet Jours</b> (recto = Lun/Mar/Mer, verso tête-bêche = Jeu/Ven/Weekend)
-    puis <b>feuillet Infos</b> (recto = mini calendrier + n° semaine, verso tête-bêche = Todo). Chaque feuillet A5 se découpe du voisin (trait plein au milieu de chaque planche A4),
-    puis se plie en 2 sur le trait pointillé pour devenir une page A6 recto-verso.
+    Chaque page ci-dessous est une carte A6 (105 × 148,5mm) indépendante — exactement 1/4 d'une
+    feuille A4. <b>Ne cherche pas à découper toi-même la mise en page</b> : dans la fenêtre
+    d'impression, choisis le format A4, puis dans les options avancées du pilote d'imprimante
+    règle <b>"Pages par feuille" sur 4</b> (parfois appelé "N-up" ou "Mise en page"). L'imprimante
+    place alors 4 cartes par feuille A4 sans déformation, il ne restera qu'à couper au massicot.
+    Ordre des pages : <b>Mois</b> → <b>Notes du mois</b> → pour chaque semaine : <b>Todo</b> puis
+    <b>Semaine</b>.
   </div>
 </div>
 
-<div id="sheets"></div>
+<div id="pages"></div>
 
 <script>
 const MONTHS_FR = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
-const DAY_NAMES = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Weekend"];
 const DAYS_SHORT = ["L","M","M","J","V","S","D"];
 
 function getISOWeek(date) {
@@ -347,67 +239,33 @@ function weeksOfMonth(year, month) {
   return weeks;
 }
 
-/* ─── Rendu d'un mini calendrier (pour la fiche du mois, pleine largeur) ─── */
-function renderMonthGrid(container, year, month, activeWeek, holidayMap) {
-  container.innerHTML = "";
-  const lastDay = new Date(year, month+1, 0).getDate();
-  const startDow = (new Date(year, month, 1).getDay()+6)%7;
-  const nbRows = Math.ceil((startDow+lastDay)/7);
-
-  const empty = document.createElement("div");
-  container.appendChild(empty);
-  DAYS_SHORT.forEach(d => {
-    const h = document.createElement("div");
-    h.className = "cell";
-    h.style.textAlign = "center";
-    h.style.color = "var(--accent)";
-    h.style.border = "none";
-    h.textContent = d;
-    container.appendChild(h);
-  });
-
-  let day = 1 - startDow;
-  for (let row = 0; row < nbRows; row++) {
-    const refDay = Math.max(1, row*7 - startDow + 1);
-    const wn = document.createElement("div");
-    wn.className = "wn";
-    wn.textContent = getISOWeek(new Date(year, month, refDay));
-    container.appendChild(wn);
-
-    for (let col = 0; col < 7; col++, day++) {
-      const cell = document.createElement("div");
-      cell.className = "cell";
-      if (day < 1 || day > lastDay) {
-        cell.classList.add("empty");
-      } else {
-        const current = new Date(year, month, day);
-        cell.textContent = day;
-        if (getISOWeek(current) === activeWeek) cell.style.background = "var(--pastel)";
-        if (holidayMap.has(dateKey(current))) { cell.style.background = "var(--accent)"; cell.style.color = "white"; }
-      }
-      container.appendChild(cell);
-    }
-  }
+function makePage(tagLabel) {
+  const page = document.createElement("div");
+  page.className = "page";
+  const tag = document.createElement("div");
+  tag.className = "page-tag";
+  tag.textContent = tagLabel;
+  page.appendChild(tag);
+  return page;
 }
 
-/* ─── Rendu d'un mini calendrier compact (feuillet "infos" semaine) ─── */
-function renderWeekMiniCal(container, monday, holidayMap) {
-  const thursday = new Date(monday); thursday.setDate(thursday.getDate()+3);
-  const year = thursday.getFullYear();
-  const month = thursday.getMonth();
+/* ─── Page "Mois" : mini calendrier complet ─── */
+function buildMonthPage(year, month, holidayMap) {
+  const page = makePage("Mois");
+  page.innerHTML += `<div class="block-title">${MONTHS_FR[month]} ${year}</div><div class="calendar"></div>`;
+  const cal = page.querySelector(".calendar");
+
   const lastDay = new Date(year, month+1, 0).getDate();
   const startDow = (new Date(year, month, 1).getDay()+6)%7;
-  const activeWeek = getISOWeek(monday);
 
-  container.innerHTML = "";
   const empty = document.createElement("div");
   empty.innerHTML = "&nbsp;";
-  container.appendChild(empty);
+  cal.appendChild(empty);
   DAYS_SHORT.forEach((d,i) => {
     const h = document.createElement("div");
     h.className = "dow" + (i===4 ? " weekday-last" : "");
     h.textContent = d;
-    container.appendChild(h);
+    cal.appendChild(h);
   });
 
   let day = 1 - startDow;
@@ -416,7 +274,78 @@ function renderWeekMiniCal(container, monday, holidayMap) {
     const wn = document.createElement("div");
     wn.className = "week-num";
     wn.textContent = getISOWeek(new Date(year, month, refDay));
-    container.appendChild(wn);
+    cal.appendChild(wn);
+    for (let col = 0; col < 7; col++, day++) {
+      const div = document.createElement("div");
+      if (day < 1 || day > lastDay) {
+        div.innerHTML = "&nbsp;";
+      } else {
+        const current = new Date(year, month, day);
+        div.textContent = day;
+        if (col === 4) div.classList.add("weekday-last");
+        if (holidayMap.has(dateKey(current))) div.classList.add("jour-ferie");
+      }
+      cal.appendChild(div);
+    }
+  }
+  return page;
+}
+
+/* ─── Page "Notes du mois" ─── */
+function buildNotesPage() {
+  const page = makePage("Notes du mois");
+  page.innerHTML += `
+    <div class="block-title">Notes</div>
+    <div class="notes-blocks">
+      <div class="sub-block"><div class="sub-title">🎬 Films / 📚 Livres</div><div class="sub-lines"></div></div>
+      <div class="sub-block"><div class="sub-title">🏥 Médical / 💸 Dépenses</div><div class="sub-lines"></div></div>
+      <div class="sub-block"><div class="sub-title">Notes libres</div><div class="sub-lines"></div></div>
+    </div>`;
+  return page;
+}
+
+/* ─── Page "Todo" d'une semaine ─── */
+function buildTodoPage(weekNum) {
+  const page = makePage(`Semaine ${weekNum} — Todo`);
+  page.innerHTML += `
+    <div class="block-title">Todo S${weekNum}</div>
+    <div class="todo-lines">${
+      Array.from({length:8}).map(() => `<div class="todo-line"><div class="checkbox"></div><div></div></div>`).join("")
+    }</div>`;
+  return page;
+}
+
+/* ─── Page "Semaine" (calendrier + pensées) ─── */
+function buildWeekPage(monday, holidayMap) {
+  const activeWeek = getISOWeek(monday);
+  const thursday = new Date(monday); thursday.setDate(thursday.getDate()+3);
+  const year = thursday.getFullYear();
+  const month = thursday.getMonth();
+  const lastDay = new Date(year, month+1, 0).getDate();
+  const startDow = (new Date(year, month, 1).getDay()+6)%7;
+
+  const page = makePage(`Semaine ${activeWeek}`);
+  page.innerHTML += `<div class="block-title">Semaine ${activeWeek} — ${MONTHS_FR[month]} ${year}</div><div class="calendar"></div>
+    <div class="lines" style="margin-top:6px;"></div>`;
+  const cal = page.querySelector(".calendar");
+
+  const empty = document.createElement("div");
+  empty.innerHTML = "&nbsp;";
+  cal.appendChild(empty);
+  DAYS_SHORT.forEach((d,i) => {
+    const h = document.createElement("div");
+    h.className = "dow" + (i===4 ? " weekday-last" : "");
+    h.textContent = d;
+    cal.appendChild(h);
+  });
+
+  let day = 1 - startDow;
+  while (day <= lastDay) {
+    const refDay = day < 1 ? 1 : day;
+    const wn = document.createElement("div");
+    wn.className = "week-num";
+    wn.textContent = getISOWeek(new Date(year, month, refDay));
+    cal.appendChild(wn);
     for (let col = 0; col < 7; col++, day++) {
       const div = document.createElement("div");
       if (day < 1 || day > lastDay) {
@@ -428,117 +357,12 @@ function renderWeekMiniCal(container, monday, holidayMap) {
         if (col === 4) div.classList.add("weekday-last");
         if (holidayMap.has(dateKey(current))) div.classList.add("jour-ferie");
       }
-      container.appendChild(div);
+      cal.appendChild(div);
     }
   }
-  return months => `${MONTHS_FR[month]}`;
+  return page;
 }
 
-/* ─── Construction d'un feuillet "Jours" (3 jours recto / 3 jours verso) ─── */
-function buildDaysLeaf(monday, holidayMap) {
-  const leaf = document.createElement("div");
-  leaf.className = "leaf";
-
-  const makeFace = (isVerso, dayOffsets) => {
-    const face = document.createElement("div");
-    face.className = "face" + (isVerso ? " verso" : "");
-    const tag = document.createElement("span");
-    tag.className = "leaf-tag";
-    tag.textContent = isVerso ? "verso" : "recto";
-    face.appendChild(tag);
-
-    const grid = document.createElement("div");
-    grid.className = "mini-days";
-    dayOffsets.forEach(offset => {
-      const d = new Date(monday);
-      d.setDate(d.getDate() + offset);
-      const dk = dateKey(d);
-      const card = document.createElement("div");
-      card.className = "day-card";
-      const isWeekendBlock = offset === 5;
-      let dateLabel, nameLabel, ferieLabel = "";
-      if (isWeekendBlock) {
-        const sun = new Date(monday); sun.setDate(sun.getDate()+6);
-        dateLabel = `${d.getDate()}-${sun.getDate()}/${sun.getMonth()+1}`;
-        nameLabel = "Weekend";
-      } else {
-        dateLabel = `${d.getDate()}/${d.getMonth()+1}`;
-        nameLabel = DAY_NAMES[offset];
-        if (holidayMap.has(dk)) ferieLabel = holidayMap.get(dk);
-      }
-      card.innerHTML = `
-        <div class="hdr"><span>${nameLabel}</span><span class="date">${dateLabel}</span></div>
-        <div class="ferie">${ferieLabel}</div>
-        <div class="lines"></div>`;
-      grid.appendChild(card);
-    });
-    face.appendChild(grid);
-    return face;
-  };
-
-  leaf.appendChild(makeFace(false, [0,1,2]));
-  const fold = document.createElement("div");
-  fold.className = "fold-line";
-  leaf.appendChild(fold);
-  leaf.appendChild(makeFace(true, [3,4,5]));
-  return leaf;
-}
-
-/* ─── Construction d'un feuillet "Infos" (calendrier+semaine recto / todo verso) ─── */
-function buildInfoLeaf(monday, holidayMap) {
-  const leaf = document.createElement("div");
-  leaf.className = "leaf";
-
-  const recto = document.createElement("div");
-  recto.className = "face recto";
-  recto.innerHTML = `<span class="leaf-tag">recto</span>
-    <div class="mini-cal-wrap">
-      <div class="calendar"></div>
-      <div class="week-title"></div>
-    </div>`;
-  leaf.appendChild(recto);
-
-  const cal = recto.querySelector(".calendar");
-  const monthName = renderWeekMiniCal(cal, monday, holidayMap);
-  const thursday = new Date(monday); thursday.setDate(thursday.getDate()+3);
-  recto.querySelector(".week-title").textContent =
-    `${MONTHS_FR[thursday.getMonth()]} — Semaine ${getISOWeek(monday)}`;
-
-  const fold = document.createElement("div");
-  fold.className = "fold-line";
-  leaf.appendChild(fold);
-
-  const verso = document.createElement("div");
-  verso.className = "face verso";
-  verso.innerHTML = `<span class="leaf-tag">verso</span>
-    <div class="block-title">Todo</div>
-    <div class="todo-lines">${
-      Array.from({length:6}).map(() => `<div class="todo-line"><div class="checkbox"></div><div></div></div>`).join("")
-    }</div>`;
-  leaf.appendChild(verso);
-
-  return leaf;
-}
-
-/* ─── Fiche de couverture du mois ─── */
-function buildCoverLeaf(year, month, holidayMap) {
-  const leaf = document.createElement("div");
-  leaf.className = "leaf";
-
-  const recto = document.createElement("div");
-  recto.className = "face recto";
-  recto.style.height = "210mm";
-  recto.innerHTML = `<span class="leaf-tag">couverture</span>
-    <div class="cover-face">
-      <div class="cover-title">${MONTHS_FR[month]} ${year}</div>
-      <div class="month-grid"></div>
-    </div>`;
-  leaf.appendChild(recto);
-  renderMonthGrid(recto.querySelector(".month-grid"), year, month, null, holidayMap);
-  return leaf;
-}
-
-/* ─── Assemble tous les feuillets, 2 par planche A4 ─── */
 function build() {
   const val = document.getElementById("moisPicker").value;
   if (!val) return;
@@ -547,26 +371,15 @@ function build() {
   const holidayMap = new Map([...getHolidayMap(year), ...getHolidayMap(year+1)]);
   const weeks = weeksOfMonth(year, month);
 
-  const leaves = [];
-  leaves.push(buildCoverLeaf(year, month, holidayMap));
-  weeks.forEach(monday => {
-    leaves.push(buildDaysLeaf(monday, holidayMap));
-    leaves.push(buildInfoLeaf(monday, holidayMap));
-  });
-
-  const container = document.getElementById("sheets");
+  const container = document.getElementById("pages");
   container.innerHTML = "";
-  for (let i = 0; i < leaves.length; i += 2) {
-    const sheet = document.createElement("div");
-    sheet.className = "sheet";
-    sheet.appendChild(leaves[i]);
-    if (leaves[i+1]) sheet.appendChild(leaves[i+1]);
-    const tag = document.createElement("span");
-    tag.className = "cut-tag";
-    tag.textContent = `planche ${Math.floor(i/2)+1} — trait plein = coupe, pointillé = pli`;
-    sheet.appendChild(tag);
-    container.appendChild(sheet);
-  }
+  container.appendChild(buildMonthPage(year, month, holidayMap));
+  container.appendChild(buildNotesPage());
+  weeks.forEach(monday => {
+    const weekNum = getISOWeek(monday);
+    container.appendChild(buildTodoPage(weekNum));
+    container.appendChild(buildWeekPage(monday, holidayMap));
+  });
 }
 
 document.getElementById("moisPicker").addEventListener("change", build);
