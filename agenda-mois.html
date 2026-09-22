@@ -373,8 +373,9 @@ body.fmt-b6 .page {
     <div>
       <label>Format :</label><br>
       <select id="formatPicker" onchange="applyFormat()" style="padding:9px 14px;border-radius:12px;border:1px solid #ccc;font-family:inherit;font-size:14px;">
-        <option value="A5">A5</option>
+        <option value="A5">A5 (livret paysage)</option>
         <option value="B6">B6 (rogner)</option>
+        <option value="A4">A4 (une page à la fois)</option>
       </select>
     </div>
     <div style="padding-top:22px;display:flex;align-items:center;gap:6px;">
@@ -908,6 +909,13 @@ function ouvrirAgenda() {
 function applyFormat() {
   const fmt  = document.getElementById("formatPicker").value;
   const page = document.getElementById("mainPage");
+
+  if (fmt === "A4") {
+    const { mois, zone } = getParams();
+    window.open(`carnet-mois.html?mois=${mois}&zone=${zone}`, "_blank");
+    document.getElementById("formatPicker").value = "A5";
+    return;
+  }
 
   if (fmt === "B6") {
     document.body.classList.add("fmt-b6");
