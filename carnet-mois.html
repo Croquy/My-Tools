@@ -667,8 +667,11 @@ async function build() {
 document.getElementById("moisPicker").addEventListener("change", build);
 document.getElementById("zonePicker").addEventListener("change", build);
 
+const urlParams = new URLSearchParams(window.location.search);
 const now = new Date();
-document.getElementById("moisPicker").value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+document.getElementById("moisPicker").value =
+  urlParams.get("mois") || `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+if (urlParams.get("zone")) document.getElementById("zonePicker").value = urlParams.get("zone");
 build();
 </script>
 
