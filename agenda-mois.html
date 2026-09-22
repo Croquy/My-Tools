@@ -249,6 +249,94 @@ body {
 .col-right .bloc { flex: 1; }
 
 
+/* ════════════════════════════════
+   GABARIT SEMAINE (repris tel quel d'agenda.html,
+   utilisé quand "Semaines du mois" est coché)
+════════════════════════════════ */
+.left-page {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  border-right: 1px dashed rgba(0,0,0,0.12);
+}
+
+.top-section { height: 24%; display: flex; gap: 8px; }
+.calendar-block { width: 35%; }
+.semaine-block  { width: 65%; }
+
+.middle-section { height: 46%; display: flex; gap: 8px; }
+.todo-block { width: 35%; }
+.themes-block { width: 65%; display: flex; flex-direction: column; gap: 8px; }
+.theme-box { flex: 1; }
+
+.bottom-section { height: 30%; }
+.pensees { height: 100%; background: var(--pastel); border-radius: 20px; padding: 12px; }
+
+.block {
+  border: var(--border);
+  border-radius: 16px;
+  padding: 8px;
+  background: white;
+}
+.block-title {
+  font-family: 'Handlee', cursive;
+  color: var(--accent);
+  text-align: center;
+  font-size: 22px;
+}
+.small-title { font-size: 18px; margin-bottom: 2px; }
+
+.write-lines, .day-content {
+  background-image: repeating-linear-gradient(
+    to bottom, transparent, transparent 23px, rgba(0,0,0,0.08) 24px
+  );
+}
+.write-lines { height: calc(100% - 28px); }
+
+.todo-lines {
+  display: flex; flex-direction: column; justify-content: space-between;
+  height: calc(100% - 28px); margin-top: 4px; padding-bottom: 12px;
+}
+.todo-line { display: flex; align-items: center; gap: 8px; font-size: 12px; min-height: 16px; }
+.checkbox { width: 14px; height: 14px; border: var(--border); border-radius: 4px; flex-shrink: 0; }
+
+.right-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 8px;
+  height: 100%;
+}
+.day-block { display: flex; flex-direction: column; }
+.day-header {
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: 'Handlee', cursive; color: var(--accent); font-size: 22px; margin-bottom: 4px;
+}
+.day-ferie-lbl {
+  font-size: 10px; font-family: 'Handlee', cursive; color: var(--accent);
+  opacity: 0.65; font-style: italic; flex: 1; text-align: center;
+}
+
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  font-size: 9px;
+  text-align: center;
+}
+.calendar div { padding: 2px; border-radius: 6px; }
+.calendar .dow { font-weight: 600; color: var(--accent); font-size: 8px; padding: 3px 0; }
+.calendar .week-num {
+  color: var(--accent); font-weight: 700; font-size: 8px; text-align: center;
+  opacity: 0.85; padding: 2px 1px; white-space: nowrap;
+}
+.calendar .weekday-last { border-right: 1.5px solid var(--accent); opacity: 0.9; }
+.calendar .active-week { background: var(--pastel); font-weight: bold; }
+.calendar .jour-ferie { background: var(--accent); color: white; font-weight: 700; border-radius: 4px; }
+.calendar .vacance { text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 1.5px; font-style: italic; }
+
+
 /* ─── Format B6 ─── */
 body.fmt-b6 .page {
   transform-origin: top left;
@@ -258,7 +346,7 @@ body.fmt-b6 .page {
 @media print {
   body { background: white; padding: 0; }
   .controls { display: none; }
-  .page { margin: 0; }
+  .page { margin: 0; page-break-after: always; }
   @page { size: A4 landscape; margin: 0; }
 }
 </style>
@@ -287,6 +375,10 @@ body.fmt-b6 .page {
         <option value="A5">A5</option>
         <option value="B6">B6 (rogner)</option>
       </select>
+    </div>
+    <div style="padding-top:22px;display:flex;align-items:center;gap:6px;">
+      <input type="checkbox" id="semainesCheck" style="width:16px;height:16px;">
+      <label for="semainesCheck" style="font-size:13px;">Semaines du mois</label>
     </div>
     <div style="padding-top:22px;display:flex;gap:8px;">
       <button onclick="window.print()">🖨️ Imprimer</button>
@@ -361,6 +453,8 @@ body.fmt-b6 .page {
 
 </div>
 
+<div id="weeksContainer"></div>
+
 
 <script>
 /* ════════════════════════════════
@@ -423,8 +517,12 @@ applyThemeAndTitles();
 document.getElementById("moisPicker").addEventListener("change", () => {
   applyThemeAndTitles();
   buildCalendar();
+  buildWeeks();
 });
-document.getElementById("zonePicker").addEventListener("change", buildCalendar);
+document.getElementById("zonePicker").addEventListener("change", () => {
+  buildCalendar();
+  buildWeeks();
+});
 
 
 /* ════════════════════════════════
@@ -452,6 +550,25 @@ function easterSunday(y) {
   const h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4;
   const l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451);
   return new Date(y, Math.floor((h+l-7*m+114)/31)-1, ((h+l-7*m+114)%31)+1);
+}
+
+function getHolidayMap(y) {
+  const e   = easterSunday(y);
+  const add = (dt,n) => { const d=new Date(dt); d.setDate(d.getDate()+n); return d; };
+  const k   = d => dateKey(d);
+  const map = new Map();
+  map.set(`${y}-01-01`, "Jour de l'An");
+  map.set(k(add(e,1)),  "Lundi de Pâques");
+  map.set(`${y}-05-01`, "Fête du Travail");
+  map.set(`${y}-05-08`, "Victoire 1945");
+  map.set(k(add(e,39)), "Ascension");
+  map.set(k(add(e,50)), "Lundi de Pentecôte");
+  map.set(`${y}-07-14`, "Fête nationale");
+  map.set(`${y}-08-15`, "Assomption");
+  map.set(`${y}-11-01`, "Toussaint");
+  map.set(`${y}-11-11`, "Armistice");
+  map.set(`${y}-12-25`, "Noël");
+  return map;
 }
 
 function getHolidays(y) {
@@ -577,6 +694,202 @@ async function buildCalendar() {
     }
   }
 }
+
+/* ════════════════════════════════
+   PAGES SEMAINE (repris tel quel d'agenda.html)
+════════════════════════════════ */
+const WEEK_THEMES = [
+  null,
+  { accent: "#7FB7DF", pastel: "#E7EEF3" }, { accent: "#81B3DD", pastel: "#E7EDF2" },
+  { accent: "#83B0DB", pastel: "#E7EDF2" }, { accent: "#85ACD8", pastel: "#E8ECF2" },
+  { accent: "#87A9D6", pastel: "#E8ECF1" }, { accent: "#87ADD3", pastel: "#E8EDF1" },
+  { accent: "#85BCD0", pastel: "#E8EFF1" }, { accent: "#82CACC", pastel: "#E8F1F1" },
+  { accent: "#80C8B9", pastel: "#E9F1EF" }, { accent: "#7DC5A5", pastel: "#E9F0ED" },
+  { accent: "#78C09B", pastel: "#E9F0ED" }, { accent: "#71BC94", pastel: "#E9F0EC" },
+  { accent: "#6BB78E", pastel: "#E9F0EC" }, { accent: "#64B387", pastel: "#E9F0EC" },
+  { accent: "#60AF83", pastel: "#E9F0EC" }, { accent: "#70B88E", pastel: "#E9F0EC" },
+  { accent: "#7FC09A", pastel: "#E9F0EC" }, { accent: "#8FC8A7", pastel: "#E9F0EC" },
+  { accent: "#9FD0B3", pastel: "#E9F0EC" }, { accent: "#A4D5AA", pastel: "#E9F0EA" },
+  { accent: "#BAD79B", pastel: "#EDF1E8" }, { accent: "#D9D093", pastel: "#F1F0E8" },
+  { accent: "#DC9E8A", pastel: "#F2EAE7" }, { accent: "#DF80A4", pastel: "#F3E7EB" },
+  { accent: "#E485B2", pastel: "#F3E6EC" }, { accent: "#E98DB6", pastel: "#F3E6EC" },
+  { accent: "#ED96BA", pastel: "#F4E6EB" }, { accent: "#F19FBE", pastel: "#F4E5EB" },
+  { accent: "#F3A6C3", pastel: "#F4E5EB" }, { accent: "#EEA6C8", pastel: "#F3E6EC" },
+  { accent: "#E8A6CC", pastel: "#F3E7EE" }, { accent: "#E2A6CF", pastel: "#F2E8EE" },
+  { accent: "#DCA7D0", pastel: "#F1E8EF" }, { accent: "#D8A7D4", pastel: "#F1E9F0" },
+  { accent: "#D5A5D8", pastel: "#F0E9F1" }, { accent: "#CCA4D8", pastel: "#EFE9F1" },
+  { accent: "#C2A2D8", pastel: "#EDE9F1" }, { accent: "#B8A1D8", pastel: "#ECE8F1" },
+  { accent: "#B29AD6", pastel: "#ECE8F1" }, { accent: "#AC93D3", pastel: "#ECE8F1" },
+  { accent: "#A68BD0", pastel: "#ECE8F1" }, { accent: "#9F84CE", pastel: "#ECE8F1" },
+  { accent: "#957DCC", pastel: "#EBE8F1" }, { accent: "#8075CE", pastel: "#E9E8F1" },
+  { accent: "#6D74CF", pastel: "#E8E8F2" }, { accent: "#6682D1", pastel: "#E7EAF2" },
+  { accent: "#5D93D4", pastel: "#E7ECF2" }, { accent: "#61A4D2", pastel: "#E7EEF2" },
+  { accent: "#6CAFCE", pastel: "#E8EFF2" }, { accent: "#76B9CA", pastel: "#E8EFF1" },
+  { accent: "#7FBFC7", pastel: "#E9F0F0" }, { accent: "#89C3C4", pastel: "#E9F0F0" },
+];
+
+const DAY_NAMES = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Weekend"];
+
+/* Semaines "appartenant" au mois : règle du jeudi majoritaire (cf. agenda.html) */
+function weeksOfMonth(year, month) {
+  let monday = new Date(year, month, 1);
+  monday.setDate(monday.getDate() - (monday.getDay()+6)%7);
+  const weeks = [];
+  let guard = 0;
+  while (guard++ < 10) {
+    const thursday = new Date(monday);
+    thursday.setDate(thursday.getDate() + 3);
+    if (thursday.getFullYear() === year && thursday.getMonth() === month) {
+      weeks.push(new Date(monday));
+      monday = new Date(monday);
+      monday.setDate(monday.getDate() + 7);
+    } else if (weeks.length === 0) {
+      monday.setDate(monday.getDate() + 7);
+    } else {
+      break;
+    }
+  }
+  return weeks;
+}
+
+function buildWeekPage(monday, zone, vacRanges) {
+  const isoWeek = getISOWeek(monday);
+  const theme = WEEK_THEMES[isoWeek] || WEEK_THEMES[1];
+
+  const page = document.createElement("div");
+  page.className = "page";
+  page.style.setProperty("--accent", theme.accent);
+  page.style.setProperty("--pastel", theme.pastel);
+  page.style.setProperty("--border", "1.5px solid " + theme.accent);
+
+  const titre1 = localStorage.getItem("bloc_titre1") || "Orga";
+  const titre2 = localStorage.getItem("bloc_titre2") || "Équipe";
+
+  page.innerHTML = `
+    <div class="half left-page">
+      <div class="top-section">
+        <div class="block calendar-block">
+          <div class="block-title"></div>
+          <div class="calendar"></div>
+        </div>
+        <div class="block semaine-block">
+          <div class="block-title"></div>
+          <div class="write-lines"></div>
+        </div>
+      </div>
+      <div class="middle-section">
+        <div class="block todo-block">
+          <div class="block-title">Todo</div>
+          <div class="todo-lines">${Array.from({length:8}).map(() => `<div class="todo-line"><div class="checkbox"></div><div></div></div>`).join("")}</div>
+        </div>
+        <div class="themes-block">
+          <div class="block theme-box"><div class="block-title small-title">${titre1}</div><div class="write-lines"></div></div>
+          <div class="block theme-box"><div class="block-title small-title">${titre2}</div><div class="write-lines"></div></div>
+        </div>
+      </div>
+      <div class="bottom-section">
+        <div class="pensees"><div class="block-title">Pensées</div><div class="pensees-lines write-lines"></div></div>
+      </div>
+    </div>
+    <div class="half right-page"></div>`;
+
+  /* Mini calendrier (mois du jeudi de la semaine) */
+  const thursday = new Date(monday);
+  thursday.setDate(thursday.getDate() + 3);
+  const year  = thursday.getFullYear();
+  const month = thursday.getMonth();
+  const lastDay  = new Date(year, month + 1, 0);
+  const startDay = (new Date(year, month, 1).getDay() + 6) % 7;
+  const holidayMap = new Map([...getHolidayMap(year), ...getHolidayMap(year+1)]);
+
+  page.querySelectorAll(".block-title")[0].textContent = MONTHS_FR[month];
+  page.querySelectorAll(".block-title")[1].textContent = `Semaine ${isoWeek} ${thursday.getFullYear()}`;
+
+  const cal = page.querySelector(".calendar");
+  cal.style.gridTemplateColumns = "min-content repeat(7, 1fr)";
+  const emptyHeader = document.createElement("div");
+  emptyHeader.innerHTML = "&nbsp;";
+  cal.appendChild(emptyHeader);
+  DAYS_SHORT.forEach((d, i) => {
+    const h = document.createElement("div");
+    h.className = "dow" + (i === 4 ? " weekday-last" : "");
+    h.textContent = d;
+    cal.appendChild(h);
+  });
+
+  let day = 1 - startDay;
+  while (day <= lastDay.getDate()) {
+    const refDay  = day < 1 ? 1 : day;
+    const wNum = document.createElement("div");
+    wNum.className = "week-num";
+    wNum.textContent = getISOWeek(new Date(year, month, refDay));
+    cal.appendChild(wNum);
+    for (let col = 0; col < 7; col++, day++) {
+      const div = document.createElement("div");
+      if (day < 1 || day > lastDay.getDate()) {
+        div.innerHTML = "&nbsp;";
+      } else {
+        const current = new Date(year, month, day);
+        const dk = dateKey(current);
+        div.textContent = day;
+        if (getISOWeek(current) === isoWeek) div.classList.add("active-week");
+        if (col === 4) div.classList.add("weekday-last");
+        if (holidayMap.has(dk)) {
+          div.classList.add("jour-ferie");
+        } else if (zone !== 'none' && isVacance(dk, vacRanges)) {
+          div.classList.add("vacance");
+        }
+      }
+      cal.appendChild(div);
+    }
+  }
+
+  /* Blocs jours */
+  const daysContainer = page.querySelector(".right-page");
+  DAY_NAMES.forEach((name, i) => {
+    const block = document.createElement("div");
+    block.className = "block day-block";
+
+    const d = new Date(monday);
+    d.setDate(d.getDate() + i);
+    let dateLabel, ferieLabel = "";
+    if (i === 5) {
+      const sun = new Date(monday); sun.setDate(sun.getDate() + 6);
+      dateLabel = `${d.getDate()} - ${sun.getDate()}/${sun.getMonth() + 1}`;
+    } else {
+      dateLabel = `${d.getDate()}/${d.getMonth() + 1}`;
+      const dk = dateKey(d);
+      const hols = new Map([...getHolidayMap(d.getFullYear()), ...getHolidayMap(d.getFullYear()+1)]);
+      if (hols.has(dk)) ferieLabel = hols.get(dk);
+    }
+
+    block.innerHTML = `
+      <div class="day-header">
+        <span class="day-name">${name}</span>
+        <span class="day-ferie-lbl">${ferieLabel}</span>
+        <span class="date">${dateLabel}</span>
+      </div>
+      <div class="day-content"></div>`;
+    daysContainer.appendChild(block);
+  });
+
+  return page;
+}
+
+async function buildWeeks() {
+  const container = document.getElementById("weeksContainer");
+  container.innerHTML = "";
+  if (!document.getElementById("semainesCheck").checked) return;
+
+  const { year, month, zone } = getParams();
+  const vacRanges = zone !== 'none' ? await fetchVacances(zone) : [];
+  const weeks = weeksOfMonth(year, month);
+  weeks.forEach(monday => {
+    container.appendChild(buildWeekPage(monday, zone, vacRanges));
+  });
+}
+
+document.getElementById("semainesCheck").addEventListener("change", buildWeeks);
 
 /* ─── Navigation vers vue hebdomadaire ─── */
 function ouvrirAgenda() {
