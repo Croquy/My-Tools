@@ -192,8 +192,28 @@ body {
   font-style: italic;
 }
 
-.month-label { width: 58mm; }
+.month-label { width: auto; }
 .month-label .name { font-size: 18px; }
+
+/* ─── Page 1 : calendrier + colonne latérale (étiquettes mois/perso) ─── */
+.month-page-row {
+  display: flex;
+  gap: 6mm;
+  align-items: flex-start;
+}
+.side-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6mm;
+  min-width: 0;
+}
+.side-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 2mm;
+}
+.side-labels .day-label { width: auto; }
 
 /* ─── Grand calendrier du mois (page dédiée, taille ~B6) ─── */
 .full-month-sticker {
@@ -570,6 +590,10 @@ async function build() {
   const pageMonth = document.getElementById("pageMonth");
   pageMonth.innerHTML = "";
   const monthTheme = MONTH_THEMES[month];
+
+  const monthRow = document.createElement("div");
+  monthRow.className = "month-page-row";
+
   const fullSticker = document.createElement("div");
   fullSticker.className = "full-month-sticker";
   fullSticker.style.setProperty("--accent", monthTheme.accent);
@@ -579,15 +603,18 @@ async function build() {
   fullTitle.textContent = `${MONTHS_FR[month]} ${year}`;
   fullSticker.appendChild(fullTitle);
   fullSticker.appendChild(buildFullMonthCal(year, month, holidayMap, vacRanges));
-  pageMonth.appendChild(fullSticker);
+  monthRow.appendChild(fullSticker);
+
+  const sideColumn = document.createElement("div");
+  sideColumn.className = "side-column";
 
   const monthLabelTitle = document.createElement("div");
   monthLabelTitle.className = "section-label";
   monthLabelTitle.textContent = "Étiquette mois";
-  pageMonth.appendChild(monthLabelTitle);
+  sideColumn.appendChild(monthLabelTitle);
 
   const monthLabelsGrid = document.createElement("div");
-  monthLabelsGrid.className = "day-labels";
+  monthLabelsGrid.className = "day-labels side-labels";
   for (let i = 0; i < 2; i++) {
     const lbl = document.createElement("div");
     lbl.className = "day-label month-label";
@@ -595,7 +622,30 @@ async function build() {
     lbl.innerHTML = `<div class="name">${MONTHS_FR[month]} ${year}</div>`;
     monthLabelsGrid.appendChild(lbl);
   }
-  pageMonth.appendChild(monthLabelsGrid);
+  sideColumn.appendChild(monthLabelsGrid);
+
+  const customLines = document.getElementById("customLabelsInput").value
+    .split("\n").map(l => l.trim()).filter(l => l.length > 0);
+  if (customLines.length > 0) {
+    const customLabel = document.createElement("div");
+    customLabel.className = "section-label";
+    customLabel.textContent = "Étiquettes personnalisées";
+    sideColumn.appendChild(customLabel);
+
+    const customGrid = document.createElement("div");
+    customGrid.className = "day-labels side-labels";
+    customLines.forEach(text => {
+      const lbl = document.createElement("div");
+      lbl.className = "day-label custom-label";
+      lbl.style.setProperty("--accent", monthTheme.accent);
+      lbl.innerHTML = `<div class="name">${text}</div>`;
+      customGrid.appendChild(lbl);
+    });
+    sideColumn.appendChild(customGrid);
+  }
+
+  monthRow.appendChild(sideColumn);
+  pageMonth.appendChild(monthRow);
 
   const page = document.getElementById("page");
   page.innerHTML = "";
@@ -654,26 +704,6 @@ async function build() {
     labelsGrid.appendChild(lbl);
   });
   page.appendChild(labelsGrid);
-
-  const customLines = document.getElementById("customLabelsInput").value
-    .split("\n").map(l => l.trim()).filter(l => l.length > 0);
-  if (customLines.length > 0) {
-    const customLabel = document.createElement("div");
-    customLabel.className = "section-label";
-    customLabel.textContent = "Étiquettes personnalisées";
-    page.appendChild(customLabel);
-
-    const customGrid = document.createElement("div");
-    customGrid.className = "day-labels";
-    customLines.forEach(text => {
-      const lbl = document.createElement("div");
-      lbl.className = "day-label custom-label";
-      lbl.style.setProperty("--accent", monthTheme.accent);
-      lbl.innerHTML = `<div class="name">${text}</div>`;
-      customGrid.appendChild(lbl);
-    });
-    page.appendChild(customGrid);
-  }
 }
 
 document.getElementById("moisPicker").addEventListener("change", build);
