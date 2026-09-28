@@ -690,15 +690,24 @@ function getHolidayMap(year) {
 /* ════════════════════════════════
    VACANCES SCOLAIRES — API
 ════════════════════════════════ */
+/* Cache par zone : { from, to, ranges } — from/to = fenêtre de dates (YYYY-MM-DD)
+   déjà couverte par l'appel API. Si le mois demandé sort de cette fenêtre,
+   on rappelle l'API avec une fenêtre élargie autour de ce mois. */
 const vacancesCache = {};
 
-async function fetchVacances(zone) {
-  if (vacancesCache[zone]) return vacancesCache[zone];
-  const from = new Date();
-  from.setFullYear(from.getFullYear() - 1);
-  const fromStr = from.toISOString().substring(0, 10) + "T00:00:00+01:00";
+async function fetchVacances(zone, year, month) {
+  const reqKey = `${year}-${String(month+1).padStart(2,'0')}-01`;
+  const cached = vacancesCache[zone];
+  if (cached && reqKey >= cached.from && reqKey <= cached.to) {
+    return cached.ranges;
+  }
+
+  const winStart = new Date(year - 1, 0, 1);
+  const winEnd   = new Date(year + 2, 11, 31);
+  const fromStr  = winStart.toISOString().substring(0, 10) + "T00:00:00+01:00";
+  const toStr    = winEnd.toISOString().substring(0, 10) + "T00:00:00+01:00";
   const params = new URLSearchParams({
-    where:    `zones="Zone ${zone}" and population="Élèves" and end_date>="${fromStr}"`,
+    where:    `zones="Zone ${zone}" and population="Élèves" and end_date>="${fromStr}" and start_date<="${toStr}"`,
     select:   "start_date,end_date",
     limit:    100,
     timezone: "Europe/Paris"
@@ -711,7 +720,11 @@ async function fetchVacances(zone) {
       r.start_date.substring(0, 10),
       r.end_date.substring(0, 10)
     ]);
-    vacancesCache[zone] = ranges;
+    vacancesCache[zone] = {
+      from: winStart.toISOString().substring(0, 10),
+      to:   winEnd.toISOString().substring(0, 10),
+      ranges
+    };
     return ranges;
   } catch (e) {
     console.warn("Impossible de charger les vacances scolaires :", e);
@@ -746,7 +759,7 @@ async function generateCalendar(mondayDate) {
   const zone       = document.getElementById("zonePicker").value;
 
   const holidays  = new Set([...getHolidays(year), ...getHolidays(year + 1)]);
-  const vacRanges = zone !== 'none' ? await fetchVacances(zone) : [];
+  const vacRanges = zone !== 'none' ? await fetchVacances(zone, year, month) : [];
 
   document.getElementById("calendarTitle").textContent = months[month];
   document.getElementById("semaineNum").textContent    = `Semaine ${activeWeek} ${thursday.getFullYear()}`;
