@@ -389,7 +389,7 @@ async function fetchVacances(zone) {
   const params = new URLSearchParams({
     where:    `zones="Zone ${zone}" and population="Élèves" and end_date>="${fromStr}"`,
     select:   "start_date,end_date",
-    limit:    50,
+    limit:    100,
     timezone: "Europe/Paris"
   });
   const url = `https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-calendrier-scolaire/records?${params}`;
