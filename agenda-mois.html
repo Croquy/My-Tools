@@ -651,6 +651,13 @@ function getHolidays(y) {
 /* ════════════════════════════════
    VACANCES SCOLAIRES — API
 ════════════════════════════════ */
+/* L'API renvoie des dates en UTC (ex. 2026-10-16T22:00:00+00:00) qui
+   correspondent en réalité à minuit heure de Paris le jour suivant :
+   il faut convertir avant de tronquer, sinon on décale d'un jour. */
+function parisDateStr(isoString) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris' }).format(new Date(isoString));
+}
+
 /* Cache par zone : { from, to, ranges } — from/to = fenêtre de dates (YYYY-MM-DD)
    déjà couverte par l'appel API. Si le mois demandé sort de cette fenêtre,
    on rappelle l'API avec une fenêtre élargie autour de ce mois. */
@@ -669,7 +676,7 @@ async function fetchVacances(z, year, month) {
   const fromStr  = winStart.toISOString().substring(0, 10) + "T00:00:00+01:00";
   const toStr    = winEnd.toISOString().substring(0, 10) + "T00:00:00+01:00";
   const params = new URLSearchParams({
-    where:    `zones="Zone ${z}" and population="Élèves" and end_date>="${fromStr}" and start_date<="${toStr}"`,
+    where:    `zones="Zone ${z}" and population="-" and end_date>="${fromStr}" and start_date<="${toStr}"`,
     select:   "start_date,end_date",
     limit:    100,
     timezone: "Europe/Paris"
@@ -679,8 +686,8 @@ async function fetchVacances(z, year, month) {
     const res  = await fetch(url);
     const json = await res.json();
     const ranges = (json.results || []).map(r => [
-      r.start_date.substring(0,10),
-      r.end_date.substring(0,10)
+      parisDateStr(r.start_date),
+      parisDateStr(r.end_date)
     ]);
     vacancesCache[z] = {
       from: winStart.toISOString().substring(0, 10),
