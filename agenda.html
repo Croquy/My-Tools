@@ -28,6 +28,31 @@ body {
   color: var(--text);
 }
 
+/* ─── Navigation entre les 3 vues ─── */
+.view-nav {
+  width: 1120px;
+  margin: 0 auto 10px;
+  display: flex;
+  gap: 8px;
+}
+.view-nav a {
+  flex: 1;
+  text-align: center;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid #ddd;
+  color: #888;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+.view-nav a.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
 /* ─── Contrôles (masqués à l'impression) ─── */
 .controls {
   width: 1120px;
@@ -36,6 +61,39 @@ body {
   border-radius: 18px;
   padding: 16px;
   border: 1px solid #ddd;
+}
+
+.controls-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.controls-fields {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.print-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.controls-blocks {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #eee;
 }
 
 .controls-row {
@@ -286,7 +344,7 @@ body.fmt-b6 .page {
 /* ─── Impression ─── */
 @media print {
   body { background: white; padding: 0; }
-  .controls { display: none; }
+  .view-nav, .controls { display: none; }
   .page { margin: 0; }
   @page { size: A4 landscape; margin: 0; }
 }
@@ -295,41 +353,45 @@ body.fmt-b6 .page {
 
 <body>
 
+<div class="view-nav">
+  <a href="agenda.html" id="navHebdo" class="active">📋 Vue hebdo</a>
+  <a href="agenda-mois.html" id="navMensuel">📅 Vue mensuelle</a>
+  <a href="agenda-etiquettes.html" id="navEtiquette">🏷️ Vue étiquette</a>
+</div>
+
 <!-- ════════════════════════════════
      PANNEAU DE CONTRÔLE
 ════════════════════════════════ -->
 <div class="controls">
 
-  <!-- Ligne 1 : sélecteurs + boutons -->
-  <div class="controls-row">
-    <div>
-      <label>Semaine :</label>
-      <input type="week" id="weekPicker">
+  <div class="controls-top">
+    <div class="controls-fields">
+      <div>
+        <label>Semaine :</label>
+        <input type="week" id="weekPicker">
+      </div>
+      <div>
+        <label>Zone :</label><br>
+        <select id="zonePicker" style="padding:9px 14px;border-radius:12px;border:1px solid #ccc;font-family:inherit;font-size:14px;">
+          <option value="none">— Aucune —</option>
+          <option value="A" selected>Zone A</option>
+          <option value="B">Zone B</option>
+          <option value="C">Zone C</option>
+        </select>
+      </div>
+      <div>
+        <label>Format :</label><br>
+        <select id="formatPicker" onchange="applyFormat()" style="padding:9px 14px;border-radius:12px;border:1px solid #ccc;font-family:inherit;font-size:14px;">
+          <option value="A5">A5</option>
+          <option value="B6">B6 (rogner)</option>
+        </select>
+      </div>
     </div>
-    <div>
-      <label>Zone :</label><br>
-      <select id="zonePicker" style="padding:9px 14px;border-radius:12px;border:1px solid #ccc;font-family:inherit;font-size:14px;">
-        <option value="none">— Aucune —</option>
-        <option value="A" selected>Zone A</option>
-        <option value="B">Zone B</option>
-        <option value="C">Zone C</option>
-      </select>
-    </div>
-    <div>
-      <label>Format :</label><br>
-      <select id="formatPicker" onchange="applyFormat()" style="padding:9px 14px;border-radius:12px;border:1px solid #ccc;font-family:inherit;font-size:14px;">
-        <option value="A5">A5</option>
-        <option value="B6">B6 (rogner)</option>
-      </select>
-    </div>
-    <div style="padding-top:22px;display:flex;gap:8px;align-items:center;">
-      <button onclick="window.print()">🖨️ Imprimer</button>
-      <button onclick="ouvrirMois()" style="background:#aaa;">📅 Vue mensuelle</button>
-    </div>
+    <button class="print-btn" onclick="window.print()">🖨️ Imprimer</button>
   </div>
 
-  <!-- Ligne 2 : TODO + titres des blocs -->
-  <div class="controls-row" style="align-items:flex-start;gap:16px;">
+  <!-- TODO + titres des blocs -->
+  <div class="controls-blocks controls-row" style="align-items:flex-start;gap:16px;">
     <div style="flex:1;">
       <label>TODO (1 ligne = 1 tâche)</label>
       <textarea id="todoInput"></textarea>
@@ -762,19 +824,18 @@ async function updateWeek() {
   const sun = new Date(monday); sun.setDate(monday.getDate() + 6);
   dateSpans[5].textContent  = `${sat.getDate()} - ${sun.getDate()}/${sun.getMonth() + 1}`;
   ferieSpans[5].textContent = "";
+
+  updateNav(monday);
 }
 
 document.getElementById("weekPicker").addEventListener("change", updateWeek);
 document.getElementById("zonePicker").addEventListener("change", updateWeek);
 
-function ouvrirMois() {
-  const val  = document.getElementById("weekPicker").value;
+function updateNav(monday) {
   const zone = document.getElementById("zonePicker").value;
-  if (!val) return;
-  const [year, weekStr] = val.split("-W");
-  const monday = getMondayFromISOWeek(parseInt(year), parseInt(weekStr));
   const mois = `${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,"0")}`;
-  window.open(`agenda-mois.html?mois=${mois}&zone=${zone}`, "_blank");
+  document.getElementById("navMensuel").href  = `agenda-mois.html?mois=${mois}&zone=${zone}`;
+  document.getElementById("navEtiquette").href = `agenda-etiquettes.html?mois=${mois}&zone=${zone}`;
 }
 
 
