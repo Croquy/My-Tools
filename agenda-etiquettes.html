@@ -216,6 +216,8 @@ body {
   gap: 2mm;
 }
 .side-labels .day-label { width: auto; }
+.side-labels .day-label.month-label { width: 40mm; }
+.side-labels .day-label.custom-label { width: 58mm; }
 
 /* ─── Grand calendrier du mois (page dédiée, taille ~B6) ─── */
 .full-month-sticker {
@@ -286,9 +288,19 @@ body {
 .custom-label { width: 58mm; }
 .custom-label .name { font-size: 12px; }
 
+.app-footer {
+  width: 210mm;
+  margin: 16px auto 0;
+  text-align: center;
+  font-size: 11px;
+  color: #aaa;
+  border-top: 1px solid #e5e5e5;
+  padding-top: 8px;
+}
+
 @media print {
   body { background: white; padding: 0; }
-  .view-nav, .controls { display: none; }
+  .view-nav, .controls, .app-footer { display: none; }
   .page-wrap { background: white; width: auto; padding: 10mm; page-break-after: always; }
   @page { size: A4 portrait; margin: 0; }
 }
@@ -312,7 +324,7 @@ body {
       </div>
       <div>
         <label>Zone :</label><br>
-        <select id="zonePicker">
+        <select id="zonePicker" autocomplete="off">
           <option value="none">— Aucune —</option>
           <option value="A" selected>Zone A</option>
           <option value="B">Zone B</option>
@@ -341,6 +353,8 @@ body {
 <div class="page-wrap" style="margin-top:16px;">
   <div class="page" id="page"></div>
 </div>
+
+<footer class="app-footer">© 2026 My-Tools — agenda-etiquettes v2026.09.29.1</footer>
 
 <script>
 const MONTHS_FR = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];

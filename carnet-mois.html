@@ -211,9 +211,19 @@ body {
 .col-left .bloc, .col-right .bloc { flex: 1; }
 
 /* ─── Impression ─── */
+.app-footer {
+  width: 210mm;
+  margin: 16px auto 0;
+  text-align: center;
+  font-size: 11px;
+  color: #aaa;
+  border-top: 1px solid #e5e5e5;
+  padding-top: 8px;
+}
+
 @media print {
   body { background: white; padding: 0; }
-  .controls { display: none; }
+  .controls, .app-footer { display: none; }
   .page { margin: 0; page-break-after: always; }
   @page { size: A4 portrait; margin: 0; }
 }
@@ -247,6 +257,8 @@ body {
 </div>
 
 <div id="output"></div>
+
+<footer class="app-footer">© 2026 My-Tools — carnet-mois v2026.09.29.1</footer>
 
 <script>
 /* ════════════════════════════════
