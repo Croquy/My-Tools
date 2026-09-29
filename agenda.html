@@ -906,10 +906,12 @@ function saveTitres() {
 
 loadTitres();
 
-/* Initialisation sur la semaine courante */
+/* Initialisation depuis l'URL (navigation entre vues) ou la semaine courante */
+const urlParams = new URLSearchParams(window.location.search);
 const now = new Date();
 const currentWeek = `${now.getFullYear()}-W${String(getISOWeek(now)).padStart(2, "0")}`;
-document.getElementById("weekPicker").value = currentWeek;
+document.getElementById("weekPicker").value = urlParams.get("week") || currentWeek;
+document.getElementById("zonePicker").value = urlParams.get("zone") || "A";
 updateWeek();
 </script>
 

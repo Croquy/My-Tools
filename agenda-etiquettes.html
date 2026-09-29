@@ -168,9 +168,9 @@ body {
 }
 
 .day-label {
-  width: 44mm;
-  height: 22mm;
-  padding: 3mm 2mm;
+  width: 35mm;
+  height: 10mm;
+  padding: 0.5mm 2mm;
   border-radius: 0;
   background: var(--accent);
   color: white;
@@ -184,18 +184,18 @@ body {
 
 .day-label .name {
   font-family: 'Handlee', cursive;
-  font-size: 15px;
+  font-size: 10px;
   line-height: 1.1;
 }
 .day-label .sub {
-  font-size: 8px;
+  font-size: 5px;
   opacity: 0.9;
-  margin-top: 1mm;
+  margin-top: 0.3mm;
   font-style: italic;
 }
 
 .month-label { width: auto; }
-.month-label .name { font-size: 18px; }
+.month-label .name { font-size: 11px; }
 
 /* ─── Page 1 : calendrier + colonne latérale (étiquettes mois/perso) ─── */
 .month-page-row {
@@ -284,7 +284,7 @@ body {
 
 /* ─── Étiquettes personnalisées ─── */
 .custom-label { width: 58mm; }
-.custom-label .name { font-size: 14px; }
+.custom-label .name { font-size: 10px; }
 
 @media print {
   body { background: white; padding: 0; }
@@ -740,7 +740,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const now = new Date();
 document.getElementById("moisPicker").value =
   urlParams.get("mois") || `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
-if (urlParams.get("zone")) document.getElementById("zonePicker").value = urlParams.get("zone");
+document.getElementById("zonePicker").value = urlParams.get("zone") || "A";
 document.getElementById("customLabelsInput").value = localStorage.getItem("etiquettes_custom") || "";
 build();
 </script>
