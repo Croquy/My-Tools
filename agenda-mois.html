@@ -392,9 +392,19 @@ body.fmt-b6 .page {
 }
 
 /* ─── Impression ─── */
+.app-footer {
+  width: 297mm;
+  margin: 16px auto 0;
+  text-align: center;
+  font-size: 11px;
+  color: #aaa;
+  border-top: 1px solid #e5e5e5;
+  padding-top: 8px;
+}
+
 @media print {
   body { background: white; padding: 0; }
-  .view-nav, .controls { display: none; }
+  .view-nav, .controls, .app-footer { display: none; }
   .page { margin: 0; page-break-after: always; }
   @page { size: A4 landscape; margin: 0; }
 }
@@ -418,7 +428,7 @@ body.fmt-b6 .page {
       </div>
       <div>
         <label>Zone :</label><br>
-        <select id="zonePicker" style="padding:9px 14px;border-radius:12px;border:1px solid #ccc;font-family:inherit;font-size:14px;">
+        <select id="zonePicker" autocomplete="off" style="padding:9px 14px;border-radius:12px;border:1px solid #ccc;font-family:inherit;font-size:14px;">
           <option value="none">— Aucune —</option>
           <option value="A" selected>Zone A</option>
           <option value="B">Zone B</option>
@@ -509,6 +519,8 @@ body.fmt-b6 .page {
 </div>
 
 <div id="weeksContainer"></div>
+
+<footer class="app-footer">© 2026 My-Tools — agenda-mois v2026.09.29.1</footer>
 
 
 <script>
