@@ -121,18 +121,19 @@ body {
 }
 .section-label:not(:first-child) { margin-top: 8mm; }
 
-/* ─── Étiquette calendrier (une par semaine) — carrée, hauteur conservée ─── */
+/* ─── Étiquette calendrier (une par semaine) — carrée, hauteur conservée,
+   collées entre elles (pas de gap) pour une seule coupe entre deux ─── */
 .week-cals {
   display: flex;
   flex-wrap: wrap;
-  gap: 5mm;
+  gap: 0;
 }
 
 .week-cal-sticker {
   width: 42mm;
   height: 42mm;
   background: white;
-  border-radius: 8px;
+  border-radius: 0;
   padding: 2.5mm;
   border: 2px solid var(--accent);
   display: flex;
@@ -167,11 +168,11 @@ body {
 .mini-cal .jour-ferie { background: var(--accent); color: white; font-weight: 700; border-radius: 2px; }
 .mini-cal .vacance { text-decoration: underline; text-decoration-color: var(--accent); font-style: italic; }
 
-/* ─── Étiquettes jour — légèrement resserrées pour tenir 5 par ligne ─── */
+/* ─── Étiquettes jour — collées entre elles (pas de gap) ─── */
 .day-labels {
   display: flex;
   flex-wrap: wrap;
-  gap: 2mm;
+  gap: 0;
 }
 
 .day-label {
