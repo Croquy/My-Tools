@@ -205,36 +205,15 @@ body {
 .month-label { width: 40mm; }
 .month-label .name { font-size: 13px; }
 
-/* ─── Page 1 : calendrier + colonne latérale (étiquettes mois/perso) ─── */
-.month-page-row {
-  display: flex;
-  gap: 6mm;
-  align-items: flex-start;
-}
-.side-column {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6mm;
-  min-width: 0;
-}
-.side-labels {
-  display: flex;
-  flex-direction: column;
-  gap: 2mm;
-}
-.side-labels .day-label { width: auto; }
-.side-labels .day-label.month-label { width: 40mm; }
-.side-labels .day-label.custom-label { width: 40mm; }
-
-/* ─── Grand calendrier du mois — carré, largeur conservée ─── */
+/* ─── Grand calendrier du mois — arrondi conservé, un peu moins haut
+   pour éviter l'impression de place pour 6 semaines, largeur conservée ─── */
 .full-month-sticker {
   width: 108mm;
-  height: 108mm;
+  height: 96mm;
   background: white;
   border: 3px solid var(--accent);
   border-radius: 10px;
-  padding: 5mm;
+  padding: 3mm;
   display: flex;
   flex-direction: column;
 }
@@ -243,7 +222,7 @@ body {
   font-size: 18px;
   color: var(--accent);
   text-align: center;
-  margin-bottom: 2mm;
+  margin-bottom: 1mm;
   flex-shrink: 0;
 }
 .full-cal {
@@ -251,14 +230,14 @@ body {
   min-height: 0;
   display: grid;
   grid-template-columns: 16px repeat(7, 1fr);
-  gap: 2px;
+  gap: 1px;
 }
 .full-cal .cal-col-header {
   font-family: 'Handlee', cursive;
   font-size: 10px;
   color: var(--accent);
   text-align: center;
-  padding: 1px 0 3px;
+  padding: 1px 0 2px;
 }
 .full-cal .cal-week-num {
   font-size: 9px;
@@ -273,7 +252,7 @@ body {
 .full-cal .day-cell {
   border: 1px solid rgba(0,0,0,0.12);
   border-radius: 4px;
-  padding: 1px 2px;
+  padding: 0px 2px;
   background: white;
   min-height: 0;
   overflow: hidden;
@@ -356,9 +335,9 @@ body {
   </div>
 
   <div class="info">
-    Version condensée — les étiquettes jour/mois/perso gardent la même taille, mais le calendrier du mois
-    (carré, largeur conservée) et chaque calendrier de semaine (carré, hauteur conservée) sont resserrés
-    pour tenir plus de semaines sur la page. Version complète : <a href="agenda-etiquettes.html">agenda-etiquettes.html</a>.
+    Version condensée — calendriers et étiquettes jour collés (pas d'espace, une seule coupe entre voisins).
+    Page 1 : grand calendrier du mois seul. Page 2 : calendriers de semaine + étiquettes jour, puis
+    étiquette mois (1 exemplaire) et étiquettes perso en bas. Version complète : <a href="agenda-etiquettes.html">agenda-etiquettes.html</a>.
   </div>
 </div>
 
@@ -649,9 +628,6 @@ async function build() {
   pageMonth.innerHTML = "";
   const monthTheme = MONTH_THEMES[month];
 
-  const monthRow = document.createElement("div");
-  monthRow.className = "month-page-row";
-
   const fullSticker = document.createElement("div");
   fullSticker.className = "full-month-sticker";
   fullSticker.style.setProperty("--accent", monthTheme.accent);
@@ -661,49 +637,7 @@ async function build() {
   fullTitle.textContent = `${MONTHS_FR[month]} ${year}`;
   fullSticker.appendChild(fullTitle);
   fullSticker.appendChild(buildFullMonthCal(year, month, holidayMap, vacRanges));
-  monthRow.appendChild(fullSticker);
-
-  const sideColumn = document.createElement("div");
-  sideColumn.className = "side-column";
-
-  const monthLabelTitle = document.createElement("div");
-  monthLabelTitle.className = "section-label";
-  monthLabelTitle.textContent = "Étiquette mois";
-  sideColumn.appendChild(monthLabelTitle);
-
-  const monthLabelsGrid = document.createElement("div");
-  monthLabelsGrid.className = "day-labels side-labels";
-  for (let i = 0; i < 2; i++) {
-    const lbl = document.createElement("div");
-    lbl.className = "day-label month-label";
-    lbl.style.setProperty("--accent", monthTheme.accent);
-    lbl.innerHTML = `<div class="name">${MONTHS_FR[month]} ${year}</div>`;
-    monthLabelsGrid.appendChild(lbl);
-  }
-  sideColumn.appendChild(monthLabelsGrid);
-
-  const customLines = document.getElementById("customLabelsInput").value
-    .split("\n").map(l => l.trim()).filter(l => l.length > 0);
-  if (customLines.length > 0) {
-    const customLabel = document.createElement("div");
-    customLabel.className = "section-label";
-    customLabel.textContent = "Étiquettes personnalisées";
-    sideColumn.appendChild(customLabel);
-
-    const customGrid = document.createElement("div");
-    customGrid.className = "day-labels side-labels";
-    customLines.forEach(text => {
-      const lbl = document.createElement("div");
-      lbl.className = "day-label custom-label";
-      lbl.style.setProperty("--accent", monthTheme.accent);
-      lbl.innerHTML = `<div class="name">${text}</div>`;
-      customGrid.appendChild(lbl);
-    });
-    sideColumn.appendChild(customGrid);
-  }
-
-  monthRow.appendChild(sideColumn);
-  pageMonth.appendChild(monthRow);
+  pageMonth.appendChild(fullSticker);
 
   const page = document.getElementById("page");
   page.innerHTML = "";
@@ -762,6 +696,40 @@ async function build() {
     labelsGrid.appendChild(lbl);
   });
   page.appendChild(labelsGrid);
+
+  const monthLabelTitle = document.createElement("div");
+  monthLabelTitle.className = "section-label";
+  monthLabelTitle.textContent = "Étiquette mois";
+  page.appendChild(monthLabelTitle);
+
+  const monthLabelsGrid = document.createElement("div");
+  monthLabelsGrid.className = "day-labels";
+  const monthLbl = document.createElement("div");
+  monthLbl.className = "day-label month-label";
+  monthLbl.style.setProperty("--accent", monthTheme.accent);
+  monthLbl.innerHTML = `<div class="name">${MONTHS_FR[month]} ${year}</div>`;
+  monthLabelsGrid.appendChild(monthLbl);
+  page.appendChild(monthLabelsGrid);
+
+  const customLines = document.getElementById("customLabelsInput").value
+    .split("\n").map(l => l.trim()).filter(l => l.length > 0);
+  if (customLines.length > 0) {
+    const customLabel = document.createElement("div");
+    customLabel.className = "section-label";
+    customLabel.textContent = "Étiquettes personnalisées";
+    page.appendChild(customLabel);
+
+    const customGrid = document.createElement("div");
+    customGrid.className = "day-labels";
+    customLines.forEach(text => {
+      const lbl = document.createElement("div");
+      lbl.className = "day-label custom-label";
+      lbl.style.setProperty("--accent", monthTheme.accent);
+      lbl.innerHTML = `<div class="name">${text}</div>`;
+      customGrid.appendChild(lbl);
+    });
+    page.appendChild(customGrid);
+  }
 }
 
 document.getElementById("moisPicker").addEventListener("change", build);
