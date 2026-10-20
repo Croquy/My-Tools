@@ -123,13 +123,15 @@ body {
 
 /* ─── Étiquette calendrier (une par semaine) — carrée, hauteur conservée,
    collées entre elles (pas de gap) pour une seule coupe entre deux ─── */
-.week-cals {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0;
+.cal-area {
+  overflow: hidden; /* clearfix pour contenir les flottants */
 }
+.cal-area::after { content: ""; display: table; clear: both; }
+
+.full-month-sticker { float: left; }
 
 .week-cal-sticker {
+  float: left;
   width: 42mm;
   height: 42mm;
   background: white;
@@ -332,16 +334,12 @@ body {
 
   <div class="info">
     Version condensée — calendriers et étiquettes jour collés (pas d'espace, une seule coupe entre voisins).
-    Page 1 : grand calendrier du mois seul. Page 2 : calendriers de semaine + étiquettes jour, puis
-    étiquette mois (1 exemplaire) et étiquettes perso en bas. Version complète : <a href="agenda-etiquettes.html">agenda-etiquettes.html</a>.
+    Une seule page : calendrier du mois à gauche, calendriers de semaine à côté/en dessous, puis
+    toutes les étiquettes (jour, mois, perso) en bas. Version complète : <a href="agenda-etiquettes.html">agenda-etiquettes.html</a>.
   </div>
 </div>
 
 <div class="page-wrap">
-  <div class="page" id="pageMonth"></div>
-</div>
-
-<div class="page-wrap" style="margin-top:16px;">
   <div class="page" id="page"></div>
 </div>
 
@@ -620,9 +618,12 @@ async function build() {
 
   updateNav(weeks[0] || new Date(year, month, 1));
 
-  const pageMonth = document.getElementById("pageMonth");
-  pageMonth.innerHTML = "";
+  const page = document.getElementById("page");
+  page.innerHTML = "";
   const monthTheme = MONTH_THEMES[month];
+
+  const calArea = document.createElement("div");
+  calArea.className = "cal-area";
 
   const fullSticker = document.createElement("div");
   fullSticker.className = "full-month-sticker";
@@ -633,18 +634,8 @@ async function build() {
   fullTitle.textContent = `${MONTHS_FR[month]} ${year}`;
   fullSticker.appendChild(fullTitle);
   fullSticker.appendChild(buildFullMonthCal(year, month, holidayMap, vacRanges));
-  pageMonth.appendChild(fullSticker);
+  calArea.appendChild(fullSticker);
 
-  const page = document.getElementById("page");
-  page.innerHTML = "";
-
-  const calsLabel = document.createElement("div");
-  calsLabel.className = "section-label";
-  calsLabel.textContent = `${MONTHS_FR[month]} ${year} — calendriers par semaine`;
-  page.appendChild(calsLabel);
-
-  const calsRow = document.createElement("div");
-  calsRow.className = "week-cals";
   weeks.forEach(monday => {
     const isoWeek = getISOWeek(monday);
     const theme = WEEK_THEMES[isoWeek] || WEEK_THEMES[1];
@@ -657,9 +648,9 @@ async function build() {
     title.textContent = `${MONTHS_FR[month]} - S${isoWeek}`;
     sticker.appendChild(title);
     sticker.appendChild(buildMiniCal(year, month, isoWeek, holidayMap, vacRanges));
-    calsRow.appendChild(sticker);
+    calArea.appendChild(sticker);
   });
-  page.appendChild(calsRow);
+  page.appendChild(calArea);
 
   const labelsLabel = document.createElement("div");
   labelsLabel.className = "section-label";
