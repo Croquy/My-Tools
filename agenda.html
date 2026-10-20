@@ -367,6 +367,7 @@ body.fmt-b6 .page {
   <a href="agenda.html" id="navHebdo" class="active">📋 Vue hebdo</a>
   <a href="agenda-mois.html" id="navMensuel">📅 Vue mensuelle</a>
   <a href="agenda-etiquettes.html" id="navEtiquette">🏷️ Vue étiquette</a>
+  <a href="agenda-etiquettes-mini.html" id="navEtiquetteMini">🏷️ Vue étiquette mini</a>
 </div>
 
 <!-- ════════════════════════════════
@@ -868,6 +869,7 @@ function updateNav(monday) {
   const mois = `${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,"0")}`;
   document.getElementById("navMensuel").href  = `agenda-mois.html?mois=${mois}&zone=${zone}`;
   document.getElementById("navEtiquette").href = `agenda-etiquettes.html?mois=${mois}&zone=${zone}`;
+  document.getElementById("navEtiquetteMini").href = `agenda-etiquettes-mini.html?mois=${mois}&zone=${zone}`;
 }
 
 
