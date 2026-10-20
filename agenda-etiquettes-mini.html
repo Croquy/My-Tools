@@ -124,14 +124,17 @@ body {
 /* ─── Étiquette calendrier (une par semaine) — carrée, hauteur conservée,
    collées entre elles (pas de gap) pour une seule coupe entre deux ─── */
 .cal-area {
-  overflow: hidden; /* clearfix pour contenir les flottants */
+  display: flex;
+  flex-direction: column;
 }
-.cal-area::after { content: ""; display: table; clear: both; }
 
-.full-month-sticker { float: left; }
+.week-cals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+}
 
 .week-cal-sticker {
-  float: left;
   width: 42mm;
   height: 42mm;
   background: white;
@@ -636,6 +639,8 @@ async function build() {
   fullSticker.appendChild(buildFullMonthCal(year, month, holidayMap, vacRanges));
   calArea.appendChild(fullSticker);
 
+  const weekCalsRow = document.createElement("div");
+  weekCalsRow.className = "week-cals";
   weeks.forEach(monday => {
     const isoWeek = getISOWeek(monday);
     const theme = WEEK_THEMES[isoWeek] || WEEK_THEMES[1];
@@ -648,14 +653,10 @@ async function build() {
     title.textContent = `${MONTHS_FR[month]} - S${isoWeek}`;
     sticker.appendChild(title);
     sticker.appendChild(buildMiniCal(year, month, isoWeek, holidayMap, vacRanges));
-    calArea.appendChild(sticker);
+    weekCalsRow.appendChild(sticker);
   });
+  calArea.appendChild(weekCalsRow);
   page.appendChild(calArea);
-
-  const labelsLabel = document.createElement("div");
-  labelsLabel.className = "section-label";
-  labelsLabel.textContent = "Étiquettes";
-  page.appendChild(labelsLabel);
 
   const labelsGrid = document.createElement("div");
   labelsGrid.className = "day-labels";
