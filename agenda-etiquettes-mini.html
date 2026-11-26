@@ -129,6 +129,12 @@ body {
   margin-bottom: 4mm;
 }
 
+.cal-top-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0;
+}
+
 .week-cals {
   display: flex;
   flex-wrap: wrap;
@@ -660,11 +666,8 @@ async function build() {
   fullTitle.textContent = `${MONTHS_FR[month]} ${year}`;
   fullSticker.appendChild(fullTitle);
   fullSticker.appendChild(buildFullMonthCal(year, month, holidayMap, vacRanges));
-  calArea.appendChild(fullSticker);
 
-  const weekCalsRow = document.createElement("div");
-  weekCalsRow.className = "week-cals";
-  weeks.forEach(monday => {
+  function makeWeekCalSticker(monday) {
     const isoWeek = getISOWeek(monday);
     const theme = WEEK_THEMES[isoWeek] || WEEK_THEMES[1];
     const sticker = document.createElement("div");
@@ -676,7 +679,19 @@ async function build() {
     title.textContent = `${MONTHS_FR[month]} - S${isoWeek}`;
     sticker.appendChild(title);
     sticker.appendChild(buildMiniCal(year, month, isoWeek, holidayMap, vacRanges));
-    weekCalsRow.appendChild(sticker);
+    return sticker;
+  }
+
+  const topRow = document.createElement("div");
+  topRow.className = "cal-top-row";
+  topRow.appendChild(fullSticker);
+  if (weeks.length > 0) topRow.appendChild(makeWeekCalSticker(weeks[0]));
+  calArea.appendChild(topRow);
+
+  const weekCalsRow = document.createElement("div");
+  weekCalsRow.className = "week-cals";
+  weeks.slice(1).forEach(monday => {
+    weekCalsRow.appendChild(makeWeekCalSticker(monday));
   });
   calArea.appendChild(weekCalsRow);
   page.appendChild(calArea);
