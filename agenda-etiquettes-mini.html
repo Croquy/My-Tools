@@ -175,10 +175,31 @@ body {
 .mini-cal .vacance { text-decoration: underline; text-decoration-color: var(--accent); font-style: italic; }
 
 /* ─── Étiquettes jour — collées entre elles (pas de gap) ─── */
+.labels-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
 .day-labels {
   display: flex;
   flex-wrap: wrap;
   gap: 0;
+  flex: 1;
+}
+
+.side-labels {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 0;
+  flex-shrink: 0;
+}
+
+.day-group {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
 }
 
 .day-label {
@@ -662,35 +683,54 @@ async function build() {
 
   const labelsGrid = document.createElement("div");
   labelsGrid.className = "day-labels";
-  weeks.forEach(monday => {
-    const isoWeek = getISOWeek(monday);
-    const theme = WEEK_THEMES[isoWeek] || WEEK_THEMES[1];
-    for (let i = 0; i < 5; i++) {
-      const d = new Date(monday); d.setDate(d.getDate() + i);
-      const dk = dateKey(d);
-      const lbl = document.createElement("div");
-      lbl.className = "day-label";
-      lbl.style.setProperty("--accent", theme.accent);
-      let sub = "";
-      if (holidayMap.has(dk)) sub = holidayMap.get(dk);
-      else if (isVacance(dk, vacRanges)) sub = "Vacances";
-      lbl.innerHTML = `<div class="name">${DAY_NAMES[i]} ${d.getDate()}</div>${sub ? `<div class="sub">${sub}</div>` : ""}`;
-      labelsGrid.appendChild(lbl);
-    }
-    const sat = new Date(monday); sat.setDate(sat.getDate()+5);
-    const sun = new Date(monday); sun.setDate(sun.getDate()+6);
+  function makeDayLabel(d, theme, name) {
+    const dk = dateKey(d);
     const lbl = document.createElement("div");
     lbl.className = "day-label";
     lbl.style.setProperty("--accent", theme.accent);
-    lbl.innerHTML = `<div class="name">Weekend ${sat.getDate()}-${sun.getDate()}</div>`;
-    labelsGrid.appendChild(lbl);
+    let sub = "";
+    if (holidayMap.has(dk)) sub = holidayMap.get(dk);
+    else if (isVacance(dk, vacRanges)) sub = "Vacances";
+    lbl.innerHTML = `<div class="name">${name} ${d.getDate()}</div>${sub ? `<div class="sub">${sub}</div>` : ""}`;
+    return lbl;
+  }
+
+  weeks.forEach(monday => {
+    const isoWeek = getISOWeek(monday);
+    const theme = WEEK_THEMES[isoWeek] || WEEK_THEMES[1];
+
+    const group1 = document.createElement("div");
+    group1.className = "day-group";
+    for (let i = 0; i < 3; i++) {
+      const d = new Date(monday); d.setDate(d.getDate() + i);
+      group1.appendChild(makeDayLabel(d, theme, DAY_NAMES[i]));
+    }
+    labelsGrid.appendChild(group1);
+
+    const group2 = document.createElement("div");
+    group2.className = "day-group";
+    for (let i = 3; i < 5; i++) {
+      const d = new Date(monday); d.setDate(d.getDate() + i);
+      group2.appendChild(makeDayLabel(d, theme, DAY_NAMES[i]));
+    }
+    const sat = new Date(monday); sat.setDate(sat.getDate()+5);
+    const sun = new Date(monday); sun.setDate(sun.getDate()+6);
+    const weekendLbl = document.createElement("div");
+    weekendLbl.className = "day-label";
+    weekendLbl.style.setProperty("--accent", theme.accent);
+    weekendLbl.innerHTML = `<div class="name">Weekend ${sat.getDate()}-${sun.getDate()}</div>`;
+    group2.appendChild(weekendLbl);
+    labelsGrid.appendChild(group2);
   });
+
+  const sideLabels = document.createElement("div");
+  sideLabels.className = "side-labels";
 
   const monthLbl = document.createElement("div");
   monthLbl.className = "day-label month-label";
   monthLbl.style.setProperty("--accent", monthTheme.accent);
   monthLbl.innerHTML = `<div class="name">${MONTHS_FR[month]} ${year}</div>`;
-  labelsGrid.appendChild(monthLbl);
+  sideLabels.appendChild(monthLbl);
 
   const customLines = document.getElementById("customLabelsInput").value
     .split("\n").map(l => l.trim()).filter(l => l.length > 0);
@@ -699,10 +739,14 @@ async function build() {
     lbl.className = "day-label custom-label";
     lbl.style.setProperty("--accent", monthTheme.accent);
     lbl.innerHTML = `<div class="name">${text}</div>`;
-    labelsGrid.appendChild(lbl);
+    sideLabels.appendChild(lbl);
   });
 
-  page.appendChild(labelsGrid);
+  const labelsRow = document.createElement("div");
+  labelsRow.className = "labels-row";
+  labelsRow.appendChild(labelsGrid);
+  labelsRow.appendChild(sideLabels);
+  page.appendChild(labelsRow);
 }
 
 document.getElementById("moisPicker").addEventListener("change", build);
