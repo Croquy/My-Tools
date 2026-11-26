@@ -181,6 +181,12 @@ body {
   gap: 0;
 }
 
+.day-group {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
 .day-label {
   width: 34mm;
   height: 10mm;
@@ -353,6 +359,7 @@ body {
 <script>
 const MONTHS_FR = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 const DAYS_SHORT = ["L","M","M","J","V","S","D"];
+const DAY_NAMES = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi"];
 
 function getISOWeek(date) {
   const d = new Date(date);
@@ -661,38 +668,44 @@ async function build() {
 
   const labelsGrid = document.createElement("div");
   labelsGrid.className = "day-labels";
-  function groupSub(monday, fromOffset, toOffset) {
+  function makeDayLabel(d, theme, name) {
+    const dk = dateKey(d);
+    const lbl = document.createElement("div");
+    lbl.className = "day-label";
+    lbl.style.setProperty("--accent", theme.accent);
     let sub = "";
-    for (let i = fromOffset; i <= toOffset; i++) {
-      const d = new Date(monday); d.setDate(d.getDate() + i);
-      const dk = dateKey(d);
-      if (holidayMap.has(dk)) { sub = holidayMap.get(dk); break; }
-      if (isVacance(dk, vacRanges)) sub = "Vacances";
-    }
-    return sub;
+    if (holidayMap.has(dk)) sub = holidayMap.get(dk);
+    else if (isVacance(dk, vacRanges)) sub = "Vacances";
+    lbl.innerHTML = `<div class="name">${name} ${d.getDate()}</div>${sub ? `<div class="sub">${sub}</div>` : ""}`;
+    return lbl;
   }
 
   weeks.forEach(monday => {
     const isoWeek = getISOWeek(monday);
     const theme = WEEK_THEMES[isoWeek] || WEEK_THEMES[1];
 
-    const lunMon = new Date(monday);
-    const merMon = new Date(monday); merMon.setDate(merMon.getDate() + 2);
-    const lbl1 = document.createElement("div");
-    lbl1.className = "day-label";
-    lbl1.style.setProperty("--accent", theme.accent);
-    const sub1 = groupSub(monday, 0, 2);
-    lbl1.innerHTML = `<div class="name">Lun-Mer ${lunMon.getDate()}-${merMon.getDate()}</div>${sub1 ? `<div class="sub">${sub1}</div>` : ""}`;
-    labelsGrid.appendChild(lbl1);
+    const group1 = document.createElement("div");
+    group1.className = "day-group";
+    for (let i = 0; i < 3; i++) {
+      const d = new Date(monday); d.setDate(d.getDate() + i);
+      group1.appendChild(makeDayLabel(d, theme, DAY_NAMES[i]));
+    }
+    labelsGrid.appendChild(group1);
 
-    const jeuMon = new Date(monday); jeuMon.setDate(jeuMon.getDate() + 3);
-    const dimMon = new Date(monday); dimMon.setDate(dimMon.getDate() + 6);
-    const lbl2 = document.createElement("div");
-    lbl2.className = "day-label";
-    lbl2.style.setProperty("--accent", theme.accent);
-    const sub2 = groupSub(monday, 3, 6);
-    lbl2.innerHTML = `<div class="name">Jeu-Dim ${jeuMon.getDate()}-${dimMon.getDate()}</div>${sub2 ? `<div class="sub">${sub2}</div>` : ""}`;
-    labelsGrid.appendChild(lbl2);
+    const group2 = document.createElement("div");
+    group2.className = "day-group";
+    for (let i = 3; i < 5; i++) {
+      const d = new Date(monday); d.setDate(d.getDate() + i);
+      group2.appendChild(makeDayLabel(d, theme, DAY_NAMES[i]));
+    }
+    const sat = new Date(monday); sat.setDate(sat.getDate()+5);
+    const sun = new Date(monday); sun.setDate(sun.getDate()+6);
+    const weekendLbl = document.createElement("div");
+    weekendLbl.className = "day-label";
+    weekendLbl.style.setProperty("--accent", theme.accent);
+    weekendLbl.innerHTML = `<div class="name">Weekend ${sat.getDate()}-${sun.getDate()}</div>`;
+    group2.appendChild(weekendLbl);
+    labelsGrid.appendChild(group2);
   });
 
   const monthLbl = document.createElement("div");
