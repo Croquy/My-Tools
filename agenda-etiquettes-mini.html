@@ -175,10 +175,25 @@ body {
 .mini-cal .vacance { text-decoration: underline; text-decoration-color: var(--accent); font-style: italic; }
 
 /* ─── Étiquettes jour — collées entre elles (pas de gap) ─── */
+.labels-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
 .day-labels {
   display: flex;
   flex-wrap: wrap;
   gap: 0;
+  flex: 1;
+}
+
+.side-labels {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 0;
+  flex-shrink: 0;
 }
 
 .day-group {
@@ -708,11 +723,14 @@ async function build() {
     labelsGrid.appendChild(group2);
   });
 
+  const sideLabels = document.createElement("div");
+  sideLabels.className = "side-labels";
+
   const monthLbl = document.createElement("div");
   monthLbl.className = "day-label month-label";
   monthLbl.style.setProperty("--accent", monthTheme.accent);
   monthLbl.innerHTML = `<div class="name">${MONTHS_FR[month]} ${year}</div>`;
-  labelsGrid.appendChild(monthLbl);
+  sideLabels.appendChild(monthLbl);
 
   const customLines = document.getElementById("customLabelsInput").value
     .split("\n").map(l => l.trim()).filter(l => l.length > 0);
@@ -721,10 +739,14 @@ async function build() {
     lbl.className = "day-label custom-label";
     lbl.style.setProperty("--accent", monthTheme.accent);
     lbl.innerHTML = `<div class="name">${text}</div>`;
-    labelsGrid.appendChild(lbl);
+    sideLabels.appendChild(lbl);
   });
 
-  page.appendChild(labelsGrid);
+  const labelsRow = document.createElement("div");
+  labelsRow.className = "labels-row";
+  labelsRow.appendChild(labelsGrid);
+  labelsRow.appendChild(sideLabels);
+  page.appendChild(labelsRow);
 }
 
 document.getElementById("moisPicker").addEventListener("change", build);
